@@ -84,7 +84,7 @@ namespace BlueMuse.MuseBluetooth
                 Debug.WriteLine("Device Name: " + device.Name); 
                 Debug.WriteLine("Current Connection Status: " + device.ConnectionStatus);
 
-                // List all services and characteristics. For debugging.
+                // For debugging - list all services and characteristics. 
                 //var services = await device.GetGattServicesAsync();
                 //foreach(var service in services.Services)
                 //{
@@ -248,8 +248,8 @@ namespace BlueMuse.MuseBluetooth
         private float[] GetTimeSamples(BitArray bitData)
         {
             // Extract our 12, 12-bit samples.
-            float[] timeSamples = new float[12];
-            for (int i = 0; i < 12; i++)
+            float[] timeSamples = new float[Constants.MUSE_SAMPLE_COUNT];
+            for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
             {
                 timeSamples[i] = bitData.ToUInt12(16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
                 timeSamples[i] = (timeSamples[i] - 2048) * 0.48828125f; // 12 bits on a 2 mVpp range.
@@ -259,11 +259,11 @@ namespace BlueMuse.MuseBluetooth
 
         private void PushSampleLSL(MuseSample sample, LSL.liblsl.StreamOutlet stream)
         {
-            float[,] data = new float[12,5];
-            for(int i = 0; i < Constants.MUSE_CHANNEL_UUIDS.Length; i++)
+            float[,] data = new float[Constants.MUSE_SAMPLE_COUNT,Constants.MUSE_CHANNEL_COUNT];
+            for(int i = 0; i < Constants.MUSE_CHANNEL_COUNT; i++)
             {
                 var channelData = sample.ChannelData[Constants.MUSE_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
-                for(int j = 0; j < channelData.Length; j++)
+                for(int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                 {
                     data[j, i] = channelData[j];
                 }
@@ -271,27 +271,30 @@ namespace BlueMuse.MuseBluetooth
             stream.push_chunk(data, sample.TimeStamps);
         }
 
+        LSL.liblsl.StreamInlet inlet;
         private void TestLSLStream()
         {
-            LSL.liblsl.StreamInfo[] results = LSL.liblsl.resolve_stream("type", "EEG");
-            // open an inlet and print some interesting info about the stream (meta-data, etc.)
-            LSL.liblsl.StreamInlet inlet = new LSL.liblsl.StreamInlet(results[0]);
-            inlet.open_stream();
+            // Try to read a stream and display data.
+            if (inlet == null)
+            {
+                LSL.liblsl.StreamInfo[] results = LSL.liblsl.resolve_stream("type", "EEG");
+                inlet = new LSL.liblsl.StreamInlet(results[0]);
+            }
+
             Debug.Write(inlet.info().as_xml());
-            float[,] data = new float[12, 5];
-            double[] timestamps = new double[12];
-            var chunk = inlet.pull_chunk(data, timestamps, 100);
-            for (int i = 0; i < 12; i++)
+            float[,] data = new float[Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_CHANNEL_COUNT];
+            double[] timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
+            var chunk = inlet.pull_chunk(data, timestamps);
+            for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
             {
                 Debug.WriteLine(timestamps[i]);
 
-                for (int j = 0; j < 5; j++)
+                for (int j = 0; j < Constants.MUSE_CHANNEL_COUNT; j++)
                 {
                     Debug.Write(data[i, j]);
                 }
                 Debug.Write("\n");
             }
-            inlet.close_stream();
         }
 
         private void Channel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args, Muse muse)
@@ -309,7 +312,7 @@ namespace BlueMuse.MuseBluetooth
                     if (!muse.SampleBuffer.ContainsKey(museTimestamp))
                     {
                         sample = new MuseSample();
-                        sample.BaseTimeStamp = DateTime.Now; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                        sample.BaseTimeStamp = args.Timestamp; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
                         muse.SampleBuffer[museTimestamp] = sample;
                     }
                     else sample = muse.SampleBuffer[museTimestamp];
@@ -318,7 +321,7 @@ namespace BlueMuse.MuseBluetooth
                     sample.ChannelData[sender.Uuid] = GetTimeSamples(bitData);
 
                     // If we have all 5 channels, we can push the 12 samples for each channel.
-                    if (sample.ChannelData.Count == 5)
+                    if (sample.ChannelData.Count == Constants.MUSE_CHANNEL_COUNT)
                     {
                         PushSampleLSL(sample, muse.LSLStream);
                         muse.SampleBuffer.Remove(museTimestamp);

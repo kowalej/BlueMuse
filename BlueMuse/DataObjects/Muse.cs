@@ -1,7 +1,6 @@
 ﻿using BlueMuse.Helpers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
 using Windows.ApplicationModel;
 using Windows.Devices.Bluetooth;
@@ -18,30 +17,33 @@ namespace BlueMuse.DataObjects
 
     public class MuseSample
     {
-        public DateTime BaseTimeStamp
+        private DateTimeOffset baseTimeStamp;
+        public DateTimeOffset BaseTimeStamp
         {
             get
             {
-                return timeStamps[11];
+                return baseTimeStamp;
             }
             set
             {
-                for (int i = 0; i < 12; i++)
+                baseTimeStamp = value;
+                double baseMillis = baseTimeStamp.DateTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
+                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
-                    timeStamps[i] = value.AddMilliseconds(-(((12 - i) * 4) - 1)); // Adjust time considering each samples is 4ms.
+                    timeStamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
                 }
-                timeStamps[11] = value;
             }
         }
-        private DateTime[] timeStamps;
-        public double[] TimeStamps { get { return timeStamps.Select(x => (double)x.Ticks).OrderBy(x => x).ToArray(); } }
+
+        private double[] timeStamps;
+        public double[] TimeStamps { get { return timeStamps; } }
 
         public Dictionary<Guid, float[]> ChannelData;
 
         public MuseSample()
         {
             ChannelData = new Dictionary<Guid, float[]>();
-            timeStamps = new DateTime[12];
+            timeStamps = new double[Constants.MUSE_SAMPLE_COUNT];
         }
     }
 
@@ -55,7 +57,7 @@ namespace BlueMuse.DataObjects
             get
             {
                 if (lslStream == null)
-                    lslStream = new LSL.liblsl.StreamOutlet(lslStreamInfo, 12, 360);
+                    lslStream = new LSL.liblsl.StreamOutlet(lslStreamInfo, Constants.MUSE_SAMPLE_COUNT, 360);
                 var xml = lslStream.info().as_xml();
                 return lslStream;
             }
@@ -70,7 +72,7 @@ namespace BlueMuse.DataObjects
             get
             {
                 if (channelEventHandlers == null)
-                    channelEventHandlers = new TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs>[5];
+                    channelEventHandlers = new TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs>[Constants.MUSE_CHANNEL_COUNT];
                 return channelEventHandlers;
             }
             set { channelEventHandlers = value; }
@@ -127,7 +129,7 @@ namespace BlueMuse.DataObjects
             Name = name;
             Id = id;
             Status = status;
-            lslStreamInfo = new LSL.liblsl.StreamInfo(string.Format("{0} ({1})", name, MacAddress), "EEG", 5, 256, LSL.liblsl.channel_format_t.cf_float32, Package.Current.DisplayName);
+            lslStreamInfo = new LSL.liblsl.StreamInfo(string.Format("{0} ({1})", name, MacAddress), "EEG", Constants.MUSE_CHANNEL_COUNT, Constants.MUSE_SAMPLE_RATE, LSL.liblsl.channel_format_t.cf_float32, Package.Current.DisplayName);
             lslStreamInfo.desc().append_child_value("manufacturer", "Muse");
             lslStreamInfo.desc().append_child_value("manufacturer", "Muse");
             lslStreamInfo.desc().append_child_value("type", "EEG");
