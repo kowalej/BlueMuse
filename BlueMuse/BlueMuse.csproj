@@ -41,7 +41,7 @@
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
     <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
     <DebugSymbols>true</DebugSymbols>
@@ -98,7 +98,7 @@
     </Compile>
     <Compile Include="Helpers\PacketConversion.cs" />
     <Compile Include="Misc\Constants.cs" />
-    <Compile Include="DataObjects\Muse.cs" />
+    <Compile Include="MuseBluetooth\Muse.cs" />
     <Compile Include="Helpers\CommandHandler.cs" />
     <Compile Include="Helpers\Converters.cs" />
     <Compile Include="Helpers\ObservableCollection.cs" />
@@ -107,7 +107,7 @@
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MuseBluetooth\MuseBluetoothManager.cs" />
+    <Compile Include="Bluetooth\BluetoothManager.cs" />
     <Compile Include="ViewModels\MainPageVM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

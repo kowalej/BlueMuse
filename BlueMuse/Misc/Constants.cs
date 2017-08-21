@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BlueMuse
 {
@@ -14,6 +10,7 @@ namespace BlueMuse
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
         public const int MUSE_CHANNEL_COUNT = 5;
         public const int MUSE_SAMPLE_COUNT = 12;
+        public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
         // GAAT service to start and stop streaming.
         public static readonly Guid MUSE_TOGGLE_STREAM_UUID = new Guid("273e0001-4c4d-454d-96be-f03bac821358");
