@@ -1,65 +1,33 @@
-﻿using BlueMuse.Helpers;
+﻿using BlueMuse.AppService;
+using BlueMuse.Helpers;
+using Newtonsoft.Json;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
+using Windows.Foundation;
+using Windows.Foundation.Collections;
 using Windows.Storage.Streams;
 
-namespace BlueMuse.MuseBluetooth
+namespace BlueMuse.MuseManagement
 {
-    public enum MuseConnectionStatus
-    {
-        Online = 0,
-        Offline = 1
-    }
-
-    public class MuseSample
-    {
-        private DateTimeOffset baseTimeStamp;
-        public DateTimeOffset BaseTimeStamp
-        {
-            get
-            {
-                return baseTimeStamp;
-            }
-            set
-            {
-                baseTimeStamp = value;
-                double baseMillis = baseTimeStamp.DateTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
-                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
-                {
-                    TimeStamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
-                }
-            }
-        }
-
-        public double[] TimeStamps { get; private set; }
-        public Dictionary<Guid, float[]> ChannelData { get; private set; }
-
-        public MuseSample()
-        {
-            ChannelData = new Dictionary<Guid, float[]>();
-            TimeStamps = new double[Constants.MUSE_SAMPLE_COUNT];
-        }
-    }
-
     public class Muse : ObservableObject, IDisposable
     {
         private static readonly Object syncLock = new object();
-        public LSL.liblsl.StreamInfo LSLStreamInfo { get; private set; }
-        private LSL.liblsl.StreamInlet lslStreamIn;
-        private LSL.liblsl.StreamOutlet lslStream;
 
-        public BluetoothLEDevice Device { get; set; }
-        private GattDeviceService deviceService { get; set; }
-        private Dictionary<UInt16, MuseSample> sampleBuffer { get; set; }
+        public BluetoothLEDevice Device;
+
+        private GattDeviceService deviceService;
+        private List<GattCharacteristic> channels;
+
+        private volatile Dictionary<UInt16, MuseSample> sampleBuffer;
 
         private string name;
         public string Name { get { return name; } set { SetProperty(ref name, value); OnPropertyChanged(nameof(LongName)); } }
@@ -123,18 +91,6 @@ namespace BlueMuse.MuseBluetooth
             Name = name;
             Id = id;
             Status = status;
-            LSLStreamInfo = new LSL.liblsl.StreamInfo(string.Format("{0} ({1})", name, MacAddress), "EEG", Constants.MUSE_CHANNEL_COUNT, Constants.MUSE_SAMPLE_RATE, LSL.liblsl.channel_format_t.cf_float32, Package.Current.DisplayName);
-            LSLStreamInfo.desc().append_child_value("manufacturer", "Muse");
-            LSLStreamInfo.desc().append_child_value("manufacturer", "Muse");
-            LSLStreamInfo.desc().append_child_value("type", "EEG");
-            var channels = LSLStreamInfo.desc().append_child("channels");
-            foreach (var c in Constants.MUSE_CHANNEL_LABELS)
-            {
-                channels.append_child("channel")
-                .append_child_value("label", c)
-                .append_child_value("unit", "microvolts")
-                .append_child_value("type", "EEG");
-            }
         }
 
         // Flag: Has Dispose already been called?
@@ -155,10 +111,8 @@ namespace BlueMuse.MuseBluetooth
 
             if (disposing)
             {
-                Device.Dispose();
-                LSLStreamInfo.Dispose();
-                lslStream.Dispose();
-                lslStreamIn.Dispose();
+                if(Device != null)
+                    Device.Dispose();
             }
 
             // Free any unmanaged objects here.
@@ -166,20 +120,20 @@ namespace BlueMuse.MuseBluetooth
 
             disposed = true;
         }
-        
+
         public async Task ToggleStream(bool start)
         {
             try
             {
                 if (start)
-                { 
-                    lslStream = new LSL.liblsl.StreamOutlet(LSLStreamInfo, Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_LSL_BUFFER_LENGTH);
+                {
+                    await LSLOpenStream();
+                    if (channels == null) channels = new List<GattCharacteristic>(Constants.MUSE_CHANNEL_COUNT);
                     // Get GATT service on start, therefore it will be already available when stopping.
                     deviceService = (await Device.GetGattServicesForUuidAsync(Constants.MUSE_DATA_SERVICE_UUID)).Services.First();
                 }
 
                 var characteristics = (await deviceService.GetCharacteristicsAsync()).Characteristics;
-                var channels = new List<GattCharacteristic>();
                 foreach (var c in Constants.MUSE_CHANNEL_UUIDS)
                 {
                     channels.Add(characteristics.Single(x => x.Uuid == c));
@@ -202,13 +156,14 @@ namespace BlueMuse.MuseBluetooth
 
                 for (int i = 0; i < channels.Count; i++)
                 {
-                    await channels[i].WriteClientCharacteristicConfigurationDescriptorAsync(notify);
                     if (start)
                     {
+                        TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs> d = (s, a) => Channel_ValueChanged(s, a);
                         channels[i].ValueChanged += Channel_ValueChanged;
                         sampleBuffer = new Dictionary<ushort, MuseSample>();
                     }
                     else channels[i].ValueChanged -= Channel_ValueChanged;
+                    await channels[i].WriteClientCharacteristicConfigurationDescriptorAsync(notify);
                 }
 
                 // Tell Muse to start or stop notifications.
@@ -216,36 +171,51 @@ namespace BlueMuse.MuseBluetooth
             }
             catch (InvalidOperationException) { deviceService.Dispose(); return; }
 
-            if (start)
+            if (!start)
             {
-                ActivateStream();
-            }
-
-            else
-            {
-                DeactivateStream();
+                channels.Clear();
+                await LSLCloseStream();
                 deviceService.Dispose(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
             }
             IsStreaming = start;
         }
 
-        private void ActivateStream()
+        private async Task LSLOpenStream()
         {
-            new Timer((s) => {
-                lslStreamIn = new LSL.liblsl.StreamInlet(LSLStreamInfo, Constants.MUSE_LSL_BUFFER_LENGTH, Constants.MUSE_SAMPLE_COUNT);
-                lslStreamIn.open_stream();
-            }, new AutoResetEvent(false), 65, 0); // Activate inlet in 70ms so we have our first chunk.   
+            ValueSet message = new ValueSet();
+            message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
+            await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }
 
-        private void DeactivateStream()
+        private async Task LSLCloseStream()
         {
-            if (lslStreamIn != null)
+            ValueSet message = new ValueSet();
+            message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
+            await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM, message);
+        }
+
+        private async Task LSLPushChunk(MuseSample sample)
+        {
+            ValueSet message = new ValueSet();
+            message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
+            float[] data = new float[Constants.MUSE_SAMPLE_COUNT * Constants.MUSE_CHANNEL_COUNT]; // Can only send 1D array with this garbage :S
+            double[] timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
+
+            for (int i = 0; i < Constants.MUSE_CHANNEL_COUNT; i++)
             {
-                lslStreamIn.close_stream();
-                lslStreamIn.Dispose();
+                var channelData = sample.ChannelData[Constants.MUSE_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
+                for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
+                {
+                    if (i == 1)
+                        timestamps[j] = sample.TimeStamps[j];
+                    data[(i * j) + j] = channelData[j];
+                }
             }
-            if(lslStream != null)
-                lslStream.Dispose();
+          
+            message.Add(Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, timestamps);
+                
+            await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
         }
 
         private float[] GetTimeSamples(BitArray bitData)
@@ -260,52 +230,36 @@ namespace BlueMuse.MuseBluetooth
             return timeSamples;
         }
 
-        private void PushSampleLSL(MuseSample sample)
+        private async void Channel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            float[,] data = new float[Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_CHANNEL_COUNT];
-            for (int i = 0; i < Constants.MUSE_CHANNEL_COUNT; i++)
+            if (isStreaming)
             {
-                var channelData = sample.ChannelData[Constants.MUSE_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
-                for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
+                byte[] rawData = new byte[args.CharacteristicValue.Length];
+                using (var reader = DataReader.FromBuffer(args.CharacteristicValue))
                 {
-                    data[j, i] = channelData[j];
-                }
-            }
-            //try
-            //{
-                lslStream.push_chunk(data, sample.TimeStamps);
-            //}
-            //catch (UnauthorizedAccessException) { }
-        }
-
-        private void Channel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
-        {
-            byte[] rawData = new byte[args.CharacteristicValue.Length];
-            using (var reader = DataReader.FromBuffer(args.CharacteristicValue))
-            {
-                reader.ReadBytes(rawData);
-                BitArray bitData = new BitArray(rawData);
-                UInt16 museTimestamp = bitData.ToUInt16(0); // Zero bit offset, since first 16 bits represent Muse timestamp.
-
-                lock (syncLock)
-                {
+                    reader.ReadBytes(rawData);
+                    BitArray bitData = new BitArray(rawData);
+                    UInt16 museTimestamp = bitData.ToUInt16(0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseSample sample;
-                    if (!sampleBuffer.ContainsKey(museTimestamp))
+                    lock (sampleBuffer)
                     {
-                        sample = new MuseSample();
-                        sample.BaseTimeStamp = args.Timestamp; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                        sampleBuffer[museTimestamp] = sample;
+                        if (!sampleBuffer.ContainsKey(museTimestamp))
+                        {
+                            sample = new MuseSample();
+                            sample.BaseTimeStamp = args.Timestamp; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                            sampleBuffer.Add(museTimestamp, sample);
+                        }
+                        else sample = sampleBuffer[museTimestamp];
+
+                        // Get time samples.
+                        sample.ChannelData[sender.Uuid] = GetTimeSamples(bitData);
                     }
-                    else sample = sampleBuffer[museTimestamp];
-
-                    // Get time samples.
-                    sample.ChannelData[sender.Uuid] = GetTimeSamples(bitData);
-
                     // If we have all 5 channels, we can push the 12 samples for each channel.
                     if (sample.ChannelData.Count == Constants.MUSE_CHANNEL_COUNT)
                     {
-                        PushSampleLSL(sample);
-                        sampleBuffer.Remove(museTimestamp);
+                        await LSLPushChunk(sample);
+                        lock(sampleBuffer)
+                            sampleBuffer.Remove(museTimestamp);
                     }
                 }
             }

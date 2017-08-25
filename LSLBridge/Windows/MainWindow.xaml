@@ -1,0 +1,25 @@
+﻿<Window x:Class="LSLBridge.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="LSL Bridge" Height="350" Width="525">
+
+    <StackPanel>
+        <TextBlock FontSize="18" Margin="5, 5, 5, 5">
+            <Run Text="Number of Open Streams: " /><Run Text="{Binding Path=MuseStreamCount, Mode=OneWay}" />
+        </TextBlock>
+        <DataGrid ItemsSource="{Binding Path=MuseStreams, Mode=OneWay}" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="Copy" />
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Stream Info" Width="6*" Binding="{Binding Path=StreamDisplayInfo, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Last Timestamp" Width="4*" Binding="{Binding Path=LatestTimestamp, Mode=OneWay}"></DataGridTextColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </StackPanel>
+</Window>

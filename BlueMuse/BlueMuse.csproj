@@ -96,14 +96,17 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Helpers\DataContractSerializerExtension.cs" />
     <Compile Include="Helpers\PacketConversion.cs" />
+    <Compile Include="AppService\AppServiceManager.cs" />
     <Compile Include="Misc\Constants.cs" />
-    <Compile Include="MuseBluetooth\Muse.cs" />
+    <Compile Include="MuseManagement\Muse.cs" />
     <Compile Include="Helpers\CommandHandler.cs" />
     <Compile Include="Helpers\Converters.cs" />
     <Compile Include="Helpers\ObservableCollection.cs" />
     <Compile Include="Helpers\ObservableObject.cs" />
-    <Compile Include="LSL\LSL.cs" />
+    <Compile Include="MuseManagement\MuseConnectionStatus.cs" />
+    <Compile Include="MuseManagement\MuseSample.cs" />
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -163,15 +166,6 @@
     <Content Include="Assets\Wide310x150Logo.scale-125.png" />
     <Content Include="Assets\Wide310x150Logo.scale-150.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
-    <None Include="Binaries\liblsl32-debug.dll" />
-    <None Include="Binaries\liblsl32.dll" />
-    <None Include="Binaries\liblsl64-debug.dll" />
-    <None Include="Binaries\liblsl64.dll" />
-    <None Include="Binaries\msvcp90.dll" />
-    <None Include="Binaries\msvcr90.dll" />
-    <Content Include="liblsl32.dll" />
-    <Content Include="msvcp90.dll" />
-    <Content Include="msvcr90.dll" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -193,12 +187,18 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.3.4</Version>
+      <Version>5.4.0</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>10.0.3</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
       <Name>Visual C++ 2015 Runtime for Universal Windows Platform Apps</Name>
+    </SDKReference>
+    <SDKReference Include="WindowsDesktop, Version=10.0.15063.0">
+      <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
@@ -208,6 +208,12 @@
   <PropertyGroup>
     <PreBuildEvent>
     </PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\LSLBridge.exe $(TargetDir)AppX\
+xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\liblsl32.dll $(TargetDir)AppX\
+xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcp90.dll $(TargetDir)AppX\
+xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcr90.dll $(TargetDir)AppX\</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

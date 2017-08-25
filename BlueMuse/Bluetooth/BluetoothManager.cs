@@ -1,4 +1,4 @@
-﻿using BlueMuse.MuseBluetooth;
+﻿using BlueMuse.MuseManagement;
 using BlueMuse.Helpers;
 using System;
 using System.Diagnostics;
@@ -13,11 +13,14 @@ namespace BlueMuse.Bluetooth
 {
     public class BluetoothManager
     {
-        public volatile ObservableCollection<Muse> Muses = new ObservableCollection<Muse>();
+        private ObservableCollection<Muse> muses;
         private DeviceWatcher museDeviceWatcher;
         private bool museDeviceWatcherReset = false;
+        private volatile bool LSLBridgeLaunched = false;
+        private static readonly Object syncLock = new object();
 
-        public BluetoothManager() {
+        public BluetoothManager(ObservableCollection<Muse> muses) {
+            this.muses = muses;
             App.Current.Suspending += Current_Suspending; // Close off streams when application exiting.    
         }
 
@@ -50,7 +53,7 @@ namespace BlueMuse.Bluetooth
             if (museDeviceWatcher.Status != DeviceWatcherStatus.Stopped && museDeviceWatcher.Status != DeviceWatcherStatus.Stopping)
             {
                 await StopStreamingAll();
-                foreach (var muse in Muses)
+                foreach (var muse in muses)
                 {
                     // Remove event handler and dispose.
                     if (muse.Device != null)
@@ -59,7 +62,7 @@ namespace BlueMuse.Bluetooth
                         muse.Dispose();
                     }
                 }
-                Muses.Clear();
+                muses.Clear();
             }
             museDeviceWatcherReset = true;
             museDeviceWatcher.Stop();
@@ -90,9 +93,9 @@ namespace BlueMuse.Bluetooth
                 // Retreive an arbitrary service. This will allow the device to auto connect.
                 await device.GetGattServicesForUuidAsync(Constants.MUSE_TOGGLE_STREAM_UUID);
 
-                lock (Muses)
+                lock (muses)
                 {
-                    var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+                    var muse = muses.FirstOrDefault(x => x.Id == args.Id);
                     if (muse != null)
                     {
                         muse.Id = device.DeviceId;
@@ -101,7 +104,7 @@ namespace BlueMuse.Bluetooth
                     }
                     else
                     {
-                        Muses.Add(new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline));
+                        muses.Add(new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline));
                     }
                 }
 
@@ -114,7 +117,7 @@ namespace BlueMuse.Bluetooth
         private void DeviceWatcher_Updated(DeviceWatcher sender, DeviceInformationUpdate args)
         {
             // Again, filter for Muses.
-            var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+            var muse = muses.FirstOrDefault(x => x.Id == args.Id);
             if (muse != null)
             {
                 var device = muse.Device;
@@ -140,7 +143,7 @@ namespace BlueMuse.Bluetooth
 
         private void Device_ConnectionStatusChanged(BluetoothLEDevice sender, object args)
         {
-            var muse = Muses.FirstOrDefault(x => x.Id == sender.DeviceId);
+            var muse = muses.FirstOrDefault(x => x.Id == sender.DeviceId);
             if (muse != null)
             {
                 muse.Status = sender.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
@@ -149,60 +152,70 @@ namespace BlueMuse.Bluetooth
             }
         }
 
+        public async Task ActivateLSLBridge()
+        {
+            lock (syncLock)
+            {
+                if (LSLBridgeLaunched)
+                    return;
+                LSLBridgeLaunched = true;
+            }
+            await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
+        }
+
+        public async Task DeactivateLSLBridge()
+        {
+            if (LSLBridgeLaunched && muses.Where(x => x.IsStreaming).Count() < 1)
+            {
+                await AppService.AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE, new Windows.Foundation.Collections.ValueSet());
+                lock (syncLock)
+                    LSLBridgeLaunched = false;
+            }
+        }
+
         public async void StartStreaming(object museId)
         {
-            var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);
+            var muse = muses.SingleOrDefault(x => x.Id == (string)museId);
             if (muse != null)
+            {
+                await ActivateLSLBridge();
                 await muse.ToggleStream(true);
+            }        
         }
 
         public async void StopStreaming(object museId)
         {
-            var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);
-            if(muse != null)
+            var muse = muses.SingleOrDefault(x => x.Id == (string)museId);
+            if (muse != null)
+            {
                 await muse.ToggleStream(false);
+                //await DeactivateLSLBridge();
+            }
         }
 
         public async Task StartStreamingAll()
         {
-            foreach (var muse in Muses.Where(x => !x.IsStreaming))
+            var muses = this.muses.Where(x => !x.IsStreaming);
+            if (muses.Count() > 0)
             {
-                await muse.ToggleStream(true);
+                await ActivateLSLBridge();
+                foreach (var muse in muses)
+                {
+                    await muse.ToggleStream(true);
+                }
             }
         }
 
         public async Task StopStreamingAll()
         {
-            foreach (var muse in Muses.Where(x => x.IsStreaming).ToList())
+            var muses = this.muses.Where(x => x.IsStreaming);
+            if (muses.Count() > 0)
             {
-                await muse.ToggleStream(false);
-            }
-        }
-
-        LSL.liblsl.StreamInlet inlet;
-        private async void TestLSLStream()
-        {
-            // Try to read a stream and display data.
-            LSL.liblsl.StreamInfo[] results = LSL.liblsl.resolve_stream("type", "EEG");
-            if(inlet == null)
-                inlet = new LSL.liblsl.StreamInlet(results[0], 360, 12);
-            Debug.Write(inlet.info().as_xml());
-            while (true)
-            {
-                float[,] data = new float[Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_CHANNEL_COUNT];
-                double[] timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
-                var chunk = inlet.pull_chunk(data, timestamps, 1);
-                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
+                foreach (var muse in muses)
                 {
-                    Debug.Write(timestamps[i] + ", ");
-
-                    for (int j = 0; j < Constants.MUSE_CHANNEL_COUNT; j++)
-                    {
-                        Debug.Write(data[i, j] + (j == Constants.MUSE_CHANNEL_COUNT - 1 ? "" : ", "));
-                    }
-                    Debug.Write("\n");
+                    await muse.ToggleStream(false);
                 }
-                await Task.Delay(100);
+                //await DeactivateLSLBridge();
             }
         }
 
@@ -214,7 +227,7 @@ namespace BlueMuse.Bluetooth
         {
             try
             {
-                foreach (var muse in Muses)
+                foreach (var muse in muses)
                 {
                     if (muse.Device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
                     {

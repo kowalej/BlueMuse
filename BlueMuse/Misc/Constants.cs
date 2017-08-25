@@ -12,6 +12,15 @@ namespace BlueMuse
         public const int MUSE_SAMPLE_COUNT = 12;
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
+        public const string LSL_MESSAGE_TYPE = nameof(LSL_MESSAGE_TYPE);
+        public const string LSL_MESSAGE_TYPE_OPEN_STREAM = nameof(LSL_MESSAGE_TYPE_OPEN_STREAM);
+        public const string LSL_MESSAGE_TYPE_CLOSE_STREAM = nameof(LSL_MESSAGE_TYPE_CLOSE_STREAM);
+        public const string LSL_MESSAGE_TYPE_SEND_CHUNK = nameof(LSL_MESSAGE_TYPE_SEND_CHUNK);
+        public const string LSL_MESSAGE_TYPE_CLOSE_BRIDGE = nameof(LSL_MESSAGE_TYPE_CLOSE_BRIDGE);
+        public const string LSL_MESSAGE_MUSE_NAME = nameof(LSL_MESSAGE_MUSE_NAME);
+        public const string LSL_MESSAGE_CHUNK_DATA = nameof(LSL_MESSAGE_CHUNK_DATA);
+        public const string LSL_MESSAGE_CHUNK_TIMESTAMPS = nameof(LSL_MESSAGE_CHUNK_TIMESTAMPS);
+
         // GAAT service to start and stop streaming.
         public static readonly Guid MUSE_TOGGLE_STREAM_UUID = new Guid("273e0001-4c4d-454d-96be-f03bac821358");
         public static readonly byte[] MUSE_TOGGLE_STREAM_START = new byte[3] { 0x02, 0x64, 0x0a };

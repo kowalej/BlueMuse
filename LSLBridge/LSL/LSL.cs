@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Collections;
 
 /**
 * C# API for the lab streaming layer.
@@ -955,7 +954,7 @@ namespace LSL
             public LostException() { }
             public LostException(string message) { }
             public LostException(string message, System.Exception inner) { }
-            protected LostException(System.Runtime.Serialization.EmitTypeInformation info, // Changed from serializationInfo
+            protected LostException(System.Runtime.Serialization.SerializationInfo info,
                 System.Runtime.Serialization.StreamingContext context)
             { }
         }
@@ -968,7 +967,7 @@ namespace LSL
             public InternalException() { }
             public InternalException(string message) { }
             public InternalException(string message, System.Exception inner) { }
-            protected InternalException(System.Runtime.Serialization.EmitTypeInformation info, // Changed from serializationInfo
+            protected InternalException(System.Runtime.Serialization.SerializationInfo info,
                 System.Runtime.Serialization.StreamingContext context)
             { }
         }

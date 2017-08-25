@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BlueMuse.AppService;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -114,6 +115,11 @@ namespace BlueMuse
             var deferral = e.SuspendingOperation.GetDeferral();
             //TODO: Save application state and stop any background activity
             deferral.Complete();
+        }
+
+        protected override async void OnBackgroundActivated(BackgroundActivatedEventArgs args)
+        {
+            await AppServiceManager.HandleIncomingConnectionAsync(args.TaskInstance);
         }
     }
 }
