@@ -84,10 +84,27 @@ namespace BlueMuse
         protected override void OnActivated(IActivatedEventArgs args)
         {
             // Check for protocol activation
-            if (args.Kind == ActivationKind.Protocol)
+            if (args.Kind == ActivationKind.Protocol && args.PreviousExecutionState != ApplicationExecutionState.Running)
             {
                 var protocolArgs = (ProtocolActivatedEventArgs)args;
-                string argval = protocolArgs.Uri.ToString();
+                string argStr = protocolArgs.Uri.PathAndQuery;
+                var splitArgs = argStr.Split('&');
+                var addressesStr = splitArgs.FirstOrDefault(x => x.Contains("addresses"));
+                if(addressesStr != null)
+                {
+                    var addresses = addressesStr.Trim().Replace("addresses=","").Split(',');
+                    foreach(var address in addresses)
+                    {
+                        Constants.MusesToAutoStream.Add(address);
+                    }
+                }
+                else
+                {
+                    var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains("streamfirst"));
+                    streamFirstStr = streamFirstStr.Trim().Replace("streamfirst=", "");
+                    if (streamFirstStr.ToLower() == "true" || streamFirstStr == "1")
+                        Constants.StreamFirst = true;
+                }
                 // Manipulate arguments …
                 Launch(ApplicationExecutionState.NotRunning, false);
             }

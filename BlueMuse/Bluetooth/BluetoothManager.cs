@@ -26,7 +26,10 @@ namespace BlueMuse.Bluetooth
 
         private async void Current_Suspending(object sender, SuspendingEventArgs e)
         {
+            var def = e.SuspendingOperation.GetDeferral();
             await StopStreamingAll();
+            await DeactivateLSLBridge();
+            def.Complete();
         }
 
         public void FindMuses()
@@ -104,13 +107,32 @@ namespace BlueMuse.Bluetooth
                     }
                     else
                     {
-                        muses.Add(new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline));
+                        muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline);
+                        muses.Add(muse);
                     }
+                    ResolveAutoStream(muse);
                 }
 
                 // Must watch for status changed because Added and Updated are not always called upon connecting or disconnecting.
                 device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
                 device.ConnectionStatusChanged += Device_ConnectionStatusChanged;
+            }
+        }
+
+        private void ResolveAutoStream(Muse muse)
+        {
+            if (muse.Device.ConnectionStatus == BluetoothConnectionStatus.Connected)
+            {
+                if (Constants.StreamFirst && muses.IndexOf(muse) == 0)
+                {
+                    Constants.StreamFirst = false;
+                    StartStreaming(muse.Id);
+                }
+                else if (Constants.MusesToAutoStream.Any(x => x == muse.MacAddress))
+                {
+                    Constants.MusesToAutoStream.Remove(muse.MacAddress);
+                    StartStreaming(muse.Id);
+                }
             }
         }
 
@@ -148,6 +170,7 @@ namespace BlueMuse.Bluetooth
             {
                 muse.Status = sender.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
                 if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected && muse.IsStreaming) StopStreaming(muse);
+                else ResolveAutoStream(muse);
                 Debug.WriteLine(string.Format("Device: {0} is now {1}.", sender.Name, sender.ConnectionStatus));
             }
         }

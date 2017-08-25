@@ -90,14 +90,14 @@ namespace LSLBridge.LSLManagement
                         }
                         break;
 
-                    // Currently not working - cannot close bridge without main app exiting a few seconds later. 
-                    //case Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE:
-                    //    {
-                    //        lslStreamService.RequestReceived -= LSLService_RequestReceived;
-                    //        lslStreamService.Dispose();
-                    //        Application.Current.Shutdown();
-                    //    }
-                    //    break;
+                    // Should not be called until application is closing.
+                    case Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE:
+                        {
+                            lslStreamService.RequestReceived -= LSLService_RequestReceived;
+                            lslStreamService.Dispose();
+                            Process.GetCurrentProcess().Kill();
+                        }
+                        break;
                 }
             }
 
