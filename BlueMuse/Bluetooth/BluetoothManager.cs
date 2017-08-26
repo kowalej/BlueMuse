@@ -18,6 +18,7 @@ namespace BlueMuse.Bluetooth
         private bool museDeviceWatcherReset = false;
         private volatile bool LSLBridgeLaunched = false;
         private static readonly Object syncLock = new object();
+        Timer pollMuseTimer; 
 
         public BluetoothManager(ObservableCollection<Muse> muses) {
             this.muses = muses;
@@ -75,7 +76,7 @@ namespace BlueMuse.Bluetooth
         {
             // Filter out Muses. A name filter is the best method currently, since wildcards are not supported in AQS string.
             // A more robust method may be to query for a Muse specific GAAT service, however this requires devices to be powered on, and even if the device was previously paired with the machine, the service won't be cached.
-            if (args.Name.Contains("Muse"))
+            if (Constants.DeviceNameFilter.Any(x => args.Name.Contains(x)))
             {
                 var device = await BluetoothLEDevice.FromIdAsync(args.Id);
                 Debug.WriteLine("Device Name: " + device.Name); 
@@ -151,7 +152,7 @@ namespace BlueMuse.Bluetooth
 
         private void MuseDeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
         {
-            new Timer(PollMuses, new AutoResetEvent(false), 0, 5); // Poll every 5 seconds to allow Muses to auto-reconnect if they went offline.
+            pollMuseTimer = new Timer(PollMuses, new AutoResetEvent(false), 0, 5); // Poll every 5 seconds to allow Muses to auto-reconnect if they went offline.
         }
 
         private void DeviceWatcher_Stopped(DeviceWatcher sender, object args)

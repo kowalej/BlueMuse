@@ -72,12 +72,13 @@ namespace LSLBridge.LSLManagement
                     case Constants.LSL_MESSAGE_TYPE_SEND_CHUNK:
                         {
                             string streamName = (string)message[Constants.LSL_MESSAGE_MUSE_NAME];
+                            int channelCount = streamName.Contains(Constants.DeviceNameFilter[0]) ? Constants.MUSE_CHANNEL_COUNT : Constants.MUSE_SMITH_CHANNEL_COUNT;
                             var stream = museStreams.FirstOrDefault(x => x.Name == streamName);
                             if (stream != null)
                             {
                                 float[] data1D = (float[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
-                                float[,] data2D = new float[Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_CHANNEL_COUNT];
-                                for (int i = 0; i < Constants.MUSE_CHANNEL_COUNT; i++)
+                                float[,] data2D = new float[Constants.MUSE_SAMPLE_COUNT, channelCount];
+                                for (int i = 0; i < channelCount; i++)
                                 {
                                     for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                                     {

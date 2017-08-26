@@ -85,12 +85,25 @@ namespace BlueMuse.MuseManagement
             }
         }
 
+        int channelCount;
+        Guid[] channelUUIDs;
+
         public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status)
         {
             Device = device;
             Name = name;
             Id = id;
             Status = status;
+            if (name.Contains(Constants.DeviceNameFilter[0]))
+            {
+                channelCount = Constants.MUSE_CHANNEL_COUNT;
+                channelUUIDs = Constants.MUSE_CHANNEL_UUIDS;
+            }
+            else
+            {
+                channelCount = Constants.MUSE_SMITH_CHANNEL_COUNT;
+                channelUUIDs = Constants.MUSE_SMITH_CHANNEL_UUIDS;
+            }
         }
 
         // Flag: Has Dispose already been called?
@@ -128,13 +141,13 @@ namespace BlueMuse.MuseManagement
                 if (start)
                 {
                     await LSLOpenStream();
-                    if (channels == null) channels = new List<GattCharacteristic>(Constants.MUSE_CHANNEL_COUNT);
+                    if (channels == null) channels = new List<GattCharacteristic>();
                     // Get GATT service on start, therefore it will be already available when stopping.
                     deviceService = (await Device.GetGattServicesForUuidAsync(Constants.MUSE_DATA_SERVICE_UUID)).Services.First();
                 }
 
                 var characteristics = (await deviceService.GetCharacteristicsAsync()).Characteristics;
-                foreach (var c in Constants.MUSE_CHANNEL_UUIDS)
+                foreach (var c in channelUUIDs)
                 {
                     channels.Add(characteristics.Single(x => x.Uuid == c));
                 }
@@ -198,12 +211,12 @@ namespace BlueMuse.MuseManagement
         {
             ValueSet message = new ValueSet();
             message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
-            float[] data = new float[Constants.MUSE_SAMPLE_COUNT * Constants.MUSE_CHANNEL_COUNT]; // Can only send 1D array with this garbage :S
+            float[] data = new float[Constants.MUSE_SAMPLE_COUNT * channelCount]; // Can only send 1D array with this garbage :S
             double[] timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
 
-            for (int i = 0; i < Constants.MUSE_CHANNEL_COUNT; i++)
+            for (int i = 0; i < channelCount; i++)
             {
-                var channelData = sample.ChannelData[Constants.MUSE_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
+                var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                 for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                 {
                     if (i == 1)
@@ -255,7 +268,7 @@ namespace BlueMuse.MuseManagement
                         sample.ChannelData[sender.Uuid] = GetTimeSamples(bitData);
                     }
                     // If we have all 5 channels, we can push the 12 samples for each channel.
-                    if (sample.ChannelData.Count == Constants.MUSE_CHANNEL_COUNT)
+                    if (sample.ChannelData.Count == channelCount)
                     {
                         await LSLPushChunk(sample);
                         lock(sampleBuffer)

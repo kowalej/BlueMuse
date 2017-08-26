@@ -6,13 +6,19 @@ namespace BlueMuse
     static class Constants
     {
         public static List<string> MusesToAutoStream = new List<string>();
-        public static bool StreamFirst = false; 
+        public static bool StreamFirst = false;
+
+        public static readonly List<string> DeviceNameFilter = new List<string>()
+        {
+            "Muse", "SMTX"
+        };
 
         public static readonly string ALL_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\""; // Wildcard based "Muse*" filter - not supported it seems. AND (System.ItemNameDisplay:~\"Muse*\" OR System.Devices.Aep.Bluetooth.IssueInquiry:=System.StructuredQueryType.Boolean#True)";
 
         public const int MUSE_SAMPLE_RATE = 256;
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
         public const int MUSE_CHANNEL_COUNT = 5;
+        public const int MUSE_SMITH_CHANNEL_COUNT = 4;
         public const int MUSE_SAMPLE_COUNT = 12;
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
@@ -42,10 +48,28 @@ namespace BlueMuse
             new Guid("273e0004-4c4d-454d-96be-f03bac821358") // Handle 34
         };
 
+        // GAAT characteristics for the 5 channels, in specific order to match muse-lsl.py.
+        public static Guid[] MUSE_SMITH_CHANNEL_UUIDS = new Guid[MUSE_SMITH_CHANNEL_COUNT] {
+            new Guid("273e0006-4c4d-454d-96be-f03bac821358"), // Handle 40
+            new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
+            new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
+            new Guid("273e0004-4c4d-454d-96be-f03bac821358") // Handle 34
+        };
+
         // LSL labels for the 5 channels, in specific order to match muse-lsl.py.
         public static string[] MUSE_CHANNEL_LABELS = new string[MUSE_CHANNEL_COUNT]
         {
             "TP9",
+            "AF7",
+            "AF8",
+            "TP10",
+            "Right AUX"
+        };
+
+        // LSL labels for the 5 channels, in specific order to match muse-lsl.py.
+        public static string[] MUSE_SMITH_CHANNEL_LABELS = new string[MUSE_SMITH_CHANNEL_COUNT]
+        {
+            //"TP9",
             "AF7",
             "AF8",
             "TP10",

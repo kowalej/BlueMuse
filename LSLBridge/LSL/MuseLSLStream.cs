@@ -21,15 +21,29 @@ namespace LSLBridge.LSLManagement
         private double latestTimestamp;
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }
 
+        int channelCount;
+
         public MuseLSLStream(string name)
         {
             Name = name;
-            LSLStreamInfo = new LSL.liblsl.StreamInfo(name, "EEG", Constants.MUSE_CHANNEL_COUNT, Constants.MUSE_SAMPLE_RATE, LSL.liblsl.channel_format_t.cf_float32, Application.ResourceAssembly.GetName().Name);
+            string[] channelLabels;
+            if (name.Contains(Constants.DeviceNameFilter[0]))
+            {
+                channelCount = Constants.MUSE_CHANNEL_COUNT;
+                channelLabels = Constants.MUSE_CHANNEL_LABELS;
+            }
+            else
+            {
+                channelCount = Constants.MUSE_SMITH_CHANNEL_COUNT;
+                channelLabels = Constants.MUSE_SMITH_CHANNEL_LABELS;
+            }
+
+            LSLStreamInfo = new LSL.liblsl.StreamInfo(name, "EEG", channelCount, Constants.MUSE_SAMPLE_RATE, LSL.liblsl.channel_format_t.cf_float32, Application.ResourceAssembly.GetName().Name);
             LSLStreamInfo.desc().append_child_value("manufacturer", "Muse");
             LSLStreamInfo.desc().append_child_value("manufacturer", "Muse");
             LSLStreamInfo.desc().append_child_value("type", "EEG");
             var channels = LSLStreamInfo.desc().append_child("channels");
-            foreach (var c in Constants.MUSE_CHANNEL_LABELS)
+            foreach (var c in channelLabels)
             {
                 channels.append_child("channel")
                 .append_child_value("label", c)
