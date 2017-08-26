@@ -101,8 +101,8 @@ namespace BlueMuse.MuseManagement
             }
             else
             {
-                channelCount = Constants.MUSE_SMITH_CHANNEL_COUNT;
-                channelUUIDs = Constants.MUSE_SMITH_CHANNEL_UUIDS;
+                channelCount = Constants.MUSE_SMXT_CHANNEL_COUNT;
+                channelUUIDs = Constants.MUSE_SMXT_CHANNEL_UUIDS;
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using BlueMuse;
 using LSLBridge.Helpers;
 using System;
+using System.Diagnostics;
 using System.Windows;
 
 namespace LSLBridge.LSLManagement
@@ -21,7 +22,12 @@ namespace LSLBridge.LSLManagement
         private double latestTimestamp;
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }
 
-        int channelCount;
+        private int rate = 0;
+        public int Rate { get { return rate; } set { SetProperty(ref rate, value); } }
+
+        private int channelCount;
+        private Stopwatch stopWatch;
+        int sampleCountSec = 0;
 
         public MuseLSLStream(string name)
         {
@@ -34,8 +40,8 @@ namespace LSLBridge.LSLManagement
             }
             else
             {
-                channelCount = Constants.MUSE_SMITH_CHANNEL_COUNT;
-                channelLabels = Constants.MUSE_SMITH_CHANNEL_LABELS;
+                channelCount = Constants.MUSE_SMXT_CHANNEL_COUNT;
+                channelLabels = Constants.MUSE_SMXT_CHANNEL_LABELS;
             }
 
             LSLStreamInfo = new LSL.liblsl.StreamInfo(name, "EEG", channelCount, Constants.MUSE_SAMPLE_RATE, LSL.liblsl.channel_format_t.cf_float32, Application.ResourceAssembly.GetName().Name);
@@ -52,6 +58,8 @@ namespace LSLBridge.LSLManagement
             }
             OnPropertyChanged(nameof(StreamDisplayInfo));
             lslStream = new LSL.liblsl.StreamOutlet(LSLStreamInfo, Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_LSL_BUFFER_LENGTH);
+            stopWatch = new Stopwatch();
+            stopWatch.Restart();
         }
 
         // Flag: Has Dispose already been called?
@@ -88,6 +96,16 @@ namespace LSLBridge.LSLManagement
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
             lslStream.push_chunk(data, timestamps);
+            sampleCountSec += timestamps.Length;
+            //Rate = (int)(sampleCountSec);
+            if (stopWatch.ElapsedMilliseconds >= 1000)
+            {
+                var elapsed = stopWatch.ElapsedMilliseconds;
+                var elapsedAdjusted = 1000f / elapsed;
+                Rate = (int)(sampleCountSec * elapsedAdjusted);
+                sampleCountSec = 0;
+                stopWatch.Restart();
+            }
         }
     }
 }

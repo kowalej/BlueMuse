@@ -105,7 +105,6 @@ namespace BlueMuse
                     if (streamFirstStr.ToLower() == "true" || streamFirstStr == "1")
                         Constants.StreamFirst = true;
                 }
-                // Manipulate arguments …
                 Launch(ApplicationExecutionState.NotRunning, false);
             }
         }

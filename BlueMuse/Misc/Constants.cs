@@ -18,7 +18,7 @@ namespace BlueMuse
         public const int MUSE_SAMPLE_RATE = 256;
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
         public const int MUSE_CHANNEL_COUNT = 5;
-        public const int MUSE_SMITH_CHANNEL_COUNT = 4;
+        public const int MUSE_SMXT_CHANNEL_COUNT = 4;
         public const int MUSE_SAMPLE_COUNT = 12;
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
@@ -49,7 +49,7 @@ namespace BlueMuse
         };
 
         // GAAT characteristics for the 5 channels, in specific order to match muse-lsl.py.
-        public static Guid[] MUSE_SMITH_CHANNEL_UUIDS = new Guid[MUSE_SMITH_CHANNEL_COUNT] {
+        public static Guid[] MUSE_SMXT_CHANNEL_UUIDS = new Guid[MUSE_SMXT_CHANNEL_COUNT] {
             new Guid("273e0006-4c4d-454d-96be-f03bac821358"), // Handle 40
             new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
             new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
@@ -67,7 +67,7 @@ namespace BlueMuse
         };
 
         // LSL labels for the 5 channels, in specific order to match muse-lsl.py.
-        public static string[] MUSE_SMITH_CHANNEL_LABELS = new string[MUSE_SMITH_CHANNEL_COUNT]
+        public static string[] MUSE_SMXT_CHANNEL_LABELS = new string[MUSE_SMXT_CHANNEL_COUNT]
         {
             //"TP9",
             "AF7",

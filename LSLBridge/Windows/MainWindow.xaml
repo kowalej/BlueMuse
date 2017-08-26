@@ -10,15 +10,16 @@
         <TextBlock FontSize="18" Margin="5, 5, 5, 5">
             <Run Text="Number of Open Streams: " /><Run Text="{Binding Path=MuseStreamCount, Mode=OneWay}" />
         </TextBlock>
-        <DataGrid ItemsSource="{Binding Path=MuseStreams, Mode=OneWay}" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
+        <DataGrid ItemsSource="{Binding Path=MuseStreams, Mode=OneWay}" HorizontalAlignment="Left" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Command="Copy" />
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Stream Info" Width="6*" Binding="{Binding Path=StreamDisplayInfo, Mode=OneWay}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Last Timestamp" Width="4*" Binding="{Binding Path=LatestTimestamp, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Stream Info" Width="5*" Binding="{Binding Path=StreamDisplayInfo, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Last Timestamp" Width="3*" Binding="{Binding Path=LatestTimestamp, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Rate (Hz)" Width="2*" Binding="{Binding Path=Rate, Mode=OneWay}"></DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
     </StackPanel>
