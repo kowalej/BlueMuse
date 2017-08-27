@@ -1,11 +1,8 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Helpers;
-using Newtonsoft.Json;
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
@@ -56,10 +53,6 @@ namespace BlueMuse.MuseManagement
                 {
                     SetProperty(ref status, value);
                     OnPropertyChanged(nameof(CanStream));
-                    if (value == MuseConnectionStatus.Offline && isStreaming == true)
-                    {
-                        IsStreaming = false;
-                    }
                 }
             }
         }
@@ -182,15 +175,21 @@ namespace BlueMuse.MuseManagement
                 // Tell Muse to start or stop notifications.
                 await characteristics.Single(x => x.Uuid == Constants.MUSE_TOGGLE_STREAM_UUID).WriteValueWithResultAsync(buffer);
             }
-            catch (InvalidOperationException) { deviceService.Dispose(); return; }
+            catch (InvalidOperationException) { if(isStreaming) CloseOffStream(); return; }
 
             if (!start)
             {
-                channels.Clear();
-                await LSLCloseStream();
-                deviceService.Dispose(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
+                CloseOffStream(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
             }
             IsStreaming = start;
+        }
+
+        private async void CloseOffStream()
+        {
+            channels.Clear();
+            await LSLCloseStream();
+            deviceService.Dispose();
+            IsStreaming = false;
         }
 
         private async Task LSLOpenStream()
