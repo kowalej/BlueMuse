@@ -989,9 +989,7 @@ namespace LSL
         }
 
 
-
         // === Internal: C library function definitions. ===
-
         class SafeNativeMethods
         {
             /// Name of the binary to include -- replace this if you are on a non-Windows platform (e.g., liblsl64.so)

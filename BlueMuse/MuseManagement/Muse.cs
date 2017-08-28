@@ -115,11 +115,16 @@ namespace BlueMuse.MuseManagement
             if (disposed)
                 return;
 
-            if (disposing)
-            {
-                if(Device != null)
-                    Device.Dispose();
-            }
+            // Device.Dispose causing uncatchable exceptions.
+            //if (disposing)
+            //{
+            //    try
+            //    {
+            //        if (Device != null)
+            //            Device.Dispose();
+            //    }
+            //    catch (Exception) { }
+            //}
 
             // Free any unmanaged objects here.
             //

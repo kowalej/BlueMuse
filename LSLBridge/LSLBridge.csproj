@@ -25,6 +25,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -118,14 +119,12 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Binaries\liblsl32-debug.dll" />
+    <None Include="Binaries\liblsl32-debug.dll" />
     <Content Include="Binaries\liblsl32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Binaries\liblsl64-debug.dll" />
-    <Content Include="Binaries\liblsl64.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <None Include="Binaries\liblsl64-debug.dll" />
+    <None Include="Binaries\liblsl64.dll" />
     <Content Include="Binaries\msvcp90.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
