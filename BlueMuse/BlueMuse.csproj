@@ -18,6 +18,9 @@
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
     <PackageCertificateKeyFile>BlueMuse_TemporaryKey.pfx</PackageCertificateKeyFile>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxBundle>Always</AppxBundle>
+    <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -177,6 +180,18 @@
     <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
+    <Content Include="Win32\liblsl32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Win32\LSLBridge.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Win32\msvcp90.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Win32\msvcr90.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -204,6 +219,7 @@
       <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
@@ -216,10 +232,10 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\LSLBridge.exe $(TargetDir)AppX\
-xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\liblsl32.dll $(TargetDir)AppX\
-xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcp90.dll $(TargetDir)AppX\
-xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcr90.dll $(TargetDir)AppX\</PostBuildEvent>
+    <PostBuildEvent>xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\LSLBridge.exe $(SolutionDir)BlueMuse\Win32
+xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\liblsl32.dll $(SolutionDir)BlueMuse\Win32
+xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcp90.dll $(SolutionDir)BlueMuse\Win32
+xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcr90.dll $(SolutionDir)BlueMuse\Win32</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
