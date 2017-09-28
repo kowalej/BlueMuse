@@ -146,7 +146,7 @@ namespace BlueMuse
                         }
                     }
                 }
-                catch (UriFormatException ex)
+                catch (UriFormatException)
                 {
 
                 }

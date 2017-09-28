@@ -153,6 +153,32 @@
     <None Include="AppPackages\BlueMuse_1.0.7.0_Test\Dependencies\x86\Microsoft.NET.Native.Framework.1.7.appx" />
     <None Include="AppPackages\BlueMuse_1.0.7.0_Test\Dependencies\x86\Microsoft.NET.Native.Runtime.1.7.appx" />
     <None Include="AppPackages\BlueMuse_1.0.7.0_Test\Dependencies\x86\Microsoft.VCLibs.x86.14.00.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.ps1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\cs-CZ\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\de-DE\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\en-US\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\es-ES\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\fr-FR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\it-IT\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\ja-JP\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\ko-KR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\pl-PL\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\pt-BR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\ru-RU\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\tr-TR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\zh-CN\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Add-AppDevPackage.resources\zh-TW\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\BlueMuse_1.0.8.0_x64_Debug.appxsym" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\BlueMuse_1.0.8.0_x86_Debug.appxsym" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\BlueMuse_1.0.8.0_x86_x64_Debug.appxbundle" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\BlueMuse_1.0.8.0_x86_x64_Debug.cer" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Dependencies\ARM\Microsoft.NET.CoreRuntime.1.1.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Dependencies\ARM\Microsoft.VCLibs.ARM.Debug.14.00.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Dependencies\x64\Microsoft.NET.CoreRuntime.1.1.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Dependencies\x64\Microsoft.VCLibs.x64.Debug.14.00.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Dependencies\x86\Microsoft.NET.CoreRuntime.1.1.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.8.0_Debug_Test\Dependencies\x86\Microsoft.VCLibs.x86.Debug.14.00.appx" />
     <None Include="BlueMuse_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
