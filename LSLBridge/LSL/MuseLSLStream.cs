@@ -97,7 +97,6 @@ namespace LSLBridge.LSLManagement
             LatestTimestamp = timestamps[timestamps.Length - 1];
             lslStream.push_chunk(data, timestamps);
             sampleCountSec += timestamps.Length;
-            //Rate = (int)(sampleCountSec);
             if (stopWatch.ElapsedMilliseconds >= 1000)
             {
                 var elapsed = stopWatch.ElapsedMilliseconds;

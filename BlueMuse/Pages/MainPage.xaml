@@ -56,7 +56,7 @@
             <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
                 <TextBlock TextWrapping="Wrap" Padding="10">
                     <Run FontWeight="Bold" Text="Note: " /><Run Text="your Muse should be turned on and unpaired from other devices to connect. The Muse should show incremental flashing lights when it's ready to pair followed by solid lights once connected." /><LineBreak />
-                    <Run FontWeight="Bold" Text="Important: " /><Run Text="you may need to also remove the device from your PC's Bluetooth device list to eliminate connection issues." />
+                    <Run FontWeight="Bold" Text="Important: " /><Run Text="you may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
                 </TextBlock>
             </Frame>
         </StackPanel>

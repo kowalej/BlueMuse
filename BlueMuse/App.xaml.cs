@@ -1,4 +1,5 @@
 ﻿using BlueMuse.AppService;
+using BlueMuse.Bluetooth;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -66,7 +67,7 @@ namespace BlueMuse
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
                     // parameter
-                    if(e == null) rootFrame.Navigate(typeof(MainPage));
+                    if (e == null) rootFrame.Navigate(typeof(MainPage));
                     else rootFrame.Navigate(typeof(MainPage), e);
                 }
 
@@ -84,28 +85,73 @@ namespace BlueMuse
         protected override void OnActivated(IActivatedEventArgs args)
         {
             // Check for protocol activation
-            if (args.Kind == ActivationKind.Protocol && args.PreviousExecutionState != ApplicationExecutionState.Running)
+            if (args.Kind == ActivationKind.Protocol)
             {
+                bool launching = args.PreviousExecutionState != ApplicationExecutionState.Running;
+
                 var protocolArgs = (ProtocolActivatedEventArgs)args;
-                string argStr = protocolArgs.Uri.PathAndQuery;
-                var splitArgs = argStr.Split('&');
-                var addressesStr = splitArgs.FirstOrDefault(x => x.Contains("addresses"));
-                if(addressesStr != null)
+                string argStr = string.Empty;
+                try
                 {
-                    var addresses = addressesStr.Trim().Replace("addresses=","").Split(',');
-                    foreach(var address in addresses)
+                    argStr = protocolArgs.Uri.PathAndQuery;
+
+                    var splitArgs = argStr.Replace("/?", "").Split('&'); // Note: not sure why the syystem ads the forward slash...
+
+                    if (protocolArgs.Uri.Host.Equals("start", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        Constants.MusesToAutoStream.Add(address);
+                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains("addresses"));
+                        string[] addresses = null;
+
+                        BluetoothManager bluetoothManager = BluetoothManager.Instance;
+
+                        if (addressesStr != null)
+                        {
+                            addresses = addressesStr.Trim().Replace("addresses=", "").Split(',');
+                            foreach (var address in addresses)
+                            {
+                                bluetoothManager.MusesToAutoStream.Add(address);
+                            }
+                        }
+
+                        var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains("streamfirst"));
+                        if (streamFirstStr != null)
+                        {
+                            bluetoothManager.StreamFirst = streamFirstStr.Trim().Replace("streamfirst=", "")
+                                .Equals("true", StringComparison.CurrentCultureIgnoreCase) ? true : false;
+                        }
+
+                        if (!launching)
+                        {
+                            bluetoothManager.ResolveAutoStreamAll();
+                        }
+                    }
+
+                    else if (protocolArgs.Uri.Host.Equals("stop", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains("addresses"));
+                        string[] addresses = null;
+
+                        BluetoothManager bluetoothManager = BluetoothManager.Instance;
+
+                        if (addressesStr != null)
+                        {
+                            addresses = addressesStr.Trim().Replace("addresses=", "").Split(',');
+                            foreach (var address in addresses)
+                            {
+                                bluetoothManager.MusesToAutoStream.Remove(address);
+                                var muse = bluetoothManager.Muses.FirstOrDefault(x => x.MacAddress == address);
+                                if (muse != null)
+                                    bluetoothManager.StopStreaming(address);
+                            }
+                        }
                     }
                 }
-                else
+                catch (UriFormatException ex)
                 {
-                    var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains("streamfirst"));
-                    streamFirstStr = streamFirstStr.Trim().Replace("streamfirst=", "");
-                    if (streamFirstStr.ToLower() == "true" || streamFirstStr == "1")
-                        Constants.StreamFirst = true;
+
                 }
-                Launch(ApplicationExecutionState.NotRunning, false);
+                if (launching)
+                    Launch(ApplicationExecutionState.NotRunning, false);
             }
         }
 

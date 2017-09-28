@@ -5,9 +5,6 @@ namespace BlueMuse
 {
     static class Constants
     {
-        public static List<string> MusesToAutoStream = new List<string>();
-        public static bool StreamFirst = false;
-
         public static readonly List<string> DeviceNameFilter = new List<string>()
         {
             "Muse", "SMTX"
@@ -66,7 +63,7 @@ namespace BlueMuse
             "Right AUX"
         };
 
-        // LSL labels for the 5 channels, in specific order to match muse-lsl.py.
+        // LSL labels for the 4 channels, in specific order to match muse-lsl.py.
         public static string[] MUSE_SMXT_CHANNEL_LABELS = new string[MUSE_SMXT_CHANNEL_COUNT]
         {
             //"TP9",

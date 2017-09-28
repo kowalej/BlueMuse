@@ -21,8 +21,8 @@ namespace BlueMuse.ViewModels
 
         public MainPageVM()
         {
-            Muses = new ObservableCollection<Muse>();
-            museManager = new BluetoothManager(Muses);
+            museManager = BluetoothManager.Instance;
+            Muses = museManager.Muses;
             museManager.FindMuses();
             new Timer(SearchTextAnimate, null, 0, 600);
         }
