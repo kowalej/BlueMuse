@@ -240,6 +240,15 @@ namespace BlueMuse.Bluetooth
             }        
         }
 
+        public async void StopStreamingMAC(string MAC)
+        {
+            var muse = Muses.SingleOrDefault(x => x.MacAddress == MAC);
+            if (muse != null)
+            {
+                await muse.ToggleStream(false);
+            }
+        }
+
         public async void StopStreaming(object museId)
         {
             var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);

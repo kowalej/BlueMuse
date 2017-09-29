@@ -134,6 +134,7 @@ namespace BlueMuse.MuseManagement
 
         public async Task ToggleStream(bool start)
         {
+            if (start == isStreaming) return;
             try
             {
                 if (start)

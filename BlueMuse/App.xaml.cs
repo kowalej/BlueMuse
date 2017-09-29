@@ -139,9 +139,7 @@ namespace BlueMuse
                             foreach (var address in addresses)
                             {
                                 bluetoothManager.MusesToAutoStream.Remove(address);
-                                var muse = bluetoothManager.Muses.FirstOrDefault(x => x.MacAddress == address);
-                                if (muse != null)
-                                    bluetoothManager.StopStreaming(address);
+                                bluetoothManager.StopStreamingMAC(address);
                             }
                         }
                     }
