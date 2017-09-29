@@ -172,7 +172,6 @@ ecf/
 rcf/
 
 # Windows Store app package directories and files
-#AppPackages/
 BundleArtifacts/
 Package.StoreAssociation.xml
 _pkginfo.txt
@@ -259,3 +258,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+!BlueMuse/AppPackages/*/Dependencies/x64
+!BlueMuse/AppPackages/*/Dependencies/x86
