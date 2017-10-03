@@ -21,6 +21,12 @@ Stop streaming specific Muse(s) - by MAC address:
 ```bash
 start bluemuse://stop?addresses={MAC1},{MAC2},{MAC3},....
 ```
+Stop streaming all Muses: 
+```bash
+start bluemuse://stop?stopall=true
+```
+
+"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.
 
 # Installing From App Packages
 1. Navigate to desired version in BlueMuse/AppPackages folder.
@@ -28,7 +34,7 @@ start bluemuse://stop?addresses={MAC1},{MAC2},{MAC3},....
 3. Select current user or local machine depending on preference and click "Next".
 4. Select "Place all certificates in the following store".
 5. Press "Browse...".
-6. Select "Trusted Root Certification Authorities" and click "Ok".
+6. Select "Trusted Root Certification Authorities" and click "OK".
 7. Click "Next" and click "Finish" to install certificate.
 
 8. Open Dependencies folder and appropriate folder for your machine architecture.
@@ -49,5 +55,5 @@ start bluemuse://stop?addresses={MAC1},{MAC2},{MAC3},....
   2. Reset Muse - hold down power button until device turns off then back on.
   3. Make sure Muse is within reasonable range of your computer. Some built in Bluetooth antennas are not very powerful.
 
-### Missing refernces in LSLBridge project:
+### Missing references in LSLBridge project:
 See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance

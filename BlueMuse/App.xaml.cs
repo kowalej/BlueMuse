@@ -82,7 +82,7 @@ namespace BlueMuse
             }
         }
 
-        protected override void OnActivated(IActivatedEventArgs args)
+        protected async override void OnActivated(IActivatedEventArgs args)
         {
             // Check for protocol activation
             if (args.Kind == ActivationKind.Protocol)
@@ -97,26 +97,31 @@ namespace BlueMuse
 
                     var splitArgs = argStr.Replace("/?", "").Split('&'); // Note: not sure why the syystem ads the forward slash...
 
-                    if (protocolArgs.Uri.Host.Equals("start", StringComparison.CurrentCultureIgnoreCase))
+                    if (protocolArgs.Uri.Host.Equals(Constants.CMD_START, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains("addresses"));
-                        string[] addresses = null;
-
                         BluetoothManager bluetoothManager = BluetoothManager.Instance;
+
+                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES));
+                        string[] addresses = null;
+                        var startAllStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STARTALL));
+                        var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STREAMFIRST));
 
                         if (addressesStr != null)
                         {
-                            addresses = addressesStr.Trim().Replace("addresses=", "").Split(',');
+                            addresses = addressesStr.Trim().Replace(Constants.ARGS_ADDRESSES + "=", "").Split(',');
                             foreach (var address in addresses)
                             {
                                 bluetoothManager.MusesToAutoStream.Add(address);
                             }
                         }
 
-                        var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains("streamfirst"));
-                        if (streamFirstStr != null)
+                        else if (startAllStr != null) {
+                            await bluetoothManager.StartStreamingAll();
+                        }
+
+                        else if (streamFirstStr != null)
                         {
-                            bluetoothManager.StreamFirst = streamFirstStr.Trim().Replace("streamfirst=", "")
+                            bluetoothManager.StreamFirst = streamFirstStr.Trim().Replace(Constants.ARGS_STREAMFIRST + "=", "")
                                 .Equals("true", StringComparison.CurrentCultureIgnoreCase) ? true : false;
                         }
 
@@ -126,20 +131,34 @@ namespace BlueMuse
                         }
                     }
 
-                    else if (protocolArgs.Uri.Host.Equals("stop", StringComparison.CurrentCultureIgnoreCase))
+                    else if (protocolArgs.Uri.Host.Equals(Constants.CMD_STOP, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains("addresses"));
+                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES));
                         string[] addresses = null;
 
                         BluetoothManager bluetoothManager = BluetoothManager.Instance;
 
                         if (addressesStr != null)
                         {
-                            addresses = addressesStr.Trim().Replace("addresses=", "").Split(',');
+                            addresses = addressesStr.Trim().Replace(Constants.ARGS_ADDRESSES + "=", "").Split(',');
                             foreach (var address in addresses)
                             {
                                 bluetoothManager.MusesToAutoStream.Remove(address);
                                 bluetoothManager.StopStreamingMAC(address);
+                            }
+                        }
+
+                        else
+                        {
+                            var stopAllStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STOPALL));
+                            if (stopAllStr != null)
+                            {
+                                if (stopAllStr.Trim().Replace(Constants.ARGS_STOPALL + "=", "")
+                                    .Equals("true", StringComparison.CurrentCultureIgnoreCase))
+                                {
+                                    bluetoothManager.MusesToAutoStream.Clear();
+                                    await bluetoothManager.StopStreamingAll();
+                                }
                             }
                         }
                     }

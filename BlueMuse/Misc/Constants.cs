@@ -12,6 +12,14 @@ namespace BlueMuse
 
         public static readonly string ALL_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\""; // Wildcard based "Muse*" filter - not supported it seems. AND (System.ItemNameDisplay:~\"Muse*\" OR System.Devices.Aep.Bluetooth.IssueInquiry:=System.StructuredQueryType.Boolean#True)";
 
+        public const string ARGS_STREAMFIRST = "streamfirst";
+        public const string ARGS_ADDRESSES = "addresses";
+        public const string ARGS_STARTALL = "stopall";
+        public const string ARGS_STOPALL = "stopall";
+        public const string CMD_START = "start";
+        public const string CMD_STOP = "stop";
+
+
         public const int MUSE_SAMPLE_RATE = 256;
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
         public const int MUSE_CHANNEL_COUNT = 5;
