@@ -14,7 +14,7 @@ namespace BlueMuse
 
         public const string ARGS_STREAMFIRST = "streamfirst";
         public const string ARGS_ADDRESSES = "addresses";
-        public const string ARGS_STARTALL = "stopall";
+        public const string ARGS_STARTALL = "startall";
         public const string ARGS_STOPALL = "stopall";
         public const string CMD_START = "start";
         public const string CMD_STOP = "stop";

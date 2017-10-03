@@ -103,7 +103,6 @@ namespace BlueMuse
 
                         var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES));
                         string[] addresses = null;
-                        var startAllStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STARTALL));
                         var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STREAMFIRST));
 
                         if (addressesStr != null)
@@ -115,7 +114,8 @@ namespace BlueMuse
                             }
                         }
 
-                        else if (startAllStr != null) {
+                        else if (splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STARTALL)) != null)
+                        {
                             await bluetoothManager.StartStreamingAll();
                         }
 
@@ -148,18 +148,10 @@ namespace BlueMuse
                             }
                         }
 
-                        else
+                        else if(splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STOPALL)) != null)
                         {
-                            var stopAllStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STOPALL));
-                            if (stopAllStr != null)
-                            {
-                                if (stopAllStr.Trim().Replace(Constants.ARGS_STOPALL + "=", "")
-                                    .Equals("true", StringComparison.CurrentCultureIgnoreCase))
-                                {
-                                    bluetoothManager.MusesToAutoStream.Clear();
-                                    await bluetoothManager.StopStreamingAll();
-                                }
-                            }
+                            bluetoothManager.MusesToAutoStream.Clear();
+                            await bluetoothManager.StopStreamingAll();
                         }
                     }
                 }

@@ -10,23 +10,27 @@
 **All commands will launch BlueMuse if it isn't already open.**
 
 Start streaming first Muse found: 
-```bash
+```powershell
 start bluemuse://start?streamfirst=true
 ```
 Start streaming specific Muse(s) - by MAC address: 
-```bash
+```powershell
 start bluemuse://start?addresses={MAC1},{MAC2},{MAC3},....
 ```
+Start streaming all Muses: 
+```powershell
+start bluemuse://start?startall
+```
 Stop streaming specific Muse(s) - by MAC address: 
-```bash
+```powershell
 start bluemuse://stop?addresses={MAC1},{MAC2},{MAC3},....
 ```
 Stop streaming all Muses: 
-```bash
-start bluemuse://stop?stopall=true
+```powershell
+start bluemuse://stop?stopall
 ```
 
-"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.
+**"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
 
 # Installing From App Packages
 1. Navigate to desired version in BlueMuse/AppPackages folder.
