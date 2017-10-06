@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 
 namespace BlueMuse.Helpers
 {
@@ -8,7 +7,7 @@ namespace BlueMuse.Helpers
         const int BITS_UINT12 = 12;
         const int BITS_UINT16 = 16;
 
-        public static UInt16 ToFakeUInt12(ref string binary, int offset = 0)
+        public static UInt16 ToFakeUInt12(string binary, int offset = 0)
         {
             UInt16 value = 0;
             for (int i = 0; i < BITS_UINT12; i++)
@@ -19,7 +18,7 @@ namespace BlueMuse.Helpers
             return value;
         }
 
-        public static UInt16 ToUInt16(ref string binary, int offset = 0)
+        public static UInt16 ToUInt16(string binary, int offset = 0)
         {
             UInt16 value = 0;
             for (int i = 0; i < BITS_UINT16; i++)

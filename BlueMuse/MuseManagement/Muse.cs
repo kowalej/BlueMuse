@@ -2,6 +2,7 @@
 using BlueMuse.Helpers;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
@@ -217,33 +218,28 @@ namespace BlueMuse.MuseManagement
             ValueSet message = new ValueSet();
             message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
             float[] data = new float[Constants.MUSE_SAMPLE_COUNT * channelCount]; // Can only send 1D array with this garbage :S
-            double[] timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
-
             for (int i = 0; i < channelCount; i++)
             {
                 var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                 for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                 {
-                    if (i == 1)
-                        timestamps[j] = sample.TimeStamps[j];
-                    data[(i * j) + j] = channelData[j];
+                    data[(i * Constants.MUSE_SAMPLE_COUNT) + j] = channelData[j];
                 }
             }
-          
             message.Add(Constants.LSL_MESSAGE_CHUNK_DATA, data);
-            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, timestamps);
+            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.TimeStamps);
                 
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
         }
 
-        private float[] GetTimeSamples(ref string bits)
+        private float[] GetTimeSamples(string bits)
         {
             // Extract our 12, 12-bit samples.
             float[] timeSamples = new float[Constants.MUSE_SAMPLE_COUNT];
             for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
             {
-                timeSamples[i] = PacketConversion.ToFakeUInt12(ref bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
-                timeSamples[i] = (timeSamples[i] - 2048) * 0.48828125f; // 12 bits on a 2 mVpp range.
+                timeSamples[i] = PacketConversion.ToFakeUInt12(bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
+                timeSamples[i] = (timeSamples[i] - 2048f) * 0.48828125f; // 12 bits on a 2 mVpp range.
             }
             return timeSamples;
         }
@@ -268,7 +264,7 @@ namespace BlueMuse.MuseManagement
             if (isStreaming)
             {
                 string bits = GetBits(args.CharacteristicValue);
-                UInt16 museTimestamp = PacketConversion.ToUInt16(ref bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                UInt16 museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                 MuseSample sample;
                 lock (sampleBuffer)
                 {
@@ -279,9 +275,16 @@ namespace BlueMuse.MuseManagement
                         sampleBuffer.Add(museTimestamp, sample);
                     }
                     else sample = sampleBuffer[museTimestamp];
-
                     // Get time samples.
-                    sample.ChannelData[sender.Uuid] = GetTimeSamples(ref bits);
+                    sample.ChannelData[sender.Uuid] = GetTimeSamples(bits);
+
+                    //if (sender.Uuid == Constants.MUSE_CHANNEL_UUIDS[0]) {
+                    //    Debug.WriteLine(sample.TimeStamps[0] + ", ");
+                    //    for(int i = 0; i < 5; i++)
+                    //    {
+                    //        Debug.Write(sample.ChannelData[sender.Uuid][i] + ", ");
+                    //    }
+                    //}
                 }
                 // If we have all 5 channels, we can push the 12 samples for each channel.
                 if (sample.ChannelData.Count == channelCount)

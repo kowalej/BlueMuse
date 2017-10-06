@@ -82,7 +82,7 @@ namespace LSLBridge.LSLManagement
                                 {
                                     for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                                     {
-                                        data2D[j, i] = data1D[(i * j) + j];
+                                        data2D[j, i] = data1D[(i * Constants.MUSE_SAMPLE_COUNT) + j];
                                     }
                                 }
                                 double[] timestamps = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS]);                               
