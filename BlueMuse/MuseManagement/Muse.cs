@@ -1,7 +1,6 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Helpers;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -11,6 +10,7 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
 
 namespace BlueMuse.MuseManagement
@@ -69,11 +69,11 @@ namespace BlueMuse.MuseManagement
         {
             get
             {
-                Regex deviceIdRegex = new Regex(@"^*(\w{2}:){5}\w{2}");
+                Regex deviceIdRegex = new Regex(@"^*-(?<MAC>(\w{2}:){5}\w{2})"); // Get correct MAC which is located after the dash.
                 string museId = Id;
                 Match matches = deviceIdRegex.Match(museId);
                 if (matches.Success)
-                    museId = matches.Value;
+                    museId = matches.Groups["MAC"].Value;
                 return museId;
             }
         }
@@ -236,49 +236,59 @@ namespace BlueMuse.MuseManagement
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
         }
 
-        private float[] GetTimeSamples(BitArray bitData)
+        private float[] GetTimeSamples(ref string bits)
         {
             // Extract our 12, 12-bit samples.
             float[] timeSamples = new float[Constants.MUSE_SAMPLE_COUNT];
             for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
             {
-                timeSamples[i] = bitData.ToUInt12(16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
+                timeSamples[i] = PacketConversion.ToFakeUInt12(ref bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
                 timeSamples[i] = (timeSamples[i] - 2048) * 0.48828125f; // 12 bits on a 2 mVpp range.
             }
             return timeSamples;
+        }
+
+        private static string GetBits(IBuffer buffer)
+        {
+            byte[] raw = new byte[buffer.Length];
+            CryptographicBuffer.CopyToByteArray(buffer, out raw);
+            string hexStr = BitConverter.ToString(raw);
+            string[] hexSplit = hexStr.Split('-');
+            string bits = string.Empty;
+            foreach (var hex in hexSplit)
+            {
+                UInt16 longValue = Convert.ToUInt16("0x" + hex, 16);
+                bits = bits + Convert.ToString(longValue, 2).PadLeft(8, '0');
+            }
+            return bits;
         }
 
         private async void Channel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             if (isStreaming)
             {
-                byte[] rawData = new byte[args.CharacteristicValue.Length];
-                using (var reader = DataReader.FromBuffer(args.CharacteristicValue))
+                string bits = GetBits(args.CharacteristicValue);
+                UInt16 museTimestamp = PacketConversion.ToUInt16(ref bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                MuseSample sample;
+                lock (sampleBuffer)
                 {
-                    reader.ReadBytes(rawData);
-                    BitArray bitData = new BitArray(rawData);
-                    UInt16 museTimestamp = bitData.ToUInt16(0); // Zero bit offset, since first 16 bits represent Muse timestamp.
-                    MuseSample sample;
-                    lock (sampleBuffer)
+                    if (!sampleBuffer.ContainsKey(museTimestamp))
                     {
-                        if (!sampleBuffer.ContainsKey(museTimestamp))
-                        {
-                            sample = new MuseSample();
-                            sample.BaseTimeStamp = args.Timestamp; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                            sampleBuffer.Add(museTimestamp, sample);
-                        }
-                        else sample = sampleBuffer[museTimestamp];
+                        sample = new MuseSample();
+                        sample.BaseTimeStamp = args.Timestamp; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                        sampleBuffer.Add(museTimestamp, sample);
+                    }
+                    else sample = sampleBuffer[museTimestamp];
 
-                        // Get time samples.
-                        sample.ChannelData[sender.Uuid] = GetTimeSamples(bitData);
-                    }
-                    // If we have all 5 channels, we can push the 12 samples for each channel.
-                    if (sample.ChannelData.Count == channelCount)
-                    {
-                        await LSLPushChunk(sample);
-                        lock(sampleBuffer)
-                            sampleBuffer.Remove(museTimestamp);
-                    }
+                    // Get time samples.
+                    sample.ChannelData[sender.Uuid] = GetTimeSamples(ref bits);
+                }
+                // If we have all 5 channels, we can push the 12 samples for each channel.
+                if (sample.ChannelData.Count == channelCount)
+                {
+                    await LSLPushChunk(sample);
+                    lock(sampleBuffer)
+                        sampleBuffer.Remove(museTimestamp);
                 }
             }
         }
