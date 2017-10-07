@@ -171,7 +171,6 @@ namespace BlueMuse.MuseManagement
                 {
                     if (start)
                     {
-                        TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs> d = (s, a) => Channel_ValueChanged(s, a);
                         channels[i].ValueChanged += Channel_ValueChanged;
                         sampleBuffer = new Dictionary<ushort, MuseSample>();
                     }
@@ -277,7 +276,6 @@ namespace BlueMuse.MuseManagement
                     else sample = sampleBuffer[museTimestamp];
                     // Get time samples.
                     sample.ChannelData[sender.Uuid] = GetTimeSamples(bits);
-
                     //if (sender.Uuid == Constants.MUSE_CHANNEL_UUIDS[0]) {
                     //    Debug.WriteLine(sample.TimeStamps[0] + ", ");
                     //    for(int i = 0; i < 5; i++)

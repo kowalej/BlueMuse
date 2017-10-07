@@ -19,7 +19,6 @@ namespace BlueMuse
         public const string CMD_START = "start";
         public const string CMD_STOP = "stop";
 
-
         public const int MUSE_SAMPLE_RATE = 256;
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
         public const int MUSE_CHANNEL_COUNT = 5;
