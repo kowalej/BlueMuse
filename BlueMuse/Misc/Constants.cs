@@ -43,21 +43,21 @@ namespace BlueMuse
         // Parent service for channel characteristics.
         public static readonly Guid MUSE_DATA_SERVICE_UUID = new Guid("0000fe8d-0000-1000-8000-00805f9b34fb");
 
-        // GAAT characteristics for the 5 channels, in specific order to match muse-lsl.py.
+        // GAAT characteristics for the 5 channels, in order: TP9-AF7-AF8-TP10-RIGHTAUX.
         public static Guid[] MUSE_CHANNEL_UUIDS = new Guid[MUSE_CHANNEL_COUNT] {
-            new Guid("273e0007-4c4d-454d-96be-f03bac821358"), // Handle 43
-            new Guid("273e0006-4c4d-454d-96be-f03bac821358"), // Handle 40
-            new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
             new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
-            new Guid("273e0004-4c4d-454d-96be-f03bac821358") // Handle 34
+            new Guid("273e0004-4c4d-454d-96be-f03bac821358"), // Handle 34
+            new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
+            new Guid("273e0006-4c4d-454d-96be-f03bac821358"), // Handle 40
+            new Guid("273e0007-4c4d-454d-96be-f03bac821358") // Handle 43
         };
 
-        // GAAT characteristics for the 5 channels, in specific order to match muse-lsl.py.
+        // GAAT characteristics for the 4 channels, in order: TP9-AF7-AF8-TP10.
         public static Guid[] MUSE_SMXT_CHANNEL_UUIDS = new Guid[MUSE_SMXT_CHANNEL_COUNT] {
-            new Guid("273e0006-4c4d-454d-96be-f03bac821358"), // Handle 40
-            new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
             new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
-            new Guid("273e0004-4c4d-454d-96be-f03bac821358") // Handle 34
+            new Guid("273e0004-4c4d-454d-96be-f03bac821358"), // Handle 34
+            new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
+            new Guid("273e0006-4c4d-454d-96be-f03bac821358") // Handle 40
         };
 
         // LSL labels for the 5 channels, in specific order to match muse-lsl.py.
@@ -73,11 +73,10 @@ namespace BlueMuse
         // LSL labels for the 4 channels, in specific order to match muse-lsl.py.
         public static string[] MUSE_SMXT_CHANNEL_LABELS = new string[MUSE_SMXT_CHANNEL_COUNT]
         {
-            //"TP9",
+            "TP9",
             "AF7",
             "AF8",
             "TP10",
-            "Right AUX"
         };
     }
 }
