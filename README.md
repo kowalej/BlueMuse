@@ -38,13 +38,14 @@ start bluemuse://stop?stopall
 3. Select current user or local machine depending on preference and click "Next".
 4. Select "Place all certificates in the following store".
 5. Press "Browse...".
-6. Select "Trusted Root Certification Authorities" and click "OK".
-7. Click "Next" and click "Finish" to install certificate.
+6. Select install for Local Machine.
+7. Select "Trusted Root Certification Authorities" and click "OK".
+8. Click "Next" and click "Finish" to install certificate.
 
-8. Open Dependencies folder and appropriate folder for your machine architecture.
-9. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
+9. Open Dependencies folder and appropriate folder for your machine architecture.
+10. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
 
-10. Finally, double click and install BlueMuse_xxx.appxbundle.
+11. Finally, double click and install BlueMuse_xxx.appxbundle.
 
 # Notes
 * **Requires Windows 10 with creators update (build 10.0.15063.0).**
