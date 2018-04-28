@@ -4,7 +4,7 @@
   <mp:PhoneIdentity PhoneProductId="07220b98-ffa5-4000-9f7c-e168a00899a6" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>BlueMuse</DisplayName>
-    <PublisherDisplayName>Jason</PublisherDisplayName>
+    <PublisherDisplayName>Jason Kowaleski</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
@@ -27,11 +27,11 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="transparent" />
       </uap:VisualElements>
       <Extensions>
-        <uap:Extension Category="windows.protocol">
-          <uap:Protocol Name="bluemuse" />
-        </uap:Extension>
         <uap:Extension Category="windows.appService">
           <uap:AppService Name="LSLService" />
+        </uap:Extension>
+        <uap:Extension Category="windows.protocol">
+          <uap:Protocol Name="bluemuse" />
         </uap:Extension>
         <desktop:Extension Category="windows.fullTrustProcess" Executable="Win32\LSLBridge.exe" />
       </Extensions>

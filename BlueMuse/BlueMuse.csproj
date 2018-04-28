@@ -18,7 +18,7 @@
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WindowsXamlEnableOverview>true</WindowsXamlEnableOverview>
     <PackageCertificateKeyFile>BlueMuse_TemporaryKey.pfx</PackageCertificateKeyFile>
-    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
   </PropertyGroup>
@@ -182,6 +182,35 @@
     <None Include="AppPackages\BlueMuse_1.0.2.0\Dependencies\x86\Microsoft.NET.Native.Framework.1.7.appx" />
     <None Include="AppPackages\BlueMuse_1.0.2.0\Dependencies\x86\Microsoft.NET.Native.Runtime.1.7.appx" />
     <None Include="AppPackages\BlueMuse_1.0.2.0\Dependencies\x86\Microsoft.VCLibs.x86.14.00.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.ps1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\cs-CZ\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\de-DE\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\en-US\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\es-ES\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\fr-FR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\it-IT\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\ja-JP\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\ko-KR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\pl-PL\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\pt-BR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\ru-RU\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\tr-TR\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\zh-CN\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Add-AppDevPackage.resources\zh-TW\Add-AppDevPackage.psd1" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\BlueMuse_1.0.3.0_x64.appxsym" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\BlueMuse_1.0.3.0_x86.appxsym" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\BlueMuse_1.0.3.0_x86_x64.appxbundle" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\BlueMuse_1.0.3.0_x86_x64.cer" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\arm\Microsoft.NET.Native.Framework.1.7.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\arm\Microsoft.NET.Native.Runtime.1.7.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\arm\Microsoft.VCLibs.ARM.14.00.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\x64\Microsoft.NET.Native.Framework.1.7.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\x64\Microsoft.NET.Native.Runtime.1.7.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\x64\Microsoft.VCLibs.x64.14.00.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\x86\Microsoft.NET.Native.Framework.1.7.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\x86\Microsoft.NET.Native.Runtime.1.7.appx" />
+    <None Include="AppPackages\BlueMuse_1.0.3.0\Dependencies\x86\Microsoft.VCLibs.x86.14.00.appx" />
     <None Include="BlueMuse_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
@@ -266,10 +295,10 @@
       <Version>1.0.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>5.4.0</Version>
+      <Version>6.1.2</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>10.0.3</Version>
+      <Version>11.0.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

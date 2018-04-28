@@ -32,8 +32,8 @@ start bluemuse://stop?stopall
 
 **"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
 
-# Installing From App Packages
-1. Navigate to desired version in BlueMuse/AppPackages folder.
+# Installation
+1. Download latest version from the /Dist folder and unzip or find your desired version in BlueMuse/AppPackages folder.
 2. Double click BlueMuse_xxx.cer then click "Install Certificate".
 3. Select current user or local machine depending on preference and click "Next".
 4. Select "Place all certificates in the following store".
