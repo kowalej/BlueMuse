@@ -17,14 +17,15 @@ namespace BlueMuse.ViewModels
         private Muse selectedMuse; // Tracks user selection from list.
         public Muse SelectedMuse { get { return selectedMuse; } set { selectedMuse = value; if (value != null) SetSelectedMuse(value); } }
         private string searchText = string.Empty;
-        public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } } 
+        public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } }
+        public Timer searchTextAnimateTimer;
 
         public MainPageVM()
         {
             museManager = BluetoothManager.Instance;
             Muses = museManager.Muses;
             museManager.FindMuses();
-            new Timer(SearchTextAnimate, null, 0, 600);
+            searchTextAnimateTimer = new Timer(SearchTextAnimate, null, 0, 600); // Start the Searching for Muses... animation.
         }
 
         private void SearchTextAnimate(object state)

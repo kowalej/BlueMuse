@@ -12,7 +12,7 @@ namespace BlueMuse.Helpers
         }
     }
 
-    public class GenericStringFormatter : Windows.UI.Xaml.Data.IValueConverter
+    public class GenericStringFormatter : IValueConverter
     {
         // This converts the value object to the string to display.
         // This will work with most simple types.
@@ -35,7 +35,7 @@ namespace BlueMuse.Helpers
         public object ConvertBack(object v, Type t, object p, string l) => throw new NotImplementedException();
     }
 
-    public class YesNoValueFormatter : Windows.UI.Xaml.Data.IValueConverter
+    public class YesNoValueFormatter : IValueConverter
     {
         // This converts the value object to the string to display.
         // This will work with most simple types.
