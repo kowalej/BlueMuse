@@ -9,7 +9,7 @@ using Windows.Foundation.Collections;
 namespace BlueMuse.AppService
 {
     /// <summary>
-    /// Modified service messaging lass courtesy of Mike Taulty - https://mtaulty.com/2016/10/12/windows-10-1607-uwp-apps-packaged-with-companion-desktop-apps/
+    /// Modified service messaging class courtesy of Mike Taulty - https://mtaulty.com/2016/10/12/windows-10-1607-uwp-apps-packaged-with-companion-desktop-apps/
     /// </summary>
     static class AppServiceManager
     {
