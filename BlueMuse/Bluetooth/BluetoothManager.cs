@@ -1,6 +1,7 @@
-﻿using BlueMuse.MuseManagement;
-using BlueMuse.Helpers;
+﻿using BlueMuse.Helpers;
+using BlueMuse.MuseManagement;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
-using System.Collections.Generic;
+using Windows.UI.Xaml;
 
 namespace BlueMuse.Bluetooth
 {
@@ -43,15 +44,13 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
-            App.Current.Suspending += Current_Suspending; // Close off streams when application exiting.    
         }
 
-        private async void Current_Suspending(object sender, SuspendingEventArgs e)
+        public async void Close()
         {
-            var def = e.SuspendingOperation.GetDeferral();
             await StopStreamingAll();
             await DeactivateLSLBridge();
-            def.Complete();
+            await Task.Delay(1000); // This delay ensures LSL bridge gets shutdown in time.
         }
 
         public void FindMuses()
@@ -162,10 +161,13 @@ namespace BlueMuse.Bluetooth
                     StreamFirst = false;
                     StartStreaming(muse.Id);
                 }
-                else if (MusesToAutoStream.Any(x => x == muse.MacAddress))
+                else
                 {
-                    MusesToAutoStream.Remove(muse.MacAddress);
-                    StartStreaming(muse.Id);
+                    string find = MusesToAutoStream.FirstOrDefault(x => x == muse.MacAddress || x == muse.Name);
+                    if(!string.IsNullOrEmpty(find)) {
+                        MusesToAutoStream.Remove(muse.MacAddress);
+                        StartStreaming(muse.Id);
+                    }
                 }
             }
         }
@@ -240,9 +242,9 @@ namespace BlueMuse.Bluetooth
             }        
         }
 
-        public async void StopStreamingMAC(string MAC)
+        public async void StopStreamingAddress(string address)
         {
-            var muse = Muses.SingleOrDefault(x => x.MacAddress == MAC);
+            var muse = Muses.SingleOrDefault(x => x.MacAddress == address || x.Name == address);
             if (muse != null)
             {
                 await muse.ToggleStream(false);

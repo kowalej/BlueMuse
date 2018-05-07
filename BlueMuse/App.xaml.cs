@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -144,7 +145,7 @@ namespace BlueMuse
                             foreach (var address in addresses)
                             {
                                 bluetoothManager.MusesToAutoStream.Remove(address);
-                                bluetoothManager.StopStreamingMAC(address);
+                                bluetoothManager.StopStreamingAddress(address);
                             }
                         }
 
@@ -154,6 +155,13 @@ namespace BlueMuse
                             await bluetoothManager.StopStreamingAll();
                         }
                     }
+
+                    else if (protocolArgs.Uri.Host.Equals(Constants.CMD_CLOSE_PROGRAM, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        BluetoothManager.Instance.Close();
+                        App.Current.Exit();
+                    }
+
                 }
                 catch (UriFormatException)
                 {

@@ -4,6 +4,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.AppService;
@@ -16,8 +17,9 @@ namespace LSLBridge.LSLManagement
         private volatile ObservableCollection<MuseLSLStream> museStreams;
         private Action<int> museStreamCountSetter;
         private AppServiceConnection lslStreamService;
-
+        private Timer keepAliveTimer;
         private static readonly Object syncLock = new object();
+        private DateTime lastMessageTime = DateTime.MinValue; 
 
         public MuseLSLStreamManager(ObservableCollection<MuseLSLStream> museStreams, Action<int> museStreamCountSetter)
         {
@@ -29,6 +31,7 @@ namespace LSLBridge.LSLManagement
             lslStreamService.AppServiceName = "LSLService";
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
+            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 600); // Start the Searching for Muses... animation.
         }
 
         private async void OpenService()
@@ -36,8 +39,25 @@ namespace LSLBridge.LSLManagement
             await lslStreamService.OpenAsync();
         }
 
+        private void CheckLastMessage(object state)
+        {
+            // Auto close off bridge if we aren't receiving any data. This fixes LSLBridge not being shut down after closing BlueMuse.
+            if(lastMessageTime != DateTime.MinValue && (DateTime.Now - lastMessageTime).Seconds > 2)
+            {
+                CloseBridge();
+            }
+        }
+
+        private void CloseBridge()
+        {
+            lslStreamService.RequestReceived -= LSLService_RequestReceived;
+            lslStreamService.Dispose();
+            Process.GetCurrentProcess().Kill();
+        }
+
         private void LSLService_RequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
         {
+            lastMessageTime = DateTime.Now;
             ValueSet message = args.Request.Message;
             object value;
             if (message.TryGetValue(Constants.LSL_MESSAGE_TYPE, out value))
@@ -94,14 +114,11 @@ namespace LSLBridge.LSLManagement
                     // Should not be called until application is closing.
                     case Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE:
                         {
-                            lslStreamService.RequestReceived -= LSLService_RequestReceived;
-                            lslStreamService.Dispose();
-                            Process.GetCurrentProcess().Kill();
+                            CloseBridge();
                         }
                         break;
                 }
             }
-
         }
     }
 }
