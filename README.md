@@ -9,25 +9,35 @@
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
 
+Start BlueMuse
+```powershell
+start bluemuse:
+```
+
 Start streaming first Muse found: 
 ```powershell
 start bluemuse://start?streamfirst=true
 ```
-Start streaming specific Muse(s) - by MAC address: 
+Start streaming specific Muse(s) - by MAC address or device name: 
 ```powershell
-start bluemuse://start?addresses={MAC1},{MAC2},{MAC3},....
+start bluemuse://start?addresses={MAC1 or Name1},{MAC2 or Name2},{MAC3 or Name3}....
 ```
 Start streaming all Muses: 
 ```powershell
 start bluemuse://start?startall
 ```
-Stop streaming specific Muse(s) - by MAC address: 
+Stop streaming specific Muse(s) - by MAC address or device name: 
 ```powershell
-start bluemuse://stop?addresses={MAC1},{MAC2},{MAC3},....
+start bluemuse://stop?addresses={MAC1 or Name1},{MAC2 or Name2},{MAC3 or Name3},....
 ```
 Stop streaming all Muses: 
 ```powershell
 start bluemuse://stop?stopall
+```
+
+Close the program: 
+```powershell
+start bluemuse://shutdown
 ```
 
 **"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
@@ -60,5 +70,5 @@ start bluemuse://stop?stopall
   2. Reset Muse - hold down power button until device turns off then back on.
   3. Make sure Muse is within reasonable range of your computer. Some built in Bluetooth antennas are not very powerful.
 
-### Missing references in LSLBridge project:
+### If working on VS Solution - missing references in LSLBridge project:
 See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance
