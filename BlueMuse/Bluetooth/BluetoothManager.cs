@@ -23,6 +23,7 @@ namespace BlueMuse.Bluetooth
         private volatile bool LSLBridgeLaunched = false;
         private static readonly Object syncLock = new object();
         Timer pollMuseTimer;
+        Timer pollBridge;
 
         private static object syncRoot = new Object();
         private static volatile BluetoothManager instance;
@@ -44,6 +45,13 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
+            pollBridge = new Timer(PollBridge, null, 0, 1000);
+        }
+
+        public async void PollBridge(object state)
+        {
+            if(LSLBridgeLaunched && !Muses.Any(x => x.IsStreaming))
+                await AppService.AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE, new Windows.Foundation.Collections.ValueSet());
         }
 
         public async void Close()
@@ -282,7 +290,6 @@ namespace BlueMuse.Bluetooth
                 {
                     await muse.ToggleStream(false);
                 }
-                //await DeactivateLSLBridge();
             }
         }
 

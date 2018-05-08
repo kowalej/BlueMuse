@@ -28,6 +28,7 @@ namespace BlueMuse
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
         public const string LSL_MESSAGE_TYPE = nameof(LSL_MESSAGE_TYPE);
+        public const string LSL_MESSAGE_TYPE_KEEP_ACTIVE = nameof(LSL_MESSAGE_TYPE_KEEP_ACTIVE);
         public const string LSL_MESSAGE_TYPE_OPEN_STREAM = nameof(LSL_MESSAGE_TYPE_OPEN_STREAM);
         public const string LSL_MESSAGE_TYPE_CLOSE_STREAM = nameof(LSL_MESSAGE_TYPE_CLOSE_STREAM);
         public const string LSL_MESSAGE_TYPE_SEND_CHUNK = nameof(LSL_MESSAGE_TYPE_SEND_CHUNK);

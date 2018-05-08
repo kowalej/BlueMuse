@@ -19,7 +19,7 @@ namespace LSLBridge.LSLManagement
         private AppServiceConnection lslStreamService;
         private Timer keepAliveTimer;
         private static readonly Object syncLock = new object();
-        private DateTime lastMessageTime = DateTime.MinValue; 
+        private DateTime lastMessageTime = DateTime.MinValue;
 
         public MuseLSLStreamManager(ObservableCollection<MuseLSLStream> museStreams, Action<int> museStreamCountSetter)
         {
@@ -31,7 +31,7 @@ namespace LSLBridge.LSLManagement
             lslStreamService.AppServiceName = "LSLService";
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
-            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 600); // Start the Searching for Muses... animation.
+            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
         }
 
         private async void OpenService()
@@ -42,7 +42,7 @@ namespace LSLBridge.LSLManagement
         private void CheckLastMessage(object state)
         {
             // Auto close off bridge if we aren't receiving any data. This fixes LSLBridge not being shut down after closing BlueMuse.
-            if(lastMessageTime != DateTime.MinValue && (DateTime.Now - lastMessageTime).Seconds > 2)
+            if (lastMessageTime != DateTime.MinValue && (DateTime.Now - lastMessageTime).Seconds > 2)
             {
                 CloseBridge();
             }
@@ -105,7 +105,7 @@ namespace LSLBridge.LSLManagement
                                         data2D[j, i] = data1D[(i * Constants.MUSE_SAMPLE_COUNT) + j];
                                     }
                                 }
-                                double[] timestamps = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS]);                               
+                                double[] timestamps = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS]);
                                 stream.PushChunkLSL(data2D, timestamps);
                             }
                         }
