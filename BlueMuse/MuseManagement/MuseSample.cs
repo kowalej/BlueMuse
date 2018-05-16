@@ -15,7 +15,7 @@ namespace BlueMuse.MuseManagement
             set
             {
                 baseTimeStamp = value;
-                double baseMillis = baseTimeStamp.DateTime.Subtract(new DateTime(1970, 1, 1)).TotalMilliseconds;
+                double baseMillis = baseTimeStamp.ToUnixTimeMilliseconds();
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
                     TimeStamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
