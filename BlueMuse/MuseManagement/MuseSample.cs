@@ -19,6 +19,7 @@ namespace BlueMuse.MuseManagement
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
                     TimeStamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
+                    TimeStamps[i] = TimeStamps[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
                 }
             }
         }
