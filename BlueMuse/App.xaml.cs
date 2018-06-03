@@ -73,7 +73,7 @@ namespace BlueMuse
                 }
 
                 float DPI = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().LogicalDpi;
-                var desiredSize = new Size(410d, 520d);
+                var desiredSize = new Size(410d, 550d);
                 ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
                 ApplicationView.PreferredLaunchViewSize = desiredSize;
                 ApplicationView.GetForCurrentView().SetPreferredMinSize(desiredSize);

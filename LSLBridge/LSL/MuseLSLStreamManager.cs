@@ -107,6 +107,7 @@ namespace LSLBridge.LSLManagement
                                 }
                                 double[] timestamps = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS]);
                                 stream.PushChunkLSL(data2D, timestamps);
+                                stream.UpdateSampleRate(timestamps.Length);
                             }
                         }
                         break;

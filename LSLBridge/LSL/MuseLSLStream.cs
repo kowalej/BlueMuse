@@ -92,11 +92,10 @@ namespace LSLBridge.LSLManagement
             disposed = true;
         }
 
-        public void PushChunkLSL(float[,] data, double[]timestamps)
+        public void UpdateSampleRate(int timestampsLength)
         {
-            LatestTimestamp = timestamps[timestamps.Length - 1];
-            lslStream.push_chunk(data, timestamps);
-            sampleCountSec += timestamps.Length;
+            // Update sample rate.
+            sampleCountSec += timestampsLength;
             if (stopWatch.ElapsedMilliseconds >= 1000)
             {
                 var elapsed = stopWatch.ElapsedMilliseconds;
@@ -105,6 +104,12 @@ namespace LSLBridge.LSLManagement
                 sampleCountSec = 0;
                 stopWatch.Restart();
             }
+        }
+
+        public void PushChunkLSL(float[,] data, double[]timestamps)
+        {
+            LatestTimestamp = timestamps[timestamps.Length - 1];
+            lslStream.push_chunk(data, timestamps);
         }
     }
 }

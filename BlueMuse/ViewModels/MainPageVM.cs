@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Input;
 using BlueMuse.Bluetooth;
 using System.Threading;
+using Windows.ApplicationModel;
 
 namespace BlueMuse.ViewModels
 {
@@ -18,7 +19,12 @@ namespace BlueMuse.ViewModels
         public Muse SelectedMuse { get { return selectedMuse; } set { selectedMuse = value; if (value != null) SetSelectedMuse(value); } }
         private string searchText = string.Empty;
         public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } }
-        public Timer searchTextAnimateTimer;
+        private Timer searchTextAnimateTimer;
+        public string AppVersion { get {
+                var pv = Package.Current.Id.Version;
+                return $"BlueMuse Version {pv.Major}.{pv.Minor}.{pv.Build}.{pv.Revision}";
+            }
+        }
 
         public MainPageVM()
         {
