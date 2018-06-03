@@ -61,6 +61,8 @@ start bluemuse://shutdown
 #### Latest
 * 1.0.6.0 - stable. 
     * Changed timestamp format to Unix epoch **seconds** format.
+    * Improved UI - it is now re-sizable and more compact (better for low resolution screens).
+    * Added version number to main screen.
 
 #### Older
 * 1.0.5.0 - stable. 

@@ -56,7 +56,7 @@
             <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" FontSize="13" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
                 <TextBlock TextWrapping="Wrap" Padding="10">
                     <Run FontWeight="Bold" Text="Connection Help: " /><Run Text="Your Muse must be turned on and unpaired from other devices. It will showing incremental flashing lights when it's ready to pair followed by solid lights once connected." />
-                    <Run FontWeight="Bold" Text="Note: " /><Run Text="You may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
+                    <Run FontWeight="SemiBold" Text="Note: " /><Run Text="You may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
                     <LineBreak FontSize="10" /><LineBreak FontSize="10" />
                     <Run FontSize="10" FontWeight="SemiBold" FontStyle="Italic" Text="{Binding ViewModel.AppVersion, ElementName=Root, Mode=OneTime}" />
                 </TextBlock>
