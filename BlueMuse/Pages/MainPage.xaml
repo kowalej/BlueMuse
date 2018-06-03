@@ -17,13 +17,13 @@
     </Page.Resources>
 
     <ScrollViewer>
-        <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="400" Padding="10">
-            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1">
+        <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="auto" Padding="10">
+            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1">
                 <Grid Background="#a63d87" Padding="10,5,10,5" Margin="0,0,0,0" BorderBrush="DarkSlateGray" BorderThickness="0,0,0,1">
                     <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White" Text="Muses Available" VerticalAlignment="Top" FontSize="28" FontWeight="SemiBold" IsColorFontEnabled="True" />
-                    <Button Content="Force Refresh" HorizontalAlignment="Right" Command="{x:Bind ViewModel.ForceRefresh}" VerticalAlignment="Top" Style="{StaticResource AccentButtonStyle}" Margin="0,4,0,0" Height="32" />
+                    <Button Content="Force Refresh" HorizontalAlignment="Right" Command="{x:Bind ViewModel.ForceRefresh}" VerticalAlignment="Top" Style="{StaticResource AccentButtonStyle}" Margin="0,4,0,0" Height="auto" />
                 </Grid>
-                <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" Background="#ffd1f1" ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" HorizontalAlignment="Left" Height="446" VerticalAlignment="Top" Width="400">
+                <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" HorizontalAlignment="Left" MinHeight="340" VerticalAlignment="Top">
                     <ListView.Header>
                         <StackPanel Visibility="{x:Bind ViewModel.Muses.Count, Converter={StaticResource VisibleWhenZeroConverter}, Mode=OneWay}" Orientation="Horizontal" Margin="10,10,0,0">
                             <TextBlock Text="{x:Bind ViewModel.SearchText, Mode=OneWay}" />
@@ -53,10 +53,10 @@
                     </ListView.ItemTemplate>
                 </ListView>
             </StackPanel>
-            <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
+            <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" FontSize="13" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
                 <TextBlock TextWrapping="Wrap" Padding="10">
-                    <Run FontWeight="Bold" Text="Note: " /><Run Text="your Muse should be turned on and unpaired from other devices to connect. The Muse should show incremental flashing lights when it's ready to pair followed by solid lights once connected." /><LineBreak />
-                    <Run FontWeight="Bold" Text="Important: " /><Run Text="you may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
+                    <Run FontWeight="Bold" Text="Connection Help: " /><Run Text="Your Muse must be turned on and unpaired from other devices. It will showing incremental flashing lights when it's ready to pair followed by solid lights once connected." />
+                    <Run FontWeight="Bold" Text="Note: " /><Run Text="you may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
                 </TextBlock>
             </Frame>
         </StackPanel>

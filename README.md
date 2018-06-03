@@ -57,6 +57,20 @@ start bluemuse://shutdown
 
 11. Finally, double click and install BlueMuse_xxx.appxbundle.
 
+# Versions
+#### Latest
+* 1.0.6.0 - stable. 
+    * Changed timestamp format to Unix epoch **seconds** format.
+
+#### Older
+* 1.0.5.0 - stable. 
+    * Corrected timestamps timezone issue (timestamps were meant to be GMT based, but were actually in EST). Timestamps formatted as Unix epoch **milliseconds**.
+* 1.0.4.0 - stable. 
+    * LSLBridge is auto hidden if no streams active. BlueMuse also polls to keep LSL bridge open if not currently streaming, therefore LSLBridge has proper auto closing mechanism that won't prematurely trigger. This process may seem strange and convoluted but it appears to be the only good method to manage this trusted process with the current Windows UWP API.
+* 1.0.3.0 - unstable. 
+    * Issues with LSLBridge closing.
+
+
 # Notes
 * **Requires Windows 10 with creators update (build 10.0.15063.0).**
 * Application requires side loading a Win32 application which does the LSL streaming. This is because UWP apps run in a restricted environment with network isolation. This restricts LSL streams from being seen across the local network if launched from the  UWP app. To get around this issue, the data is shuffled through to the "LSL Bridge", a Win32 application which can run in a normal environment. Note: when you first start a stream, you may need to add a firewall exception for LSLBridge.exe.
