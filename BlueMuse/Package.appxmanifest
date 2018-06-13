@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap mp uap3 rescap">
-  <Identity Name="07220b98-ffa5-4000-9f7c-e168a00899a6" Publisher="CN=Jason" Version="1.0.6.0" />
+  <Identity Name="07220b98-ffa5-4000-9f7c-e168a00899a6" Publisher="CN=BlueMuse - Jason Kowaleski" Version="1.0.7.0" />
   <mp:PhoneIdentity PhoneProductId="07220b98-ffa5-4000-9f7c-e168a00899a6" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>BlueMuse</DisplayName>
-    <PublisherDisplayName>Jason Kowaleski</PublisherDisplayName>
+    <PublisherDisplayName>BlueMuse - Jason Kowaleski</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
   <Dependencies>
@@ -17,7 +17,7 @@
     <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="BlueMuse.App">
       <uap:VisualElements DisplayName="BlueMuse" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\Square44x44Logo.png" Description="Windows 10 app to stream data from Muse EEG headsets via LSL (Lab Streaming Layer)." BackgroundColor="transparent">
         <uap:LockScreen Notification="badgeAndTileText" BadgeLogo="Assets\BadgeLogo.png" />
-        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square310x310Logo="Assets\LargeTile.png" Square71x71Logo="Assets\SmallTile.png" ShortName="Blue Muse">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square310x310Logo="Assets\LargeTile.png" Square71x71Logo="Assets\SmallTile.png" ShortName="BlueMuse">
           <uap:ShowNameOnTiles>
             <uap:ShowOn Tile="square150x150Logo" />
             <uap:ShowOn Tile="wide310x150Logo" />
@@ -27,11 +27,11 @@
         <uap:SplashScreen Image="Assets\SplashScreen.png" BackgroundColor="transparent" />
       </uap:VisualElements>
       <Extensions>
-        <uap:Extension Category="windows.appService">
-          <uap:AppService Name="LSLService" />
-        </uap:Extension>
         <uap:Extension Category="windows.protocol">
           <uap:Protocol Name="bluemuse" />
+        </uap:Extension>
+        <uap:Extension Category="windows.appService">
+          <uap:AppService Name="LSLService" />
         </uap:Extension>
         <desktop:Extension Category="windows.fullTrustProcess" Executable="Win32\LSLBridge.exe" />
       </Extensions>

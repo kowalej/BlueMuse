@@ -43,19 +43,25 @@ start bluemuse://shutdown
 **"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
 
 # Installation
-1. Download latest version from the /Dist folder and unzip or find your desired version in BlueMuse/AppPackages folder.
-2. Double click BlueMuse_xxx.cer then click "Install Certificate".
-3. Select current user or local machine depending on preference and click "Next".
-4. Select "Place all certificates in the following store".
-5. Press "Browse...".
-6. Select install for Local Machine.
-7. Select "Trusted Root Certification Authorities" and click "OK".
-8. Click "Next" and click "Finish" to install certificate.
+Download latest version from the /Dist folder and unzip or find your desired version in BlueMuse/AppPackages folder. Then continue using the auto or manual process.
+### Auto
+1. Navigate to the unzipped app folder and run the PowerShell command: 
+`.\Add-AppDevPackage.ps1`
+2. Follow the prompts - the script should automatically install the security certificate, all dependencies, and the BlueMuse app.
 
-9. Open Dependencies folder and appropriate folder for your machine architecture.
-10. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
+### Manual
+1. Double click BlueMuse_xxx.cer then click "Install Certificate".
+2. Select current user or local machine depending on preference and click "Next".
+3. Select "Place all certificates in the following store".
+4. Press "Browse...".
+5. Select install for Local Machine.
+6. Select "Trusted Root Certification Authorities" and click "OK".
+7. Click "Next" and click "Finish" to install certificate.
 
-11. Finally, double click and install BlueMuse_xxx.appxbundle.
+8. Open Dependencies folder and appropriate folder for your machine architecture.
+9. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
+
+10. Finally, double click and install BlueMuse_xxx.appxbundle.
 
 # Versions
 #### Latest
