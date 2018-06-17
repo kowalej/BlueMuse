@@ -43,13 +43,13 @@ start bluemuse://shutdown
 **"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
 
 # Installation
-Download latest version from the /Dist folder and unzip or find your desired version in BlueMuse/AppPackages folder. Then continue using the auto or manual process.
-### Auto
+**Download latest version from the /Dist folder** and unzip or find your desired version in BlueMuse/AppPackages folder. Then continue using the auto or manual process.
+### Easy Way
 1. Navigate to the unzipped app folder and run the PowerShell command: 
-`.\Add-AppDevPackage.ps1`
+`.\InstallBlueMuse.ps1`
 2. Follow the prompts - the script should automatically install the security certificate, all dependencies, and the BlueMuse app.
 
-### Manual
+### Manual Install
 1. Double click BlueMuse_xxx.cer then click "Install Certificate".
 2. Select current user or local machine depending on preference and click "Next".
 3. Select "Place all certificates in the following store".
@@ -65,18 +65,24 @@ Download latest version from the /Dist folder and unzip or find your desired ver
 
 # Versions
 #### Latest
+* 1.0.7.0
+    * Added new install script `InstallBlueMuse.ps1`.
+    * Refreshed the install certificate which was about to expire.
+
+#### Older
 * 1.0.6.0 - stable. 
     * Changed timestamp format to Unix epoch **seconds** format.
     * Improved UI - it is now re-sizable and more compact (better for low resolution screens).
     * Added version number to main screen.
-
-#### Older
 * 1.0.5.0 - stable. 
     * Corrected timestamps timezone issue (timestamps were meant to be GMT based, but were actually in EST). Timestamps formatted as Unix epoch **milliseconds**.
 * 1.0.4.0 - stable. 
     * LSLBridge is auto hidden if no streams active. BlueMuse also polls to keep LSL bridge open if not currently streaming, therefore LSLBridge has proper auto closing mechanism that won't prematurely trigger. This process may seem strange and convoluted but it appears to be the only good method to manage this trusted process with the current Windows UWP API.
+    * Bad timestamps.
+
 * 1.0.3.0 - unstable. 
     * Issues with LSLBridge closing.
+    * Bad timestamps.
 
 
 # Notes
