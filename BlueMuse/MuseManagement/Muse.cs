@@ -145,11 +145,13 @@ namespace BlueMuse.MuseManagement
                     // Get GATT service on start, therefore it will be already available when stopping.
                     deviceService = (await Device.GetGattServicesForUuidAsync(Constants.MUSE_DATA_SERVICE_UUID)).Services.First();
                 }
-
                 var characteristics = (await deviceService.GetCharacteristicsAsync()).Characteristics;
                 foreach (var c in channelUUIDs)
                 {
-                    channels.Add(characteristics.Single(x => x.Uuid == c));
+                    var characteristic = characteristics.SingleOrDefault(x => x.Uuid == c);
+                    if (characteristic == null)
+                        return;
+                    channels.Add(characteristic);
                 }
 
                 GattClientCharacteristicConfigurationDescriptorValue notify;
@@ -181,7 +183,7 @@ namespace BlueMuse.MuseManagement
                 // Tell Muse to start or stop notifications.
                 await characteristics.Single(x => x.Uuid == Constants.MUSE_TOGGLE_STREAM_UUID).WriteValueWithResultAsync(buffer);
             }
-            catch (InvalidOperationException) { if(isStreaming) CloseOffStream(); return; }
+            catch (Exception) { if(isStreaming) CloseOffStream(); return; }
 
             if (!start)
             {
@@ -270,19 +272,13 @@ namespace BlueMuse.MuseManagement
                     if (!sampleBuffer.ContainsKey(museTimestamp))
                     {
                         sample = new MuseSample();
-                        sample.BaseTimeStamp = args.Timestamp; // This is the real timestamp, not the Muse timestamp which we use to group channel data.
                         sampleBuffer.Add(museTimestamp, sample);
+                        sample.BaseTimeStamp = Timestamps.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
                     }
                     else sample = sampleBuffer[museTimestamp];
+
                     // Get time samples.
                     sample.ChannelData[sender.Uuid] = GetTimeSamples(bits);
-                    //if (sender.Uuid == Constants.MUSE_CHANNEL_UUIDS[0]) {
-                    //    Debug.WriteLine(sample.TimeStamps[0] + ", ");
-                    //    for(int i = 0; i < 5; i++)
-                    //    {
-                    //        Debug.Write(sample.ChannelData[sender.Uuid][i] + ", ");
-                    //    }
-                    //}
                 }
                 // If we have all 5 channels, we can push the 12 samples for each channel.
                 if (sample.ChannelData.Count == channelCount)

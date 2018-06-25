@@ -106,6 +106,7 @@
     <Compile Include="Helpers\DataContractSerializerExtension.cs" />
     <Compile Include="Helpers\PacketConversion.cs" />
     <Compile Include="AppService\AppServiceManager.cs" />
+    <Compile Include="Helpers\Timestamps.cs" />
     <Compile Include="Misc\Constants.cs" />
     <Compile Include="MuseManagement\Muse.cs" />
     <Compile Include="Helpers\CommandHandler.cs" />
@@ -412,7 +413,7 @@
       <Version>1.0.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
-      <Version>6.1.2</Version>
+      <Version>6.1.5</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>11.0.2</Version>

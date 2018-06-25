@@ -5,7 +5,7 @@ namespace BlueMuse.MuseManagement
 {
     public class MuseSample
     {
-        private DateTimeOffset baseTimeStamp;
+        private DateTimeOffset baseTimeStamp = DateTimeOffset.MaxValue;
         public DateTimeOffset BaseTimeStamp
         {
             get
@@ -14,23 +14,34 @@ namespace BlueMuse.MuseManagement
             }
             set
             {
-                baseTimeStamp = value;
-                double baseMillis = baseTimeStamp.ToUnixTimeMilliseconds();
-                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
-                {
-                    TimeStamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
-                    TimeStamps[i] = TimeStamps[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
-                }
+                // Always set to the earliest timestamp value.
+                if(value < baseTimeStamp)
+                    baseTimeStamp = value;
             }
         }
 
-        public double[] TimeStamps;
-        public Dictionary<Guid, float[]> ChannelData;
+        private double[] timestamps;
+        public double[] TimeStamps
+        {
+            get
+            {
+                double baseMillis = baseTimeStamp.ToUnixTimeMilliseconds();
+
+                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
+                {
+                    timestamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
+                    timestamps[i] = timestamps[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
+                }
+                return timestamps;
+            }
+        }
+
+        public Dictionary<Guid, float[]> ChannelData { get; set; }
 
         public MuseSample()
         {
             ChannelData = new Dictionary<Guid, float[]>();
-            TimeStamps = new double[Constants.MUSE_SAMPLE_COUNT];
+            timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
         }
     }
 }
