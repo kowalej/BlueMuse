@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
-using Windows.UI.Xaml;
 
 namespace BlueMuse.Bluetooth
 {
