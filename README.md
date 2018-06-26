@@ -97,6 +97,17 @@ start bluemuse://shutdown
   1. Ensure Muse is removed from "Bluetooth & other devices" list in control panel.
   2. Reset Muse - hold down power button until device turns off then back on.
   3. Make sure Muse is within reasonable range of your computer. Some built in Bluetooth antennas are not very powerful.
+  
+### Logs:
+The main app (BlueMuse) and LSL Bridge both write log files for various events and exceptions. These may help in troubleshooting issues. The files can be found within AppData:
+
+BlueMuse:
+
+*C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalState\Logs\BlueMuse-Log-{Timestamp}.log*
+
+LSLBridge:
+
+*C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalCache\Local\Locgs\LSLBridge-Log-{Timestamp}.log*
 
 ### If working on VS Solution - missing references in LSLBridge project:
 See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance

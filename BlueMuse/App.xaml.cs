@@ -29,7 +29,7 @@ namespace BlueMuse
 
             Suspending += OnSuspending;
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
-            var logPath = Path.Combine(localFolder, "BlueMuse", "Logs", "BlueMuse-{Date}.log");
+            var logPath = Path.Combine(localFolder, "Logs", "BlueMuse-Log-{Date}.log");
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.RollingFile(logPath, 
                                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
