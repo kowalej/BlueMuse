@@ -1,10 +1,9 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Bluetooth;
+using Serilog;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
@@ -18,7 +17,7 @@ namespace BlueMuse
     /// <summary>
     /// Provides application-specific behavior to supplement the default Application class.
     /// </summary>
-    sealed partial class App : Application
+    public partial class App : Application
     {
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -26,8 +25,21 @@ namespace BlueMuse
         /// </summary>
         public App()
         {
-            this.InitializeComponent();
-            this.Suspending += OnSuspending;
+            InitializeComponent();
+
+            Suspending += OnSuspending;
+            var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+            var logPath = Path.Combine(localFolder, "BlueMuse", "Logs", "BlueMuse-{Date}.log");
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.RollingFile(logPath, 
+                                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
+                .CreateLogger();
+            UnhandledException += App_UnhandledException;
+        }
+
+        private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log.Error(e.Exception, "BlueMuse unhandled exception.");
         }
 
         /// <summary>
@@ -37,6 +49,7 @@ namespace BlueMuse
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            Log.Information("BlueMuse started.");
             Launch(e.PreviousExecutionState, e.PrelaunchActivated);
         }
 

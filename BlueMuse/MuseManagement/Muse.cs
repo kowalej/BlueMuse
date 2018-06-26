@@ -1,15 +1,14 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Helpers;
+using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
-using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
@@ -150,7 +149,10 @@ namespace BlueMuse.MuseManagement
                 {
                     var characteristic = characteristics.SingleOrDefault(x => x.Uuid == c);
                     if (characteristic == null)
+                    {
+                        Log.Error($"Unexpected null GATT characteristic (UUID={c}) during toggle stream (start={start}).");
                         return;
+                    }
                     channels.Add(characteristic);
                 }
 
@@ -183,7 +185,11 @@ namespace BlueMuse.MuseManagement
                 // Tell Muse to start or stop notifications.
                 await characteristics.Single(x => x.Uuid == Constants.MUSE_TOGGLE_STREAM_UUID).WriteValueWithResultAsync(buffer);
             }
-            catch (Exception) { if(isStreaming) CloseOffStream(); return; }
+            catch (Exception ex) {
+                Log.Error($"Exception during toggle stream (start={start}).", ex);
+                if (isStreaming) CloseOffStream();
+                return;
+            }
 
             if (!start)
             {
