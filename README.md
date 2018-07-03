@@ -65,11 +65,14 @@ start bluemuse://shutdown
 
 # Versions
 #### Latest
+* 1.0.8.0
+    * Increased timestamp accuracy by using a more precise API on Windows.
+    * Added logging. See Troubleshooting -> Logs section for details. 
+    
+#### Older
 * 1.0.7.0
     * Added new install script `InstallBlueMuse.ps1`.
     * Refreshed the install certificate which was about to expire.
-
-#### Older
 * 1.0.6.0 - stable. 
     * Changed timestamp format to Unix epoch **seconds** format.
     * Improved UI - it is now re-sizable and more compact (better for low resolution screens).

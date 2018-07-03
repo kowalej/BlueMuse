@@ -139,7 +139,6 @@ namespace BlueMuse.MuseManagement
             {
                 if (start)
                 {
-                    await LSLOpenStream();
                     if (channels == null) channels = new List<GattCharacteristic>();
                     // Get GATT service on start, therefore it will be already available when stopping.
                     deviceService = (await Device.GetGattServicesForUuidAsync(Constants.MUSE_DATA_SERVICE_UUID)).Services.First();
@@ -187,18 +186,23 @@ namespace BlueMuse.MuseManagement
             }
             catch (Exception ex) {
                 Log.Error($"Exception during toggle stream (start={start}).", ex);
-                if (isStreaming) CloseOffStream();
+                if (isStreaming) FinishCloseOffStream();
                 return;
             }
 
-            if (!start)
-            {
-                CloseOffStream(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
-            }
-            IsStreaming = start;
+            if (start)
+                FinishOpenStream();
+            else
+                FinishCloseOffStream(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
         }
 
-        private async void CloseOffStream()
+        private async void FinishOpenStream()
+        {
+            await LSLOpenStream();
+            IsStreaming = true;
+        }
+
+        private async void FinishCloseOffStream()
         {
             channels.Clear();
             await LSLCloseStream();
