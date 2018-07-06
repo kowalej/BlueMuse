@@ -43,8 +43,11 @@ start bluemuse://shutdown
 **"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
 
 # Installation
-**Download latest version from the /Dist folder** and unzip or find your desired version in BlueMuse/AppPackages folder. Then continue using the auto or manual process.
-### Easy Way
+***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
+
+### First Step
+**Download latest version from the /Dist folder** and unzip, then follow one of the methods below.
+### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the PowerShell command: 
 `.\InstallBlueMuse.ps1`
 2. Follow the prompts - the script should automatically install the security certificate, all dependencies, and the BlueMuse app.
@@ -64,10 +67,11 @@ start bluemuse://shutdown
 10. Finally, double click and install BlueMuse_xxx.appxbundle.
 
 # Versions
-#### Latest
-* 1.0.8.0
+### Latest
+* **1.0.8.0**
     * Increased timestamp accuracy by using a more precise API on Windows.
-    * Added logging. See Troubleshooting -> Logs section for details. 
+    * Added logging. See Troubleshooting -> Logs section for details.
+    * LSLBridge won't falsely show stream if GATT problems occured.
     
 #### Older
 * 1.0.7.0
@@ -82,7 +86,6 @@ start bluemuse://shutdown
 * 1.0.4.0 - stable. 
     * LSLBridge is auto hidden if no streams active. BlueMuse also polls to keep LSL bridge open if not currently streaming, therefore LSLBridge has proper auto closing mechanism that won't prematurely trigger. This process may seem strange and convoluted but it appears to be the only good method to manage this trusted process with the current Windows UWP API.
     * Bad timestamps.
-
 * 1.0.3.0 - unstable. 
     * Issues with LSLBridge closing.
     * Bad timestamps.
