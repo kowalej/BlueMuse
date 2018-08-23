@@ -71,7 +71,7 @@ start bluemuse://shutdown
 * **1.0.8.0**
     * Increased timestamp accuracy by using a more precise API on Windows.
     * Added logging. See Troubleshooting -> Logs section for details.
-    * LSLBridge won't falsely show stream if GATT problems occured.
+    * LSLBridge won't falsely show stream if GATT problems occurred.
     
 #### Older
 * 1.0.7.0
