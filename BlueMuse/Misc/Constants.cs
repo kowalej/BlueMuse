@@ -10,7 +10,8 @@ namespace BlueMuse
             "Muse", "SMTX"
         };
 
-        public static readonly string ALL_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\""; // Wildcard based "Muse*" filter - not supported it seems. AND (System.ItemNameDisplay:~\"Muse*\" OR System.Devices.Aep.Bluetooth.IssueInquiry:=System.StructuredQueryType.Boolean#True)";
+        public static readonly string ALL_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\"";
+        public static readonly string MUSE_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\" AND (System.ItemNameDisplay:~~\"Muse\" OR System.ItemNameDisplay:~~\"SMTX\")"; // Needs testing.
 
         public const string ARGS_STREAMFIRST = "streamfirst";
         public const string ARGS_ADDRESSES = "addresses";
