@@ -1,5 +1,6 @@
 ﻿using BlueMuse.Helpers;
 using BlueMuse.MuseManagement;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -104,49 +105,56 @@ namespace BlueMuse.Bluetooth
 
         private async void DeviceWatcher_Added(DeviceWatcher sender, DeviceInformation args)
         {
-            // Filter out Muses. A name filter is the best method currently, since wildcards are not supported in AQS string.
-            // A more robust method may be to query for a Muse specific GAAT service, however this requires devices to be powered on, and even if the device was previously paired with the machine, the service won't be cached.
-            if (Constants.DeviceNameFilter.Any(x => args.Name.Contains(x)))
+            try
             {
-                var device = await BluetoothLEDevice.FromIdAsync(args.Id);
-                Debug.WriteLine("Device Name: " + device.Name); 
-                Debug.WriteLine("Current Connection Status: " + device.ConnectionStatus);
-
-                // For debugging - list all services and characteristics. 
-                //var services = await device.GetGattServicesAsync();
-                //foreach(var service in services.Services)
-                //{
-                //    var characteristics = await service.GetCharacteristicsAsync();
-                //    Debug.WriteLine("Service: " + service.Uuid + " Handle: " + service.AttributeHandle);
-                //    foreach(var characteristic in characteristics.Characteristics)
-                //    {
-                //        Debug.WriteLine("Characteristic: " + characteristic.Uuid + " Handle: " + characteristic.AttributeHandle + " Description: " + characteristic.UserDescription);
-                //    }
-                //}
-
-                // Retreive an arbitrary service. This will allow the device to auto connect.
-                await device.GetGattServicesForUuidAsync(Constants.MUSE_TOGGLE_STREAM_UUID);
-
-                lock (Muses)
+                // Filter out Muses. A name filter is the best method currently, since wildcards are not supported in AQS string.
+                // A more robust method may be to query for a Muse specific GAAT service, however this requires devices to be powered on, and even if the device was previously paired with the machine, the service won't be cached.
+                if (Constants.DeviceNameFilter.Any(x => args.Name.Contains(x)))
                 {
-                    var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
-                    if (muse != null)
-                    {
-                        muse.Id = device.DeviceId;
-                        muse.Name = device.Name;
-                        muse.Status = device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
-                    }
-                    else
-                    {
-                        muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline);
-                        Muses.Add(muse);
-                    }
-                    ResolveAutoStream(muse);
-                }
+                    var device = await BluetoothLEDevice.FromIdAsync(args.Id);
+                    Debug.WriteLine("Device Name: " + device.Name);
+                    Debug.WriteLine("Current Connection Status: " + device.ConnectionStatus);
 
-                // Must watch for status changed because Added and Updated are not always called upon connecting or disconnecting.
-                device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
-                device.ConnectionStatusChanged += Device_ConnectionStatusChanged;
+                    // For debugging - list all services and characteristics. 
+                    //var services = await device.GetGattServicesAsync();
+                    //foreach(var service in services.Services)
+                    //{
+                    //    var characteristics = await service.GetCharacteristicsAsync();
+                    //    Debug.WriteLine("Service: " + service.Uuid + " Handle: " + service.AttributeHandle);
+                    //    foreach(var characteristic in characteristics.Characteristics)
+                    //    {
+                    //        Debug.WriteLine("Characteristic: " + characteristic.Uuid + " Handle: " + characteristic.AttributeHandle + " Description: " + characteristic.UserDescription);
+                    //    }
+                    //}
+
+                    // Retreive an arbitrary service. This will allow the device to auto connect.
+                    await device.GetGattServicesForUuidAsync(Constants.MUSE_TOGGLE_STREAM_UUID);
+
+                    lock (Muses)
+                    {
+                        var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+                        if (muse != null)
+                        {
+                            muse.Id = device.DeviceId;
+                            muse.Name = device.Name;
+                            muse.Status = device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
+                        }
+                        else
+                        {
+                            muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline);
+                            Muses.Add(muse);
+                        }
+                        ResolveAutoStream(muse);
+                    }
+
+                    // Must watch for status changed because Added and Updated are not always called upon connecting or disconnecting.
+                    device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
+                    device.ConnectionStatusChanged += Device_ConnectionStatusChanged;
+                }
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"Exception during find device (DeviceWatcher_Added) (device ID={args.Id}).", ex);
             }
         }
 
