@@ -5,27 +5,42 @@ namespace BlueMuse.MuseManagement
 {
     public class MuseSample
     {
-        private DateTimeOffset baseTimeStamp = DateTimeOffset.MaxValue;
-        public DateTimeOffset BaseTimeStamp
+        private long baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+        public long BaseTimestamp
         {
             get
             {
-                return baseTimeStamp;
+                return baseTimestamp;
             }
             set
             {
                 // Always set to the earliest timestamp value.
-                if(value < baseTimeStamp)
-                    baseTimeStamp = value;
+                if(value < baseTimestamp)
+                    baseTimestamp = value;
+            }
+        }
+
+        private long baseTimestamp2 = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+        public long BasetimeStamp2
+        {
+            get
+            {
+                return baseTimestamp2;
+            }
+            set
+            {
+                // Always set to the earliest timestamp value.
+                if (value < baseTimestamp2)
+                    baseTimestamp2 = value;
             }
         }
 
         private double[] timestamps;
-        public double[] TimeStamps
+        public double[] Timestamps
         {
             get
             {
-                double baseMillis = baseTimeStamp.ToUnixTimeMilliseconds();
+                double baseMillis = baseTimestamp;
 
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
@@ -36,12 +51,29 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        public Dictionary<Guid, float[]> ChannelData { get; set; }
+        private double[] timestamps2;
+        public double[] Timestamps2
+        {
+            get
+            {
+                double baseMillis = baseTimestamp2;
+
+                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
+                {
+                    timestamps2[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
+                    timestamps2[i] = timestamps2[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
+                }
+                return timestamps2;
+            }
+        }
+
+        public Dictionary<Guid, double[]> ChannelData { get; set; }
 
         public MuseSample()
         {
-            ChannelData = new Dictionary<Guid, float[]>();
+            ChannelData = new Dictionary<Guid, double[]>();
             timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
+            timestamps2 = new double[Constants.MUSE_SAMPLE_COUNT];
         }
     }
 }

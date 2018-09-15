@@ -23,8 +23,16 @@ namespace BlueMuse
 
         public const int MUSE_SAMPLE_RATE = 256;
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
+
         public const int MUSE_CHANNEL_COUNT = 5;
         public const int MUSE_SMXT_CHANNEL_COUNT = 4;
+
+        public static string MUSE_DEVICE_NAME = "Muse EEG Headset";
+        public static string MUSE_MANUFACTURER = "Interaxon";
+
+        public static string MUSE_SMXT_DEVICE_NAME = "Smith Lowdown Focus";
+        public static string MUSE_SMXT_MANUFACTURER = "Smith";
+
         public const int MUSE_SAMPLE_COUNT = 12;
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
@@ -34,9 +42,11 @@ namespace BlueMuse
         public const string LSL_MESSAGE_TYPE_CLOSE_STREAM = nameof(LSL_MESSAGE_TYPE_CLOSE_STREAM);
         public const string LSL_MESSAGE_TYPE_SEND_CHUNK = nameof(LSL_MESSAGE_TYPE_SEND_CHUNK);
         public const string LSL_MESSAGE_TYPE_CLOSE_BRIDGE = nameof(LSL_MESSAGE_TYPE_CLOSE_BRIDGE);
-        public const string LSL_MESSAGE_MUSE_NAME = nameof(LSL_MESSAGE_MUSE_NAME);
+        public const string LSL_MESSAGE_DEVICE_NAME = nameof(LSL_MESSAGE_DEVICE_NAME);
+        public const string LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP = nameof(LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP);
         public const string LSL_MESSAGE_CHUNK_DATA = nameof(LSL_MESSAGE_CHUNK_DATA);
         public const string LSL_MESSAGE_CHUNK_TIMESTAMPS = nameof(LSL_MESSAGE_CHUNK_TIMESTAMPS);
+        public const string LSL_MESSAGE_CHUNK_TIMESTAMPS2 = nameof(LSL_MESSAGE_CHUNK_TIMESTAMPS2);
 
         // GAAT service to start and stop streaming.
         public static readonly Guid MUSE_TOGGLE_STREAM_UUID = new Guid("273e0001-4c4d-454d-96be-f03bac821358");

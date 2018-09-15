@@ -1,5 +1,6 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Helpers;
+using BlueMuse.Misc;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,10 @@ namespace BlueMuse.MuseManagement
         private static readonly Object syncLock = new object();
 
         public BluetoothLEDevice Device;
+
+        public static ITimestampFormat TimestampFormat = new BlueMuseUnixTimestampFormat();
+        public static ITimestampFormat TimestampFormat2 = new LSLTimestampFormat();
+        public static bool SendSecondaryTimestamp = false;
 
         private GattDeviceService deviceService;
         private List<GattCharacteristic> channels;
@@ -213,22 +218,23 @@ namespace BlueMuse.MuseManagement
         private async Task LSLOpenStream()
         {
             ValueSet message = new ValueSet();
-            message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
+            message.Add(Constants.LSL_MESSAGE_DEVICE_NAME, LongName);
+            message.Add(Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP, SendSecondaryTimestamp);
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }
 
         private async Task LSLCloseStream()
         {
             ValueSet message = new ValueSet();
-            message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
+            message.Add(Constants.LSL_MESSAGE_DEVICE_NAME, LongName);
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM, message);
         }
 
         private async Task LSLPushChunk(MuseSample sample)
         {
             ValueSet message = new ValueSet();
-            message.Add(Constants.LSL_MESSAGE_MUSE_NAME, LongName);
-            float[] data = new float[Constants.MUSE_SAMPLE_COUNT * channelCount]; // Can only send 1D array with this garbage :S
+            message.Add(Constants.LSL_MESSAGE_DEVICE_NAME, LongName);
+            double[] data = new double[Constants.MUSE_SAMPLE_COUNT * channelCount]; // Can only send 1D array with this garbage :S
             for (int i = 0; i < channelCount; i++)
             {
                 var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
@@ -237,20 +243,22 @@ namespace BlueMuse.MuseManagement
                     data[(i * Constants.MUSE_SAMPLE_COUNT) + j] = channelData[j];
                 }
             }
+
             message.Add(Constants.LSL_MESSAGE_CHUNK_DATA, data);
-            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.TimeStamps);
-                
+            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
+            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
+
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
         }
 
-        private float[] GetTimeSamples(string bits)
+        private double[] GetTimeSamples(string bits)
         {
             // Extract our 12, 12-bit samples.
-            float[] timeSamples = new float[Constants.MUSE_SAMPLE_COUNT];
+            double[] timeSamples = new double[Constants.MUSE_SAMPLE_COUNT];
             for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
             {
                 timeSamples[i] = PacketConversion.ToFakeUInt12(bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
-                timeSamples[i] = (timeSamples[i] - 2048f) * 0.48828125f; // 12 bits on a 2 mVpp range.
+                timeSamples[i] = (timeSamples[i] - 2048d) * 0.48828125d; // 12 bits on a 2 mVpp range.
             }
             return timeSamples;
         }
@@ -283,7 +291,11 @@ namespace BlueMuse.MuseManagement
                     {
                         sample = new MuseSample();
                         sampleBuffer.Add(museTimestamp, sample);
-                        sample.BaseTimeStamp = Timestamps.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                        sample.BaseTimestamp = TimestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                        if (TimestampFormat2 != null)
+                        {
+                            sample.BasetimeStamp2 = TimestampFormat2.GetNow(); // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                        }
                     }
                     else sample = sampleBuffer[museTimestamp];
 

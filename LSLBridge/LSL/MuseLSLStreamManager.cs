@@ -65,10 +65,11 @@ namespace LSLBridge.LSLManagement
                 {
                     case Constants.LSL_MESSAGE_TYPE_OPEN_STREAM:
                         {
-                            string streamName = (string)message[Constants.LSL_MESSAGE_MUSE_NAME];
+                            string streamName = (string)message[Constants.LSL_MESSAGE_DEVICE_NAME];
+                            bool sendSecondaryTimestamp = (bool)message[Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP];
                             if (!museStreams.Any(x => x.Name == streamName))
                             {
-                                museStreams.Add(new MuseLSLStream(streamName));
+                                museStreams.Add(new MuseLSLStream(streamName, sendSecondaryTimestamp));
                                 museStreamCountSetter(museStreams.Count);
                             }
                         }
@@ -76,7 +77,7 @@ namespace LSLBridge.LSLManagement
 
                     case Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM:
                         {
-                            string streamName = (string)message[Constants.LSL_MESSAGE_MUSE_NAME];
+                            string streamName = (string)message[Constants.LSL_MESSAGE_DEVICE_NAME];
                             var stream = museStreams.FirstOrDefault(x => x.Name == streamName);
                             if (stream != null)
                             {
@@ -89,14 +90,13 @@ namespace LSLBridge.LSLManagement
 
                     case Constants.LSL_MESSAGE_TYPE_SEND_CHUNK:
                         {
-                            string streamName = (string)message[Constants.LSL_MESSAGE_MUSE_NAME];
-                            int channelCount = streamName.Contains(Constants.DeviceNameFilter[0]) ? Constants.MUSE_CHANNEL_COUNT : Constants.MUSE_SMXT_CHANNEL_COUNT;
+                            string streamName = (string)message[Constants.LSL_MESSAGE_DEVICE_NAME];
                             var stream = museStreams.FirstOrDefault(x => x.Name == streamName);
                             if (stream != null)
-                            {
-                                float[] data1D = (float[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
-                                float[,] data2D = new float[Constants.MUSE_SAMPLE_COUNT, channelCount];
-                                for (int i = 0; i < channelCount; i++)
+                            {                                
+                                double[] data1D = (double[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
+                                double[,] data2D = new double[Constants.MUSE_SAMPLE_COUNT, stream.ChannelCount];
+                                for (int i = 0; i < stream.ChannelCount - (stream.SendSecondaryTimestamp ? 1 : 0); i++)
                                 {
                                     for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                                     {
@@ -104,6 +104,17 @@ namespace LSLBridge.LSLManagement
                                     }
                                 }
                                 double[] timestamps = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS]);
+
+                                // Add in secondary timestamp to data chunk.
+                                if (stream.SendSecondaryTimestamp)
+                                {
+                                    double[] timestamps2 = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2]);
+                                    for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
+                                    {
+                                        data2D[j, stream.channelCount - 1] = timestamps2[j];
+                                    }
+                                }
+
                                 stream.PushChunkLSL(data2D, timestamps);
                                 stream.UpdateSampleRate(timestamps.Length);
                             }

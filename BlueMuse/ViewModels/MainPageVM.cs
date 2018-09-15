@@ -5,6 +5,8 @@ using System.Windows.Input;
 using BlueMuse.Bluetooth;
 using System.Threading;
 using Windows.ApplicationModel;
+using System.Collections.Generic;
+using BlueMuse.Misc;
 
 namespace BlueMuse.ViewModels
 {
@@ -20,6 +22,15 @@ namespace BlueMuse.ViewModels
         private string searchText = string.Empty;
         public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } }
         private Timer searchTextAnimateTimer;
+        private string timestampFormat;
+        public string TimestampFormat { get { return timestampFormat; } set { SetProperty(ref timestampFormat, value); } }
+        private bool sendSecondaryTimestamp;
+        public bool SendSecondaryTimestamp { get { return sendSecondaryTimestamp; } set { SetProperty(ref sendSecondaryTimestamp, value); } }
+        public List<string> TimestampOptions = new List<string>()
+        {
+            new BlueMuseUnixTimestampFormat().DisplayName,
+            new LSLTimestampFormat().DisplayName,
+        };
         public string AppVersion { get {
                 var pv = Package.Current.Id.Version;
                 return $"BlueMuse Version {pv.Major}.{pv.Minor}.{pv.Build}.{pv.Revision}";

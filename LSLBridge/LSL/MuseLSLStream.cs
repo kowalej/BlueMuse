@@ -22,31 +22,44 @@ namespace LSLBridge.LSLManagement
         private double latestTimestamp;
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }
 
+        private bool sendSecondaryTimestamp = false;
+        public bool SendSecondaryTimestamp { get { return sendSecondaryTimestamp; } set { SetProperty(ref sendSecondaryTimestamp, value); } }
+
         private int rate = 0;
         public int Rate { get { return rate; } set { SetProperty(ref rate, value); } }
 
-        private int channelCount;
+        public int channelCount = 0;
+        public int ChannelCount { get { return channelCount; } set { SetProperty(ref channelCount, value); } }
+
         private Stopwatch stopWatch;
         int sampleCountSec = 0;
 
-        public MuseLSLStream(string name)
+        public MuseLSLStream(string name, bool sendSecondaryTimestamp)
         {
             Name = name;
+            SendSecondaryTimestamp = this.sendSecondaryTimestamp;
+            string deviceName;
             string[] channelLabels;
             if (name.Contains(Constants.DeviceNameFilter[0]))
             {
                 channelCount = Constants.MUSE_CHANNEL_COUNT;
                 channelLabels = Constants.MUSE_CHANNEL_LABELS;
+                deviceName = Constants.MUSE_DEVICE_NAME;
             }
             else
             {
                 channelCount = Constants.MUSE_SMXT_CHANNEL_COUNT;
                 channelLabels = Constants.MUSE_SMXT_CHANNEL_LABELS;
+                deviceName = Constants.MUSE_SMXT_DEVICE_NAME;
+            }
+            if (this.sendSecondaryTimestamp)
+            {
+                channelCount += 1;
             }
 
             LSLStreamInfo = new LSL.liblsl.StreamInfo(name, "EEG", channelCount, Constants.MUSE_SAMPLE_RATE, LSL.liblsl.channel_format_t.cf_float32, Application.ResourceAssembly.GetName().Name);
-            LSLStreamInfo.desc().append_child_value("manufacturer", "Muse");
-            LSLStreamInfo.desc().append_child_value("manufacturer", "Muse");
+            LSLStreamInfo.desc().append_child_value("manufacturer", "Interaxon");
+            LSLStreamInfo.desc().append_child_value("device", deviceName);
             LSLStreamInfo.desc().append_child_value("type", "EEG");
             var channels = LSLStreamInfo.desc().append_child("channels");
             foreach (var c in channelLabels)
@@ -56,6 +69,15 @@ namespace LSLBridge.LSLManagement
                 .append_child_value("unit", "microvolts")
                 .append_child_value("type", "EEG");
             }
+
+            if (this.sendSecondaryTimestamp)
+            {
+                channels.append_child("channel")
+                .append_child_value("label", "Secondary Timestamp")
+                .append_child_value("unit", "seconds")
+                .append_child_value("type", "timestamp");
+            }
+
             OnPropertyChanged(nameof(StreamDisplayInfo));
             lslStream = new LSL.liblsl.StreamOutlet(LSLStreamInfo, Constants.MUSE_SAMPLE_COUNT, Constants.MUSE_LSL_BUFFER_LENGTH);
             stopWatch = new Stopwatch();
@@ -106,7 +128,7 @@ namespace LSLBridge.LSLManagement
             }
         }
 
-        public void PushChunkLSL(float[,] data, double[]timestamps)
+        public void PushChunkLSL(double[,] data, double[]timestamps)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
             lslStream.push_chunk(data, timestamps);
