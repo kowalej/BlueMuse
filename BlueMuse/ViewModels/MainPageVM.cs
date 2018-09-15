@@ -22,15 +22,15 @@ namespace BlueMuse.ViewModels
         private string searchText = string.Empty;
         public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } }
         private Timer searchTextAnimateTimer;
-        private string timestampFormat;
-        public string TimestampFormat { get { return timestampFormat; } set { SetProperty(ref timestampFormat, value); } }
-        private bool sendSecondaryTimestamp;
-        public bool SendSecondaryTimestamp { get { return sendSecondaryTimestamp; } set { SetProperty(ref sendSecondaryTimestamp, value); } }
-        public List<string> TimestampOptions = new List<string>()
-        {
-            new BlueMuseUnixTimestampFormat().DisplayName,
-            new LSLTimestampFormat().DisplayName,
-        };
+        private BaseTimestampFormat timestampFormat;
+        public BaseTimestampFormat TimestampFormat { get { return timestampFormat; } set { SetProperty(ref timestampFormat, value); }}
+        private BaseTimestampFormat timestampFormat2;
+        public BaseTimestampFormat TimestampFormat2 { get { return timestampFormat2; } set { SetProperty(ref timestampFormat2, value); } }
+        public List<BaseTimestampFormat> TimestampFormats = new List<BaseTimestampFormat>();
+        public List<BaseTimestampFormat> TimestampFormats2 = new List<BaseTimestampFormat>();
+        BlueMuseUnixTimestampFormat blueMuseUnixTimestampFormat = new BlueMuseUnixTimestampFormat();
+        LSLTimestampFormat lslTimestampFormat = new LSLTimestampFormat();
+
         public string AppVersion { get {
                 var pv = Package.Current.Id.Version;
                 return $"BlueMuse Version {pv.Major}.{pv.Minor}.{pv.Build}.{pv.Revision}";
@@ -39,6 +39,11 @@ namespace BlueMuse.ViewModels
 
         public MainPageVM()
         {
+            TimestampFormats.Add(blueMuseUnixTimestampFormat);
+            TimestampFormats.Add(lslTimestampFormat);
+            TimestampFormats2.Add(blueMuseUnixTimestampFormat);
+            TimestampFormats2.Add(lslTimestampFormat);
+
             museManager = BluetoothManager.Instance;
             Muses = museManager.Muses;
             museManager.FindMuses();

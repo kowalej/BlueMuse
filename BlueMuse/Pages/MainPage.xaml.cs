@@ -16,5 +16,10 @@ namespace BlueMuse
             InitializeComponent();
             ViewModel = new ViewModels.MainPageVM();
         }
+
+        private void SettingsDone_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            SettingsFlyout.Hide();
+        }
     }
 }

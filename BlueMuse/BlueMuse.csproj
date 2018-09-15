@@ -412,11 +412,19 @@
     <Content Include="Assets\Wide310x150Logo.scale-150.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
     <None Include="Binaries\liblsl32-debug.dll" />
-    <Content Include="Binaries\liblsl32.dll" />
     <None Include="Binaries\liblsl64-debug.dll" />
     <None Include="Binaries\liblsl64.dll" />
-    <Content Include="Binaries\msvcp90.dll" />
-    <Content Include="Binaries\msvcr90.dll" />
+	  <ContentWithTargetPath Include="Binaries\liblsl32.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<TargetPath>liblsl32.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Binaries\msvcp90.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<TargetPath>msvcp90.dll</TargetPath>
+    </ContentWithTargetPath><ContentWithTargetPath Include="Binaries\msvcr90.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+			<TargetPath>msvcr90.dll</TargetPath>
+    </ContentWithTargetPath>
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
@@ -485,9 +493,8 @@
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>xcopy /C /Y $(ProjectDir)Binaries\liblsl32.dll $(ProjectDir)$(OutDir)
-xcopy /C /Y $(ProjectDir)Binaries\msvcp90.dll $(ProjectDir)$(OutDir)
-xcopy /C /Y $(ProjectDir)Binaries\msvcr90.dll $(ProjectDir)$(OutDir)</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\LSLBridge.exe $(SolutionDir)BlueMuse\Win32

@@ -3,7 +3,8 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     x:Name="Root"
-    xmlns:do="using:BlueMuse.MuseManagement"
+    xmlns:MuseDO="using:BlueMuse.MuseManagement"
+    xmlns:MiscDO="using:BlueMuse.Misc"
     xmlns:h="using:BlueMuse.Helpers"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16,13 +17,57 @@
         <h:InverseBooleanConverter x:Key="InverseBooleanConverter" />
     </Page.Resources>
 
+    <Page.TopAppBar>
+        <CommandBar ClosedDisplayMode="Compact" Foreground="White" Background="#a63d87" Padding="10 0 10 0">
+            <CommandBar.Content>
+                <TextBlock Padding="8 8 5 5" HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White" Text="Muses Available" VerticalAlignment="Top" FontSize="24" FontWeight="SemiBold" IsColorFontEnabled="True" />
+            </CommandBar.Content>
+            <CommandBar.PrimaryCommands>
+                <AppBarButton Foreground="White" Name="ForceRefresh" Icon="Refresh" Label="Force Refresh" />
+                <AppBarButton AllowFocusOnInteraction="True" Foreground="White" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings">
+                    <Button.Flyout>
+                        <Flyout x:Name="SettingsFlyout" Placement="Full">
+                            <StackPanel>
+                                <StackPanel Margin="8 12 8 12">
+                                    <TextBlock FontWeight="Bold" Text="Primary Timestamp Format" Margin="0,0,0,0" />
+                                    <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Main LSL Stream Timestamp" Margin="0,4,0,12" />
+                                    <ComboBox 
+                                        ItemsSource="{x:Bind ViewModel.TimestampFormats, Mode=TwoWay}"
+                                        SelectedItem="{x:Bind ViewModel.TimestampFormat, Mode=TwoWay}"
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
+                                                <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                    <Line Margin="10" Stroke="Black" />
+                                    <TextBlock FontWeight="Bold" Text="Secondary Timestamp Format" Margin="0,0,0,0" />
+                                    <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as LSL Channel Data" Margin="0,4,0,12" />
+                                    <ComboBox
+                                        SelectedItem="{x:Bind ViewModel.TimestampFormat2, Mode=TwoWay}" 
+                                        ItemsSource="{x:Bind ViewModel.TimestampFormats2, Mode=OneWay}" 
+                                        HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                                        <ComboBox.ItemTemplate>
+                                            <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
+                                                <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
+                                            </DataTemplate>
+                                        </ComboBox.ItemTemplate>
+                                    </ComboBox>
+                                </StackPanel>
+                                <Button VerticalAlignment="Bottom" Margin="0 0 8 0" HorizontalAlignment="Right" Content="Done" Click="SettingsDone_Click"></Button>
+                            </StackPanel>
+                        </Flyout>
+                    </Button.Flyout>
+                </AppBarButton>
+                <AppBarSeparator Foreground="White" />
+            </CommandBar.PrimaryCommands>
+        </CommandBar>
+    </Page.TopAppBar>
+
     <ScrollViewer>
-        <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="auto" Padding="10">
+        <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="auto" Padding="10 0 10 10">
             <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1">
-                <Grid Background="#a63d87" Padding="10,5,10,5" Margin="0,0,0,0" BorderBrush="DarkSlateGray" BorderThickness="0,0,0,1">
-                    <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White" Text="Muses Available" VerticalAlignment="Top" FontSize="28" FontWeight="SemiBold" IsColorFontEnabled="True" />
-                    <Button Content="Force Refresh" HorizontalAlignment="Right" Command="{x:Bind ViewModel.ForceRefresh}" VerticalAlignment="Top" Style="{StaticResource AccentButtonStyle}" Margin="0,4,0,0" Height="auto" />
-                </Grid>
                 <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" HorizontalAlignment="Stretch" MinHeight="340" VerticalAlignment="Top">
                     <ListView.Header>
                         <StackPanel Visibility="{x:Bind ViewModel.Muses.Count, Converter={StaticResource VisibleWhenZeroConverter}, Mode=OneWay}" Orientation="Horizontal" Margin="10,10,0,0">
@@ -30,7 +75,7 @@
                         </StackPanel>
                     </ListView.Header>
                     <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="do:Muse">
+                        <DataTemplate x:DataType="MuseDO:Muse">
                             <StackPanel Orientation="Vertical" Margin="6">
                                 <StackPanel Orientation="Horizontal">
                                     <SymbolIcon Symbol="People" Margin="-6,0,12,0"/>

@@ -22,29 +22,37 @@ namespace BlueMuse.Misc
         }
     }
     
-    public class BlueMuseUnixTimestampFormat : BaseTimestampFormat
+    public sealed class BlueMuseUnixTimestampFormat : BaseTimestampFormat
     {
        public BlueMuseUnixTimestampFormat()
         {
             DisplayName = "BlueMuse High Accuracy (Unix Epoch UTC±00:00)";
             Key = nameof(BlueMuseUnixTimestampFormat);
         }
-        public override long GetNow()
+        public sealed override long GetNow()
         {
-            return Timestamps.GetNow().ToUnixTimeMilliseconds();
+            throw new NotImplementedException();
         }
     }
 
-    public class LSLTimestampFormat : BaseTimestampFormat
+    public sealed class LSLTimestampFormat : BaseTimestampFormat
     {
         public LSLTimestampFormat()
         {
             DisplayName = "LSL Local Clock (system uptime).";
             Key = nameof(LSLTimestampFormat);
         }
-        public override long GetNow()
+        public sealed override long GetNow()
         {
             return (long)LSL.liblsl.local_clock();
+        }
+    }
+
+    public sealed class DummyTimestampFormat : BaseTimestampFormat
+    {
+        public DummyTimestampFormat()
+        {
+            DisplayName = "None";
         }
     }
 }
