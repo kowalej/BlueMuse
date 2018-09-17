@@ -219,7 +219,7 @@ namespace BlueMuse.MuseManagement
             ValueSet message = new ValueSet
             {
                 { Constants.LSL_MESSAGE_DEVICE_NAME, LongName },
-                { Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP, TimestampFormat.GetType() != typeof(DummyTimestampFormat) }
+                { Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP, TimestampFormat2.GetType() != typeof(DummyTimestampFormat) }
             };
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }

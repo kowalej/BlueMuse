@@ -113,7 +113,7 @@
     <Compile Include="Helpers\Timestamps.cs" />
     <Compile Include="LSL\LSL.cs" />
     <Compile Include="Misc\Constants.cs" />
-    <Compile Include="Misc\TimestampFormat.cs" />
+    <Compile Include="Misc\TimestampFormats.cs" />
     <Compile Include="MuseManagement\Muse.cs" />
     <Compile Include="Helpers\CommandHandler.cs" />
     <Compile Include="Helpers\Converters.cs" />

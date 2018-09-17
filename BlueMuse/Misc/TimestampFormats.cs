@@ -15,9 +15,9 @@ namespace BlueMuse.Misc
         // Secondary timestamp formats - includes dummy "none" type since we can toggle it off.
         public static List<BaseTimestampFormat> TimestampFormats2 = new List<BaseTimestampFormat>()
         {
+            new DummyTimestampFormat(),
             new BlueMuseUnixTimestampFormat(),
-            new LSLLocalClockTimestampFormat(),
-            new DummyTimestampFormat()
+            new LSLLocalClockTimestampFormat()
         };
     }
 
@@ -44,7 +44,7 @@ namespace BlueMuse.Misc
     {
        public BlueMuseUnixTimestampFormat()
         {
-            DisplayName = "BlueMuse High Accuracy (Unix Epoch UTC±00:00)";
+            DisplayName = "BlueMuse High Accuracy (Unix Epoch Seconds UTC-0)";
             Key = Constants.TIMESTAMP_FORMAT_BLUEMUSE_UNIX;
         }
         public sealed override double GetNow()
@@ -57,7 +57,7 @@ namespace BlueMuse.Misc
     {
         public LSLLocalClockTimestampFormat()
         {
-            DisplayName = "LSL Local Clock (system uptime).";
+            DisplayName = "LSL Local Clock (System Uptime Seconds)";
             Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK;
         }
         public sealed override double GetNow()

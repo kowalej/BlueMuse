@@ -40,7 +40,7 @@ namespace LSLBridge.LSLManagement
         public MuseLSLStream(string name, bool sendSecondaryTimestamp)
         {
             Name = name;
-            SendSecondaryTimestamp = this.sendSecondaryTimestamp;
+            SendSecondaryTimestamp = sendSecondaryTimestamp;
             string deviceName;
             channelLabels = new List<string>();
 
