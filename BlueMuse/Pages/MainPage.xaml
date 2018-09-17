@@ -26,7 +26,7 @@
                 <AppBarButton Foreground="White" Name="ForceRefresh" Icon="Refresh" Label="Force Refresh" />
                 <AppBarButton AllowFocusOnInteraction="True" Foreground="White" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings">
                     <Button.Flyout>
-                        <Flyout x:Name="SettingsFlyout" Placement="Full">
+                        <Flyout x:Name="SettingsFlyout" Placement="Full" >
                             <StackPanel>
                                 <StackPanel Margin="8 12 8 12">
                                     <TextBlock FontWeight="Bold" Text="Primary Timestamp Format" Margin="0,0,0,0" />

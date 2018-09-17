@@ -33,6 +33,28 @@ namespace BlueMuse.Settings
             TimestampFormat2 = tff2 ?? TimestampFormatsContainer.TimestampFormats2.First(x => x.Key == Constants.TIMESTAMP_FORMAT_NONE);
         }
 
+        public void SetCMDSetting(string key, string value)
+        {
+            switch (key)
+            {
+                case Constants.SETTINGS_KEY_TIMESTAMP_FORMAT:
+                    var tf = TimestampFormatsContainer.TimestampFormats.FirstOrDefault(x => x.Key.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (tf != null)
+                    {
+                        TimestampFormat = tf;
+                    }
+                    break;
+
+                case Constants.SETTINGS_KEY_TIMESTAMP_FORMAT2:
+                    var tf2 = TimestampFormatsContainer.TimestampFormats2.FirstOrDefault(x => x.Key.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (tf2 != null)
+                    {
+                        TimestampFormat2 = tf2;
+                    }
+                    break;
+            }
+        }
+
         private BaseTimestampFormat timestampFormat;
         public BaseTimestampFormat TimestampFormat
         {

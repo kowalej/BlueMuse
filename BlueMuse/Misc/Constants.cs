@@ -100,7 +100,7 @@ namespace BlueMuse
         public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK = "LSL";
         public const string TIMESTAMP_FORMAT_NONE = "NONE";
 
-        public const string SETTINGS_KEY_TIMESTAMP_FORMAT = nameof(SETTINGS_KEY_TIMESTAMP_FORMAT);
-        public const string SETTINGS_KEY_TIMESTAMP_FORMAT2 = nameof(SETTINGS_KEY_TIMESTAMP_FORMAT2);
+        public const string SETTINGS_KEY_TIMESTAMP_FORMAT = "primary_timestamp_format";
+        public const string SETTINGS_KEY_TIMESTAMP_FORMAT2 = "secondary_timestamp_format";
     }
 }

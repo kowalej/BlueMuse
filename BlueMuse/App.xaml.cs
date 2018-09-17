@@ -110,7 +110,7 @@ namespace BlueMuse
                 {
                     argStr = protocolArgs.Uri.PathAndQuery;
 
-                    var splitArgs = argStr.Replace("/?", "").Split('&'); // Note: not sure why the syystem ads the forward slash...
+                    var splitArgs = argStr.Replace("/?", "").Split('!'); // Note: not sure why the syystem ads the forward slash...
 
                     if (protocolArgs.Uri.Host.Equals(Constants.CMD_START, StringComparison.CurrentCultureIgnoreCase))
                     {
@@ -176,7 +176,10 @@ namespace BlueMuse
                         var valueStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_SETTING_VALUE, StringComparison.OrdinalIgnoreCase));
                         if (!string.IsNullOrEmpty(keyStr) && !string.IsNullOrEmpty(valueStr))
                         {
-                            // tHE T HE STETING?
+                            AppSettings.Instance.SetCMDSetting(
+                                keyStr.Trim().Replace(Constants.ARGS_SETTING_KEY + "=", ""),
+                                valueStr.Trim().Replace(Constants.ARGS_SETTING_VALUE + "=", "")
+                            );
                         }
                     }
 
