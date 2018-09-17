@@ -5,8 +5,8 @@ namespace BlueMuse.MuseManagement
 {
     public class MuseSample
     {
-        private long baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
-        public long BaseTimestamp
+        private double baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+        public double BaseTimestamp
         {
             get
             {
@@ -20,8 +20,8 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        private long baseTimestamp2 = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
-        public long BasetimeStamp2
+        private double baseTimestamp2 = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+        public double BasetimeStamp2
         {
             get
             {

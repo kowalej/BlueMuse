@@ -107,6 +107,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Helpers\DataContractSerializerExtension.cs" />
+    <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\PacketConversion.cs" />
     <Compile Include="AppService\AppServiceManager.cs" />
     <Compile Include="Helpers\Timestamps.cs" />
@@ -124,6 +125,7 @@
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
     <Compile Include="Bluetooth\BluetoothManager.cs" />
+    <Compile Include="Settings\AppSettings.cs" />
     <Compile Include="ViewModels\MainPageVM.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -414,16 +416,17 @@
     <None Include="Binaries\liblsl32-debug.dll" />
     <None Include="Binaries\liblsl64-debug.dll" />
     <None Include="Binaries\liblsl64.dll" />
-	  <ContentWithTargetPath Include="Binaries\liblsl32.dll">
+    <ContentWithTargetPath Include="Binaries\liblsl32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>liblsl32.dll</TargetPath>
+      <TargetPath>liblsl32.dll</TargetPath>
     </ContentWithTargetPath>
     <ContentWithTargetPath Include="Binaries\msvcp90.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>msvcp90.dll</TargetPath>
-    </ContentWithTargetPath><ContentWithTargetPath Include="Binaries\msvcr90.dll">
+      <TargetPath>msvcp90.dll</TargetPath>
+    </ContentWithTargetPath>
+    <ContentWithTargetPath Include="Binaries\msvcr90.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>msvcr90.dll</TargetPath>
+      <TargetPath>msvcr90.dll</TargetPath>
     </ContentWithTargetPath>
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />

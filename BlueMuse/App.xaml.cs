@@ -1,5 +1,7 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Bluetooth;
+using BlueMuse.Helpers;
+using BlueMuse.Settings;
 using Serilog;
 using System;
 using System.IO;
@@ -35,6 +37,7 @@ namespace BlueMuse
                                      outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
                 .CreateLogger();
             UnhandledException += App_UnhandledException;
+            AppSettings.Instance.LoadInitialSettings();
         }
 
         private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
@@ -55,11 +58,9 @@ namespace BlueMuse
 
         private void Launch(ApplicationExecutionState previousExecutionState, bool prelaunchActivated, LaunchActivatedEventArgs e = null)
         {
-            Frame rootFrame = Window.Current.Content as Frame;
-
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
-            if (rootFrame == null)
+            if (!(Window.Current.Content is Frame rootFrame))
             {
                 // Create a Frame to act as the navigation context and navigate to the first page
                 rootFrame = new Frame();
@@ -115,9 +116,9 @@ namespace BlueMuse
                     {
                         BluetoothManager bluetoothManager = BluetoothManager.Instance;
 
-                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES));
+                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES, StringComparison.OrdinalIgnoreCase));
                         string[] addresses = null;
-                        var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STREAMFIRST));
+                        var streamFirstStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STREAMFIRST, StringComparison.OrdinalIgnoreCase));
 
                         if (addressesStr != null)
                         {
@@ -128,7 +129,7 @@ namespace BlueMuse
                             }
                         }
 
-                        else if (splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STARTALL)) != null)
+                        else if (splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STARTALL, StringComparison.OrdinalIgnoreCase)) != null)
                         {
                             await bluetoothManager.StartStreamingAll();
                         }
@@ -147,7 +148,7 @@ namespace BlueMuse
 
                     else if (protocolArgs.Uri.Host.Equals(Constants.CMD_STOP, StringComparison.CurrentCultureIgnoreCase))
                     {
-                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES));
+                        var addressesStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_ADDRESSES, StringComparison.OrdinalIgnoreCase));
                         string[] addresses = null;
 
                         BluetoothManager bluetoothManager = BluetoothManager.Instance;
@@ -162,10 +163,20 @@ namespace BlueMuse
                             }
                         }
 
-                        else if(splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STOPALL)) != null)
+                        else if(splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_STOPALL, StringComparison.OrdinalIgnoreCase)) != null)
                         {
                             bluetoothManager.MusesToAutoStream.Clear();
                             await bluetoothManager.StopStreamingAll();
+                        }
+                    }
+
+                    else if (protocolArgs.Uri.Host.Equals(Constants.CMD_SET_SETTING, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        var keyStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_SETTING_KEY, StringComparison.OrdinalIgnoreCase));
+                        var valueStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_SETTING_VALUE, StringComparison.OrdinalIgnoreCase));
+                        if (!string.IsNullOrEmpty(keyStr) && !string.IsNullOrEmpty(valueStr))
+                        {
+                            // tHE T HE STETING?
                         }
                     }
 

@@ -17,9 +17,13 @@ namespace BlueMuse
         public const string ARGS_ADDRESSES = "addresses";
         public const string ARGS_STARTALL = "startall";
         public const string ARGS_STOPALL = "stopall";
+        public const string ARGS_SETTING_KEY = "key";
+        public const string ARGS_SETTING_VALUE = "value";
+
         public const string CMD_START = "start";
         public const string CMD_STOP = "stop";
         public const string CMD_CLOSE_PROGRAM = "shutdown";
+        public const string CMD_SET_SETTING = "setting";
 
         public const int MUSE_SAMPLE_RATE = 256;
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
@@ -91,5 +95,12 @@ namespace BlueMuse
             "AF8",
             "TP10",
         };
+
+        public const string TIMESTAMP_FORMAT_BLUEMUSE_UNIX = "BLUEMUSE";
+        public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK = "LSL";
+        public const string TIMESTAMP_FORMAT_NONE = "NONE";
+
+        public const string SETTINGS_KEY_TIMESTAMP_FORMAT = nameof(SETTINGS_KEY_TIMESTAMP_FORMAT);
+        public const string SETTINGS_KEY_TIMESTAMP_FORMAT2 = nameof(SETTINGS_KEY_TIMESTAMP_FORMAT2);
     }
 }

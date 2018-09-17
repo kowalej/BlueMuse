@@ -43,12 +43,20 @@ namespace BlueMuse.Helpers
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected async void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.High,
-            () =>
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
-            );
+            try
+            {
+                await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.High,
+                () =>
+                    {
+                        try
+                        {
+                            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                        }
+                        catch (Exception) { }
+                    }
+                );
+            }
+            catch (System.Runtime.InteropServices.COMException) { }
         }
     }
 }

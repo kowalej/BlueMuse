@@ -13,9 +13,9 @@ namespace LSLBridge.LSLManagement
     public class MuseLSLStreamManager
     {
         private volatile ObservableCollection<MuseLSLStream> museStreams;
-        private Action<int> museStreamCountSetter;
+        private readonly Action<int> museStreamCountSetter;
         private AppServiceConnection lslStreamService;
-        private Timer keepAliveTimer;
+        private readonly Timer keepAliveTimer;
         private static readonly Object syncLock = new object();
         private DateTime lastMessageTime = DateTime.MinValue;
 
@@ -24,9 +24,11 @@ namespace LSLBridge.LSLManagement
             this.museStreams = museStreams;
             this.museStreamCountSetter = museStreamCountSetter;
 
-            lslStreamService = new AppServiceConnection();
-            lslStreamService.PackageFamilyName = Package.Current.Id.FamilyName;
-            lslStreamService.AppServiceName = "LSLService";
+            lslStreamService = new AppServiceConnection
+            {
+                PackageFamilyName = Package.Current.Id.FamilyName,
+                AppServiceName = "LSLService"
+            };
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
             keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
@@ -57,8 +59,7 @@ namespace LSLBridge.LSLManagement
         {
             lastMessageTime = DateTime.Now;
             ValueSet message = args.Request.Message;
-            object value;
-            if (message.TryGetValue(Constants.LSL_MESSAGE_TYPE, out value))
+            if (message.TryGetValue(Constants.LSL_MESSAGE_TYPE, out object value))
             {
                 string commandType = (string)value;
                 switch (commandType)
@@ -93,7 +94,7 @@ namespace LSLBridge.LSLManagement
                             string streamName = (string)message[Constants.LSL_MESSAGE_DEVICE_NAME];
                             var stream = museStreams.FirstOrDefault(x => x.Name == streamName);
                             if (stream != null)
-                            {                                
+                            {
                                 double[] data1D = (double[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
                                 double[,] data2D = new double[Constants.MUSE_SAMPLE_COUNT, stream.ChannelCount];
                                 for (int i = 0; i < stream.ChannelCount - (stream.SendSecondaryTimestamp ? 1 : 0); i++)

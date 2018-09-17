@@ -23,8 +23,7 @@ namespace BlueMuse.MuseManagement
         public BluetoothLEDevice Device;
 
         public static ITimestampFormat TimestampFormat = new BlueMuseUnixTimestampFormat();
-        public static ITimestampFormat TimestampFormat2 = new LSLTimestampFormat();
-        public static bool SendSecondaryTimestamp = false;
+        public static ITimestampFormat TimestampFormat2 = new LSLLocalClockTimestampFormat();
 
         private GattDeviceService deviceService;
         private List<GattCharacteristic> channels;
@@ -217,23 +216,29 @@ namespace BlueMuse.MuseManagement
 
         private async Task LSLOpenStream()
         {
-            ValueSet message = new ValueSet();
-            message.Add(Constants.LSL_MESSAGE_DEVICE_NAME, LongName);
-            message.Add(Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP, SendSecondaryTimestamp);
+            ValueSet message = new ValueSet
+            {
+                { Constants.LSL_MESSAGE_DEVICE_NAME, LongName },
+                { Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP, TimestampFormat.GetType() != typeof(DummyTimestampFormat) }
+            };
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }
 
         private async Task LSLCloseStream()
         {
-            ValueSet message = new ValueSet();
-            message.Add(Constants.LSL_MESSAGE_DEVICE_NAME, LongName);
+            ValueSet message = new ValueSet
+            {
+                { Constants.LSL_MESSAGE_DEVICE_NAME, LongName }
+            };
             await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM, message);
         }
 
         private async Task LSLPushChunk(MuseSample sample)
         {
-            ValueSet message = new ValueSet();
-            message.Add(Constants.LSL_MESSAGE_DEVICE_NAME, LongName);
+            ValueSet message = new ValueSet
+            {
+                { Constants.LSL_MESSAGE_DEVICE_NAME, LongName }
+            };
             double[] data = new double[Constants.MUSE_SAMPLE_COUNT * channelCount]; // Can only send 1D array with this garbage :S
             for (int i = 0; i < channelCount; i++)
             {
@@ -292,10 +297,7 @@ namespace BlueMuse.MuseManagement
                         sample = new MuseSample();
                         sampleBuffer.Add(museTimestamp, sample);
                         sample.BaseTimestamp = TimestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                        if (TimestampFormat2 != null)
-                        {
-                            sample.BasetimeStamp2 = TimestampFormat2.GetNow(); // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                        }
+                        sample.BasetimeStamp2 = TimestampFormat2.GetNow(); // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
                     }
                     else sample = sampleBuffer[museTimestamp];
 

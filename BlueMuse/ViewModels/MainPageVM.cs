@@ -7,6 +7,7 @@ using System.Threading;
 using Windows.ApplicationModel;
 using System.Collections.Generic;
 using BlueMuse.Misc;
+using BlueMuse.Settings;
 
 namespace BlueMuse.ViewModels
 {
@@ -15,21 +16,18 @@ namespace BlueMuse.ViewModels
     /// </summary>
     public class MainPageVM : ObservableObject
     {
+        public AppSettings AppSettings;
         private BluetoothManager museManager;
         public ObservableCollection<Muse> Muses { get; set; }
         private Muse selectedMuse; // Tracks user selection from list.
         public Muse SelectedMuse { get { return selectedMuse; } set { selectedMuse = value; if (value != null) SetSelectedMuse(value); } }
         private string searchText = string.Empty;
         public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } }
-        private Timer searchTextAnimateTimer;
-        private BaseTimestampFormat timestampFormat;
-        public BaseTimestampFormat TimestampFormat { get { return timestampFormat; } set { SetProperty(ref timestampFormat, value); }}
-        private BaseTimestampFormat timestampFormat2;
-        public BaseTimestampFormat TimestampFormat2 { get { return timestampFormat2; } set { SetProperty(ref timestampFormat2, value); } }
-        public List<BaseTimestampFormat> TimestampFormats = new List<BaseTimestampFormat>();
-        public List<BaseTimestampFormat> TimestampFormats2 = new List<BaseTimestampFormat>();
-        BlueMuseUnixTimestampFormat blueMuseUnixTimestampFormat = new BlueMuseUnixTimestampFormat();
-        LSLTimestampFormat lslTimestampFormat = new LSLTimestampFormat();
+        private readonly Timer searchTextAnimateTimer;
+        private bool noneStreaming = false;
+        public bool NoneStreaming { get { return noneStreaming; } set { SetProperty(ref noneStreaming, value); } }
+        public List<BaseTimestampFormat> TimestampFormats = TimestampFormatsContainer.TimestampFormats;
+        public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2;
 
         public string AppVersion { get {
                 var pv = Package.Current.Id.Version;
@@ -39,15 +37,13 @@ namespace BlueMuse.ViewModels
 
         public MainPageVM()
         {
-            TimestampFormats.Add(blueMuseUnixTimestampFormat);
-            TimestampFormats.Add(lslTimestampFormat);
-            TimestampFormats2.Add(blueMuseUnixTimestampFormat);
-            TimestampFormats2.Add(lslTimestampFormat);
+            AppSettings = AppSettings.Instance;
 
             museManager = BluetoothManager.Instance;
             Muses = museManager.Muses;
             museManager.FindMuses();
             searchTextAnimateTimer = new Timer(SearchTextAnimate, null, 0, 600); // Start the Searching for Muses... animation.
+            CheckAnyStreaming();
         }
 
         private void SearchTextAnimate(object state)
@@ -60,6 +56,11 @@ namespace BlueMuse.ViewModels
             else if (searchText.Count(x => x == '.') == 2)
                 SearchText = baseText + "...";
             else SearchText = baseText;
+        }
+
+        private void CheckAnyStreaming()
+        {
+            NoneStreaming = !museManager.Muses.Any(x => x.IsStreaming == true);
         }
 
         private ICommand forceRefresh;
@@ -82,6 +83,7 @@ namespace BlueMuse.ViewModels
                 return startStreaming ?? (startStreaming = new CommandHandler((param) =>
                 {
                     museManager.StartStreaming(param);
+                    CheckAnyStreaming();
                 }, true));
             }
         }
@@ -94,6 +96,7 @@ namespace BlueMuse.ViewModels
                 return stopStreaming ?? (stopStreaming = new CommandHandler((param) =>
                 {
                     museManager.StopStreaming(param);
+                    CheckAnyStreaming();
                 }, true));
             }
         }

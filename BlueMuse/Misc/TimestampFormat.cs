@@ -1,24 +1,42 @@
 ﻿using BlueMuse.Helpers;
 using System;
+using System.Collections.Generic;
 
 namespace BlueMuse.Misc
 {
+    public static class TimestampFormatsContainer
+    {
+        // Primary timestamp formats - no dummy "none" timestamp.
+        public static List<BaseTimestampFormat> TimestampFormats = new List<BaseTimestampFormat>()
+        {
+            new BlueMuseUnixTimestampFormat(),
+            new LSLLocalClockTimestampFormat()
+        };
+        // Secondary timestamp formats - includes dummy "none" type since we can toggle it off.
+        public static List<BaseTimestampFormat> TimestampFormats2 = new List<BaseTimestampFormat>()
+        {
+            new BlueMuseUnixTimestampFormat(),
+            new LSLLocalClockTimestampFormat(),
+            new DummyTimestampFormat()
+        };
+    }
+
     public interface ITimestampFormat
     {
         /// <summary>
         /// Get current time in milliseconds.
         /// </summary>
         /// <returns>Current time in milliseconds</returns>
-        long GetNow();
+        double GetNow();
     }
 
     public abstract class BaseTimestampFormat : ITimestampFormat
     {
         public string DisplayName;
         public string Key;
-        public virtual long GetNow()
+        public virtual double GetNow()
         {
-            return DateTimeOffset.Now.ToUnixTimeMilliseconds();
+            throw new NotImplementedException();
         }
     }
     
@@ -27,24 +45,25 @@ namespace BlueMuse.Misc
        public BlueMuseUnixTimestampFormat()
         {
             DisplayName = "BlueMuse High Accuracy (Unix Epoch UTC±00:00)";
-            Key = nameof(BlueMuseUnixTimestampFormat);
+            Key = Constants.TIMESTAMP_FORMAT_BLUEMUSE_UNIX;
         }
-        public sealed override long GetNow()
+        public sealed override double GetNow()
         {
-            throw new NotImplementedException();
+            return Timestamps.GetNow().ToUnixTimeMilliseconds();
         }
     }
 
-    public sealed class LSLTimestampFormat : BaseTimestampFormat
+    public sealed class LSLLocalClockTimestampFormat : BaseTimestampFormat
     {
-        public LSLTimestampFormat()
+        public LSLLocalClockTimestampFormat()
         {
             DisplayName = "LSL Local Clock (system uptime).";
-            Key = nameof(LSLTimestampFormat);
+            Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK;
         }
-        public sealed override long GetNow()
+        public sealed override double GetNow()
         {
-            return (long)LSL.liblsl.local_clock();
+            var time = LSL.liblsl.local_clock();
+            return LSL.liblsl.local_clock() * 1000d; // Converted to milliseconds.
         }
     }
 
@@ -53,6 +72,11 @@ namespace BlueMuse.Misc
         public DummyTimestampFormat()
         {
             DisplayName = "None";
+            Key = Constants.TIMESTAMP_FORMAT_NONE;
+        }
+        public sealed override double GetNow()
+        {
+            return 0;
         }
     }
 }
