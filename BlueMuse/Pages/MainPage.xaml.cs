@@ -21,5 +21,10 @@ namespace BlueMuse
         {
             SettingsFlyout.Hide();
         }
+
+        private void BlueMuseSettings_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        {
+            CommandBar.IsOpen = false;
+        }
     }
 }

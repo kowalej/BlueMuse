@@ -56,7 +56,7 @@ namespace BlueMuse.Helpers
                     }
                 );
             }
-            catch (System.Runtime.InteropServices.COMException) { }
+            catch (Exception) { }
         }
     }
 }

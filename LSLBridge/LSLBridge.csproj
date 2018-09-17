@@ -55,8 +55,8 @@
     <ApplicationIcon>BlueMuse_Logo_256.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Costura, Version=3.1.0.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
-      <HintPath>..\packages\Costura.Fody.3.1.0\lib\net46\Costura.dll</HintPath>
+    <Reference Include="Costura, Version=3.1.1.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
+      <HintPath>..\packages\Costura.Fody.3.1.1\lib\net46\Costura.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -97,9 +97,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="..\BlueMuse\LSL\LSL.cs">
-      <Link>LSL\LSL.cs</Link>
-    </Compile>
     <Compile Include="..\BlueMuse\Misc\Constants.cs">
       <Link>Misc\Constants.cs</Link>
     </Compile>
@@ -112,6 +109,7 @@
     <Compile Include="Helpers\ObservableCollection.cs" />
     <Compile Include="Helpers\ObservableObject.cs" />
     <Compile Include="Helpers\PacketConversion.cs" />
+    <Compile Include="LSL\LSL.cs" />
     <Compile Include="LSL\MuseLSLStream.cs" />
     <Compile Include="LSL\MuseLSLStreamManager.cs" />
     <Compile Include="ViewModels\MainWindowVM.cs" />
@@ -187,9 +185,9 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\UwpDesktop.10.0.14393.3\build\portable-net45+uap\UwpDesktop.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\UwpDesktop.10.0.14393.3\build\portable-net45+uap\UwpDesktop.targets'))" />
-    <Error Condition="!Exists('..\packages\Costura.Fody.3.1.0\build\Costura.Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.3.1.0\build\Costura.Fody.targets'))" />
-    <Error Condition="!Exists('..\packages\Fody.3.2.2\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.3.2.2\build\Fody.targets'))" />
+    <Error Condition="!Exists('..\packages\Fody.3.2.3\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.3.2.3\build\Fody.targets'))" />
+    <Error Condition="!Exists('..\packages\Costura.Fody.3.1.1\build\Costura.Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.3.1.1\build\Costura.Fody.targets'))" />
   </Target>
-  <Import Project="..\packages\Costura.Fody.3.1.0\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.3.1.0\build\Costura.Fody.targets')" />
-  <Import Project="..\packages\Fody.3.2.2\build\Fody.targets" Condition="Exists('..\packages\Fody.3.2.2\build\Fody.targets')" />
+  <Import Project="..\packages\Fody.3.2.3\build\Fody.targets" Condition="Exists('..\packages\Fody.3.2.3\build\Fody.targets')" />
+  <Import Project="..\packages\Costura.Fody.3.1.1\build\Costura.Fody.targets" Condition="Exists('..\packages\Costura.Fody.3.1.1\build\Costura.Fody.targets')" />
 </Project>

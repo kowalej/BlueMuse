@@ -18,23 +18,23 @@
     </Page.Resources>
 
     <Page.TopAppBar>
-        <CommandBar ClosedDisplayMode="Compact" Foreground="White" Background="#a63d87" Padding="10 0 10 0">
+        <CommandBar Name="CommandBar" ClosedDisplayMode="Compact" Foreground="White" Background="#a63d87" Padding="10 0 10 0">
             <CommandBar.Content>
                 <TextBlock Padding="8 8 5 5" HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White" Text="Muses Available" VerticalAlignment="Top" FontSize="24" FontWeight="SemiBold" IsColorFontEnabled="True" />
             </CommandBar.Content>
             <CommandBar.PrimaryCommands>
                 <AppBarButton Foreground="White" Name="ForceRefresh" Icon="Refresh" Label="Force Refresh" />
-                <AppBarButton AllowFocusOnInteraction="True" Foreground="White" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings">
-                    <Button.Flyout>
-                        <Flyout x:Name="SettingsFlyout" Placement="Full" >
-                            <StackPanel>
+                <AppBarButton AllowFocusOnInteraction="True" Click="BlueMuseSettings_Click" Foreground="White" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings">
+                    <AppBarButton.Flyout>
+                        <Flyout x:Name="SettingsFlyout" Placement="Full">
+                            <StackPanel Margin="8">
                                 <StackPanel Margin="8 12 8 12">
                                     <TextBlock FontWeight="Bold" Text="Primary Timestamp Format" Margin="0,0,0,0" />
                                     <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Main LSL Stream Timestamp" Margin="0,4,0,12" />
-                                    <ComboBox IsEnabled="{x:Bind ViewModel.NoneStreaming}"
+                                    <ComboBox IsEnabled="{x:Bind ViewModel.NoneStreaming}" Width="350"
                                         ItemsSource="{x:Bind ViewModel.TimestampFormats, Mode=TwoWay}"
                                         SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat, Mode=TwoWay}"
-                                        HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                                        HorizontalAlignment="Left" VerticalAlignment="Top">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
                                                 <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
@@ -44,10 +44,10 @@
                                     <Line Margin="10" Stroke="Black" />
                                     <TextBlock FontWeight="Bold" Text="Secondary Timestamp Format (Optional)" Margin="0,0,0,0" />
                                     <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as LSL Channel Data" Margin="0,4,0,12" />
-                                    <ComboBox IsEnabled="{x:Bind ViewModel.NoneStreaming}"
+                                    <ComboBox IsEnabled="{x:Bind ViewModel.NoneStreaming}" Width="350"
                                         ItemsSource="{x:Bind ViewModel.TimestampFormats2, Mode=OneWay}"
                                         SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat2, Mode=TwoWay}"  
-                                        HorizontalAlignment="Stretch" VerticalAlignment="Top">
+                                        HorizontalAlignment="Left" VerticalAlignment="Top">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
                                                 <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
@@ -55,10 +55,10 @@
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
                                 </StackPanel>
-                                <Button VerticalAlignment="Bottom" Margin="0 0 8 0" HorizontalAlignment="Right" Content="Done" Click="SettingsDone_Click"></Button>
+                                <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
                             </StackPanel>
                         </Flyout>
-                    </Button.Flyout>
+                    </AppBarButton.Flyout>
                 </AppBarButton>
                 <AppBarSeparator Foreground="White" />
             </CommandBar.PrimaryCommands>
