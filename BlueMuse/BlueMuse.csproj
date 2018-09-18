@@ -20,7 +20,7 @@
     <PackageCertificateKeyFile>BlueMuse_TemporaryKey.pfx</PackageCertificateKeyFile>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxBundle>Always</AppxBundle>
-    <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
+    <AppxBundlePlatforms>x86</AppxBundlePlatforms>
     <PackageCertificateThumbprint>33082EC9E9F760F009204FE2627265FCF85A787F</PackageCertificateThumbprint>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppInstallerUpdateFrequency>1</AppInstallerUpdateFrequency>
@@ -36,6 +36,8 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -47,8 +49,8 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableGatekeeperAnalysis>false</EnableGatekeeperAnalysis>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|ARM'">
@@ -61,6 +63,8 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <OutputPath>bin\ARM\Release\</OutputPath>
@@ -72,8 +76,9 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
     <EnableGatekeeperAnalysis>false</EnableGatekeeperAnalysis>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -85,10 +90,12 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
+    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutputPath>bin\x64\Release\</OutputPath>
-    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;CODE_ANALYSIS;WIN64;CODE_ANALYSIS;WIN64</DefineConstants>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;CODE_ANALYSIS;WIN64;CODE_ANALYSIS;WIN64;CODE_ANALYSIS</DefineConstants>
     <Optimize>true</Optimize>
     <NoWarn>;2008</NoWarn>
     <DebugType>pdbonly</DebugType>
@@ -96,8 +103,9 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <ErrorReport>prompt</ErrorReport>
     <Prefer32Bit>true</Prefer32Bit>
-    <UseDotNetNativeToolchain>false</UseDotNetNativeToolchain>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
     <EnableGatekeeperAnalysis>false</EnableGatekeeperAnalysis>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
@@ -111,7 +119,6 @@
     <Compile Include="Helpers\PacketConversion.cs" />
     <Compile Include="AppService\AppServiceManager.cs" />
     <Compile Include="Helpers\Timestamps.cs" />
-    <Compile Include="LSL\LSL.cs" />
     <Compile Include="Misc\Constants.cs" />
     <Compile Include="Misc\TimestampFormats.cs" />
     <Compile Include="MuseManagement\Muse.cs" />
@@ -365,34 +372,6 @@
     <None Include="AppPackages\BlueMuse_1.0.8.0\Dependencies\x86\Microsoft.NET.Native.Framework.1.7.appx" />
     <None Include="AppPackages\BlueMuse_1.0.8.0\Dependencies\x86\Microsoft.NET.Native.Runtime.1.7.appx" />
     <None Include="AppPackages\BlueMuse_1.0.8.0\Dependencies\x86\Microsoft.VCLibs.x86.14.00.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.ps1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\cs-CZ\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\de-DE\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\en-US\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\es-ES\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\fr-FR\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\it-IT\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\ja-JP\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\ko-KR\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\pl-PL\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\pt-BR\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\ru-RU\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\tr-TR\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\zh-CN\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Add-AppDevPackage.resources\zh-TW\Add-AppDevPackage.psd1" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\BlueMuse_1.0.9.0_x64.appxsym" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\BlueMuse_1.0.9.0_x86.appxsym" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\BlueMuse_1.0.9.0_x86_x64.appxbundle" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\BlueMuse_1.0.9.0_x86_x64.cer" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Dependencies\ARM\Microsoft.NET.CoreRuntime.1.1.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Dependencies\ARM\Microsoft.VCLibs.ARM.14.00.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Dependencies\x64\Microsoft.NET.CoreRuntime.1.1.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Dependencies\x64\Microsoft.VCLibs.x64.14.00.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Dependencies\x86\Microsoft.NET.CoreRuntime.1.1.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\Dependencies\x86\Microsoft.VCLibs.x86.14.00.appx" />
-    <None Include="AppPackages\BlueMuse_1.0.9.0\InstallBlueMuse.ps1" />
-    <None Include="BlueMuse_PackagingKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\BadgeLogo.scale-100.png" />
@@ -405,6 +384,7 @@
     <Content Include="Assets\LargeTile.scale-150.png" />
     <Content Include="Assets\LargeTile.scale-200.png" />
     <Content Include="Assets\LargeTile.scale-400.png" />
+    <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SmallTile.scale-100.png" />
     <Content Include="Assets\SmallTile.scale-125.png" />
     <Content Include="Assets\SmallTile.scale-150.png" />
@@ -413,10 +393,12 @@
     <Content Include="Assets\SplashScreen.scale-100.png" />
     <Content Include="Assets\SplashScreen.scale-125.png" />
     <Content Include="Assets\SplashScreen.scale-150.png" />
+    <Content Include="Assets\SplashScreen.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-400.png" />
     <Content Include="Assets\Square150x150Logo.scale-100.png" />
     <Content Include="Assets\Square150x150Logo.scale-125.png" />
     <Content Include="Assets\Square150x150Logo.scale-150.png" />
+    <Content Include="Assets\Square150x150Logo.scale-200.png" />
     <Content Include="Assets\Square150x150Logo.scale-400.png" />
     <Content Include="Assets\Square44x44Logo.altform-unplated_targetsize-16.png" />
     <Content Include="Assets\Square44x44Logo.altform-unplated_targetsize-256.png" />
@@ -425,9 +407,11 @@
     <Content Include="Assets\Square44x44Logo.scale-100.png" />
     <Content Include="Assets\Square44x44Logo.scale-125.png" />
     <Content Include="Assets\Square44x44Logo.scale-150.png" />
+    <Content Include="Assets\Square44x44Logo.scale-200.png" />
     <Content Include="Assets\Square44x44Logo.scale-400.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-16.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-24.png" />
+    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-256.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-32.png" />
     <Content Include="Assets\Square44x44Logo.targetsize-48.png" />
@@ -439,42 +423,9 @@
     <Content Include="Assets\Wide310x150Logo.scale-100.png" />
     <Content Include="Assets\Wide310x150Logo.scale-125.png" />
     <Content Include="Assets\Wide310x150Logo.scale-150.png" />
-    <Content Include="Assets\Wide310x150Logo.scale-400.png" />
-    <None Include="Binaries\liblsl32-debug.dll" />
-    <None Include="Binaries\liblsl64-debug.dll" />
-    <None Include="Binaries\liblsl64.dll" />
-    <ContentWithTargetPath Include="Binaries\liblsl32.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <TargetPath>liblsl32.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Binaries\msvcp90.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <TargetPath>msvcp90.dll</TargetPath>
-    </ContentWithTargetPath>
-    <ContentWithTargetPath Include="Binaries\msvcr90.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <TargetPath>msvcr90.dll</TargetPath>
-    </ContentWithTargetPath>
-    <Content Include="Properties\Default.rd.xml" />
-    <Content Include="Assets\LockScreenLogo.scale-200.png" />
-    <Content Include="Assets\SplashScreen.scale-200.png" />
-    <Content Include="Assets\Square150x150Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.scale-200.png" />
-    <Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
-    <Content Include="Assets\StoreLogo.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
-    <Content Include="Win32\liblsl32.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Win32\LSLBridge.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Win32\msvcp90.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Win32\msvcr90.dll">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="Assets\Wide310x150Logo.scale-400.png" />
+    <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -514,12 +465,26 @@
       <Name>Windows Desktop Extensions for the UWP</Name>
     </SDKReference>
   </ItemGroup>
-  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
   <PropertyGroup>
     <RunPostBuildEvent>Always</RunPostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\AnyCPU\Debug\</OutputPath>
+    <DefineConstants>DEBUG;NETFX_CORE;WINDOWS_UWP;CODE_ANALYSIS;WIN32;CODE_ANALYSIS</DefineConstants>
+    <NoWarn>;2008</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <PlatformTarget>x86</PlatformTarget>
+    <OutputPath>bin\AnyCPU\Release\</OutputPath>
+    <DefineConstants>TRACE;NETFX_CORE;WINDOWS_UWP;CODE_ANALYSIS;WIN32;CODE_ANALYSIS</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <UseDotNetNativeToolchain>true</UseDotNetNativeToolchain>
+    <Optimize>true</Optimize>
+    <NoWarn>;2008</NoWarn>
   </PropertyGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\WindowsXaml\v$(VisualStudioVersion)\Microsoft.Windows.UI.Xaml.CSharp.targets" />
   <PropertyGroup>
@@ -527,10 +492,8 @@
     </PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\LSLBridge.exe $(SolutionDir)BlueMuse\Win32
-xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\liblsl32.dll $(SolutionDir)BlueMuse\Win32
-xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcp90.dll $(SolutionDir)BlueMuse\Win32
-xcopy /C /Y $(SolutionDir)LSLBridge\bin\$(ConfigurationName)\Binaries\msvcr90.dll $(SolutionDir)BlueMuse\Win32</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

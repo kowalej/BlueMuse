@@ -62,8 +62,7 @@ namespace BlueMuse.Misc
         }
         public sealed override double GetNow()
         {
-            var time = LSL.liblsl.local_clock();
-            return LSL.liblsl.local_clock() * 1000d; // Converted to milliseconds.
+            return LSLClock.LSLClock.GetNow() * 1000;
         }
     }
 
