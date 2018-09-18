@@ -55,6 +55,21 @@ namespace LSLBridge.LSLManagement
             Process.GetCurrentProcess().Kill();
         }
 
+        // Hack until BlueMuse can call lsl_local_clock().
+        private double[] GenerateLSLNativeTimestamps()
+        {
+            double[] timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
+            double baseMillis = LSL.liblsl.local_clock() * 1000d; // local_clock in seconds.
+
+            for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
+            {
+                timestamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
+                timestamps[i] = timestamps[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
+            }
+
+            return timestamps;
+        }
+
         private void LSLService_RequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
         {
             lastMessageTime = DateTime.Now;
@@ -104,12 +119,23 @@ namespace LSLBridge.LSLManagement
                                         data2D[j, i] = data1D[(i * Constants.MUSE_SAMPLE_COUNT) + j];
                                     }
                                 }
+
+                                double[] nativeTimestamps = null;
                                 double[] timestamps = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS]);
+                                if(double.IsNegativeInfinity(timestamps[0])) // Hack until BlueMuse can call lsl_local_clock().
+                                {
+                                    nativeTimestamps = GenerateLSLNativeTimestamps();
+                                    timestamps = GenerateLSLNativeTimestamps();
+                                }
 
                                 // Add in secondary timestamp to data chunk.
                                 if (stream.SendSecondaryTimestamp)
                                 {
                                     double[] timestamps2 = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2]);
+                                    if (double.IsNegativeInfinity(timestamps2[0])) // Hack until BlueMuse can call lsl_local_clock().
+                                    {
+                                        timestamps2 = nativeTimestamps ?? GenerateLSLNativeTimestamps();
+                                    }
                                     for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
                                     {
                                         data2D[j, stream.channelCount - 1] = timestamps2[j];

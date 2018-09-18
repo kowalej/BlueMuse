@@ -54,7 +54,18 @@
                                             </DataTemplate>
                                         </ComboBox.ItemTemplate>
                                     </ComboBox>
+    
+                                    <StackPanel Margin="0 24 0 0">
+                                        <TextBlock FontWeight="Bold" Text="Log File Locations (For Reference)" Margin="0,0,0,8" />
+
+                                        <TextBlock Text="BlueMuse"></TextBlock>
+                                        <TextBox HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.BlueMuseLogFolder, Mode=OneTime}" />
+
+                                        <TextBlock Text="LSLBridge" Margin="0 8 0 0"></TextBlock>
+                                        <TextBox HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
+                                    </StackPanel>
                                 </StackPanel>
+
                                 <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
                             </StackPanel>
                         </Flyout>

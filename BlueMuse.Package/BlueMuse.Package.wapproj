@@ -40,6 +40,29 @@
     <DefaultLanguage>en-US</DefaultLanguage>
     <PackageCertificateKeyFile>BlueMuse.Package_TemporaryKey.pfx</PackageCertificateKeyFile>
     <EntryPointProjectUniqueName>..\BlueMuse\BlueMuse.csproj</EntryPointProjectUniqueName>
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
+    <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
+    <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
+    <AppInstallerUpdateFrequency>1</AppInstallerUpdateFrequency>
+    <AppInstallerCheckForUpdateFrequency>OnApplicationRun</AppInstallerCheckForUpdateFrequency>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <AppxBundle>Always</AppxBundle>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <AppxBundle>Always</AppxBundle>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <AppxBundle>Always</AppxBundle>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <AppxBundle>Always</AppxBundle>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <AppxBundle>Always</AppxBundle>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <AppxBundle>Always</AppxBundle>
   </PropertyGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
@@ -52,6 +75,35 @@
     <ProjectReference Include="..\LSLBridge\LSLBridge.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.ps1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\cs-CZ\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\de-DE\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\en-US\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\es-ES\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\fr-FR\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\it-IT\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\ja-JP\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\ko-KR\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\pl-PL\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\pt-BR\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\ru-RU\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\tr-TR\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\zh-CN\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Add-AppDevPackage.resources\zh-TW\Add-AppDevPackage.psd1" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\BlueMuse.Package_1.0.9.0_x64.appxsym" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\BlueMuse.Package_1.0.9.0_x86.appxsym" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\BlueMuse.Package_1.0.9.0_x86_x64.appxbundle" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\BlueMuse.Package_1.0.9.0_x86_x64.cer" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\arm\Microsoft.NET.Native.Framework.1.7.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\arm\Microsoft.NET.Native.Runtime.1.7.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\arm\Microsoft.VCLibs.ARM.14.00.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\x64\Microsoft.NET.Native.Framework.1.7.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\x64\Microsoft.NET.Native.Runtime.1.7.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\x64\Microsoft.VCLibs.x64.14.00.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\x86\Microsoft.NET.Native.Framework.1.7.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\x86\Microsoft.NET.Native.Runtime.1.7.appx" />
+    <Content Include="AppPackages\BlueMuse.Package_1.0.9.0_Test\Dependencies\x86\Microsoft.VCLibs.x86.14.00.appx" />
     <Content Include="Images\BadgeLogo.scale-100.png" />
     <Content Include="Images\BadgeLogo.scale-125.png" />
     <Content Include="Images\BadgeLogo.scale-150.png" />

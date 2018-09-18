@@ -62,7 +62,7 @@ namespace BlueMuse.Misc
         }
         public sealed override double GetNow()
         {
-            return LSLClock.GetNow() * 1000;
+            return double.NegativeInfinity; // Spoofed value for now so LSL bridge knows to generate timestamps since I do not currently have a solution to call local_clock from UWP reliably.
         }
     }
 

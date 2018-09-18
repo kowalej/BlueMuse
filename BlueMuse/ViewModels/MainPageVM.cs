@@ -8,6 +8,7 @@ using Windows.ApplicationModel;
 using System.Collections.Generic;
 using BlueMuse.Misc;
 using BlueMuse.Settings;
+using System.IO;
 
 namespace BlueMuse.ViewModels
 {
@@ -28,6 +29,8 @@ namespace BlueMuse.ViewModels
         public bool NoneStreaming { get { return noneStreaming; } set { SetProperty(ref noneStreaming, value); } }
         public List<BaseTimestampFormat> TimestampFormats = TimestampFormatsContainer.TimestampFormats;
         public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2;
+        public string BlueMuseLogFolder;
+        public string LSLBridgeLogFolder;
 
         public string AppVersion { get {
                 var pv = Package.Current.Id.Version;
@@ -38,6 +41,9 @@ namespace BlueMuse.ViewModels
         public MainPageVM()
         {
             AppSettings = AppSettings.Instance;
+            var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
+            BlueMuseLogFolder = Path.Combine(localFolder, "Logs");
+            LSLBridgeLogFolder = BlueMuseLogFolder.Replace("LocalState", "LocalCache\\Local");
 
             museManager = BluetoothManager.Instance;
             Muses = museManager.Muses;
