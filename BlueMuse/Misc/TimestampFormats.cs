@@ -62,7 +62,7 @@ namespace BlueMuse.Misc
         }
         public sealed override double GetNow()
         {
-            return LSLClock.LSLClock.GetNow() * 1000;
+            return LSLClock.GetNow() * 1000;
         }
     }
 
