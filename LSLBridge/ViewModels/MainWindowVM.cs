@@ -1,20 +1,20 @@
 ﻿using LSLBridge.Helpers;
-using LSLBridge.LSLManagement;
+using LSLBridge.LSL;
 using System.Windows;
 
 namespace LSLBridge.ViewModels
 {
     public class MainWindowVM : ObservableObject
     {
-        private MuseLSLStreamManager museLSLStreamManager;
-        public ObservableCollection<MuseLSLStream> MuseStreams { get; set; }
-        private int museStreamCount;
-        public int MuseStreamCount
+        private LSLStreamManager LSLStreamManager;
+        public ObservableCollection<LSLStream> Streams { get; set; }
+        private int streamCount;
+        public int StreamCount
         {
-            get { return museStreamCount;
+            get { return streamCount;
         }
             set {
-                SetProperty(ref museStreamCount, value);
+                SetProperty(ref streamCount, value);
                 if (value < 1)
                     WindowVisible = Visibility.Hidden;
                 else
@@ -26,9 +26,9 @@ namespace LSLBridge.ViewModels
 
         public MainWindowVM()
         {
-            MuseStreamCount = 0;
-            MuseStreams = new ObservableCollection<MuseLSLStream>();
-            museLSLStreamManager = new MuseLSLStreamManager(MuseStreams, (s) => MuseStreamCount = s);
+            StreamCount = 0;
+            Streams = new ObservableCollection<LSLStream>();
+            LSLStreamManager = new LSLStreamManager(Streams, (s) => StreamCount = s);
         }
     }
 }

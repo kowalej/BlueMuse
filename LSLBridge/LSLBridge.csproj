@@ -97,21 +97,21 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="..\BlueMuse\Misc\Constants.cs">
-      <Link>Misc\Constants.cs</Link>
-    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Helpers\ArrayConversion.cs" />
     <Compile Include="Helpers\CommandHandler.cs" />
     <Compile Include="Helpers\Converters.cs" />
     <Compile Include="Helpers\ObservableCollection.cs" />
     <Compile Include="Helpers\ObservableObject.cs" />
-    <Compile Include="Helpers\PacketConversion.cs" />
+    <Compile Include="Helpers\StreamHelper.cs" />
     <Compile Include="LSL\LSL.cs" />
-    <Compile Include="LSL\MuseLSLStream.cs" />
-    <Compile Include="LSL\MuseLSLStreamManager.cs" />
+    <Compile Include="LSL\LSLStream.cs" />
+    <Compile Include="LSL\LSLStreamInfo.cs" />
+    <Compile Include="LSL\LSLStreamManager.cs" />
+    <Compile Include="Misc\LSLBridgeConstants.cs" />
     <Compile Include="ViewModels\MainWindowVM.cs" />
     <Compile Include="Windows\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -168,19 +168,19 @@
     <None Include="Binaries\liblsl32-debug.dll" />
     <ContentWithTargetPath Include="Binaries\liblsl32.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>liblsl32.dll</TargetPath>
+      <TargetPath>liblsl32.dll</TargetPath>
     </ContentWithTargetPath>
     <None Include="Binaries\liblsl64-debug.dll" />
     <None Include="Binaries\liblsl64.dll" />
     <ContentWithTargetPath Include="Binaries\msvcp90.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>msvcp90.dll</TargetPath>
+      <TargetPath>msvcp90.dll</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
   <ItemGroup>
     <ContentWithTargetPath Include="Binaries\msvcr90.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-			<TargetPath>msvcr90.dll</TargetPath>
+      <TargetPath>msvcr90.dll</TargetPath>
     </ContentWithTargetPath>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

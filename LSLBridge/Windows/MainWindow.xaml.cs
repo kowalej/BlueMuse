@@ -21,7 +21,7 @@ namespace LSLBridge
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (ViewModel.MuseStreamCount > 0)
+            if (ViewModel.StreamCount > 0)
                 e.Cancel = true; // Don't allow user to exit while streaming.
             base.OnClosing(e);
         }

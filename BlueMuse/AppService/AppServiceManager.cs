@@ -57,7 +57,7 @@ namespace BlueMuse.AppService
 
         static async Task SendMessageInternalAsync(string messageType, ValueSet message)
         {
-            message.Add(Constants.LSL_MESSAGE_TYPE, messageType);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_TYPE, messageType);
             await connection.SendMessageAsync(message);
         }
 

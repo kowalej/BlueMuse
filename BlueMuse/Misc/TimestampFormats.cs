@@ -61,7 +61,7 @@ namespace BlueMuse.Misc
         public LSLLocalClockBlueMuseTimestampFormat()
         {
             DisplayName = "BlueMuse LSL Local Clock (System Uptime Seconds)";
-            Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK;
+            Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_BLUEMUSE;
         }
         public sealed override double GetNow() {
             return LSLLocalClock.GetNow();
@@ -73,7 +73,7 @@ namespace BlueMuse.Misc
         public LSLLocalClockNativeTimestampFormat()
         {
             DisplayName = "Native LSL Local Clock - Via Bridge (System Uptime Seconds)";
-            Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK;
+            Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_NATIVE;
         }
         public sealed override double GetNow()
         {

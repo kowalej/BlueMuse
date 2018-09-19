@@ -8,9 +8,9 @@
 
     <StackPanel>
         <TextBlock FontSize="18" Margin="5, 5, 5, 5">
-            <Run Text="Number of Open Streams: " /><Run Text="{Binding Path=MuseStreamCount, Mode=OneWay}" />
+            <Run Text="Number of Open Streams: " /><Run Text="{Binding Path=StreamCount, Mode=OneWay}" />
         </TextBlock>
-        <DataGrid ItemsSource="{Binding Path=MuseStreams, Mode=OneWay}" HorizontalAlignment="Left" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
+        <DataGrid ItemsSource="{Binding Path=Streams, Mode=OneWay}" HorizontalAlignment="Left" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Command="Copy" />

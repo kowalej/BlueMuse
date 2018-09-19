@@ -31,7 +31,7 @@
                                 <StackPanel Margin="8 12 8 12">
                                     <TextBlock FontWeight="Bold" Text="Primary Timestamp Format" Margin="0,0,0,0" />
                                     <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Main LSL Stream Timestamp" Margin="0,4,0,12" />
-                                    <ComboBox IsEnabled="{x:Bind ViewModel.NoneStreaming}" Width="350"
+                                    <ComboBox Background="White" IsEnabled="{x:Bind ViewModel.NoneStreaming}" Width="350"
                                         ItemsSource="{x:Bind ViewModel.TimestampFormats, Mode=TwoWay}"
                                         SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat, Mode=TwoWay}"
                                         HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -44,7 +44,7 @@
                                     <Line Margin="10" Stroke="Black" />
                                     <TextBlock FontWeight="Bold" Text="Secondary Timestamp Format (Optional)" Margin="0,0,0,0" />
                                     <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as LSL Channel Data" Margin="0,4,0,12" />
-                                    <ComboBox IsEnabled="{x:Bind ViewModel.NoneStreaming}" Width="350"
+                                    <ComboBox Background="White" IsEnabled="{x:Bind ViewModel.NoneStreaming}" Width="350"
                                         ItemsSource="{x:Bind ViewModel.TimestampFormats2, Mode=OneWay}"
                                         SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat2, Mode=TwoWay}"  
                                         HorizontalAlignment="Left" VerticalAlignment="Top">
@@ -59,10 +59,10 @@
                                         <TextBlock FontWeight="Bold" Text="Log File Locations (For Reference)" Margin="0,0,0,8" />
 
                                         <TextBlock Text="BlueMuse"></TextBlock>
-                                        <TextBox HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.BlueMuseLogFolder, Mode=OneTime}" />
+                                        <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.BlueMuseLogFolder, Mode=OneTime}" />
 
                                         <TextBlock Text="LSLBridge" Margin="0 8 0 0"></TextBlock>
-                                        <TextBox HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
+                                        <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
                                     </StackPanel>
                                 </StackPanel>
 

@@ -51,7 +51,7 @@ namespace BlueMuse.Bluetooth
         public async void PollBridge(object state)
         {
             if(LSLBridgeLaunched && !Muses.Any(x => x.IsStreaming))
-                await AppService.AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE, new Windows.Foundation.Collections.ValueSet());
+                await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE, new Windows.Foundation.Collections.ValueSet());
         }
 
         public async void Close()
@@ -241,7 +241,7 @@ namespace BlueMuse.Bluetooth
         {
             if (LSLBridgeLaunched && Muses.Where(x => x.IsStreaming).Count() < 1)
             {
-                await AppService.AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE, new Windows.Foundation.Collections.ValueSet());
+                await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE, new Windows.Foundation.Collections.ValueSet());
                 lock (syncLock)
                     LSLBridgeLaunched = false;
             }

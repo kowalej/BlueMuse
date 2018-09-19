@@ -1,6 +1,7 @@
 ﻿using BlueMuse.AppService;
 using BlueMuse.Helpers;
 using BlueMuse.Misc;
+using LSLBridge.LSL;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -13,6 +14,7 @@ using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Foundation.Collections;
 using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
+using Newtonsoft.Json;
 
 namespace BlueMuse.MuseManagement
 {
@@ -47,6 +49,13 @@ namespace BlueMuse.MuseManagement
             }
         }
 
+        private string deviceInfoManufacturer;
+        private string deviceInfoName;
+
+        private int channelCount;
+        private Guid[] channelUUIDs;
+        private string[] channelLabels;
+
         private MuseConnectionStatus status;
         public MuseConnectionStatus Status
         {
@@ -69,6 +78,7 @@ namespace BlueMuse.MuseManagement
 
         public bool CanStream { get { return status == MuseConnectionStatus.Online; } }
         public string LongName { get { return string.Format("{0} ({1})", Name, MacAddress); } }
+        public string EEGStreamName { get { return LongName; } }
         public string MacAddress
         {
             get
@@ -82,24 +92,30 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        int channelCount;
-        Guid[] channelUUIDs;
-
         public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status)
         {
             Device = device;
             Name = name;
             Id = id;
             Status = status;
-            if (name.Contains(Constants.DeviceNameFilter[0]))
-            {
-                channelCount = Constants.MUSE_CHANNEL_COUNT;
-                channelUUIDs = Constants.MUSE_CHANNEL_UUIDS;
-            }
-            else
+
+            // Is Smith Lowdown?
+            if (name.Contains(Constants.DeviceNameFilter[1]))
             {
                 channelCount = Constants.MUSE_SMXT_CHANNEL_COUNT;
-                channelUUIDs = Constants.MUSE_SMXT_CHANNEL_UUIDS;
+                channelUUIDs = Constants.MUSE_SMXT_EEG_CHANNEL_UUIDS;
+                channelLabels = Constants.MUSE_SMXT_EEG_CHANNEL_LABELS;
+                deviceInfoName = Constants.MUSE_SMXT_DEVICE_NAME;
+                deviceInfoManufacturer = Constants.MUSE_SMXT_MANUFACTURER;
+            }
+            // Default to Muse.
+            else
+            {
+                channelCount = Constants.MUSE_CHANNEL_COUNT;
+                channelUUIDs = Constants.MUSE_EGG_CHANNEL_UUIDS;
+                channelLabels = Constants.MUSE_SMXT_EEG_CHANNEL_LABELS;
+                deviceInfoName = Constants.MUSE_DEVICE_NAME;
+                deviceInfoManufacturer = Constants.MUSE_MANUFACTURER;
             }
         }
 
@@ -216,30 +232,57 @@ namespace BlueMuse.MuseManagement
 
         private async Task LSLOpenStream()
         {
+            bool sendSecondaryTimestamp = TimestampFormat2.GetType() != typeof(DummyTimestampFormat);
+
+            var channelsInfo = new List<LSLChannelInfo>();
+            foreach (var c in channelLabels)
+            {
+                channelsInfo.Add(new LSLChannelInfo { Label = c, Type = Constants.EEG_STREAM_TYPE, Unit = Constants.EEG_UNITS });
+            }
+            if (sendSecondaryTimestamp) { 
+                channelsInfo.Add(new LSLChannelInfo { Label = "Secondary Timestamp", Type = "timestamp", Unit = "seconds" });
+            }
+
+            LSLStreamInfo streamInfo = new LSLStreamInfo()
+            {
+                BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
+                Channels = channelsInfo,
+                ChannelCount = channelCount,
+                ChannelDataType = typeof(double),
+                ChunkSize = Constants.MUSE_SAMPLE_COUNT,
+                DeviceManufacturer = deviceInfoManufacturer,
+                DeviceName = deviceInfoName,
+                NominalSRate = Constants.MUSE_SAMPLE_RATE,
+                StreamType = Constants.EEG_STREAM_TYPE,
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
+                StreamName = EEGStreamName
+            };
+
             ValueSet message = new ValueSet
             {
-                { Constants.LSL_MESSAGE_DEVICE_NAME, LongName },
-                { Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP, TimestampFormat2.GetType() != typeof(DummyTimestampFormat) }
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
             };
-            await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }
 
         private async Task LSLCloseStream()
         {
             ValueSet message = new ValueSet
             {
-                { Constants.LSL_MESSAGE_DEVICE_NAME, LongName }
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, EEGStreamName }
             };
-            await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM, message);
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM, message);
         }
 
         private async Task LSLPushChunk(MuseSample sample)
         {
             ValueSet message = new ValueSet
             {
-                { Constants.LSL_MESSAGE_DEVICE_NAME, LongName }
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, EEGStreamName }
             };
-            double[] data = new double[Constants.MUSE_SAMPLE_COUNT * channelCount]; // Can only send 1D array with this garbage :S
+
+            // Can only send 1D array with garbage AppService :S - inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
+            double[] data = new double[Constants.MUSE_SAMPLE_COUNT * channelCount]; 
             for (int i = 0; i < channelCount; i++)
             {
                 var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
@@ -249,11 +292,11 @@ namespace BlueMuse.MuseManagement
                 }
             }
 
-            message.Add(Constants.LSL_MESSAGE_CHUNK_DATA, data);
-            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
-            message.Add(Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
 
-            await AppServiceManager.SendMessageAsync(Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
         }
 
         private double[] GetTimeSamples(string bits)
@@ -277,7 +320,7 @@ namespace BlueMuse.MuseManagement
             string bits = string.Empty;
             foreach (var hex in hexSplit)
             {
-                UInt16 longValue = Convert.ToUInt16("0x" + hex, 16);
+                ushort longValue = Convert.ToUInt16("0x" + hex, 16);
                 bits = bits + Convert.ToString(longValue, 2).PadLeft(8, '0');
             }
             return bits;
@@ -288,7 +331,7 @@ namespace BlueMuse.MuseManagement
             if (isStreaming)
             {
                 string bits = GetBits(args.CharacteristicValue);
-                UInt16 museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                 MuseSample sample;
                 lock (sampleBuffer)
                 {

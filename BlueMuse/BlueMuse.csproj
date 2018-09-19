@@ -111,6 +111,12 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\LSLBridge\LSL\LSLStreamInfo.cs">
+      <Link>Misc\LSLStreamInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\LSLBridge\Misc\LSLBridgeConstants.cs">
+      <Link>Misc\LSLBridgeConstants.cs</Link>
+    </Compile>
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
