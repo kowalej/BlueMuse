@@ -1,6 +1,7 @@
 ﻿using BlueMuse.Helpers;
 using System;
 using System.Collections.Generic;
+using NativeHelpers;
 
 namespace BlueMuse.Misc
 {
@@ -10,14 +11,16 @@ namespace BlueMuse.Misc
         public static List<BaseTimestampFormat> TimestampFormats = new List<BaseTimestampFormat>()
         {
             new BlueMuseUnixTimestampFormat(),
-            new LSLLocalClockTimestampFormat()
+            new LSLLocalClockBlueMuseTimestampFormat(),
+            new LSLLocalClockNativeTimestampFormat()
         };
         // Secondary timestamp formats - includes dummy "none" type since we can toggle it off.
         public static List<BaseTimestampFormat> TimestampFormats2 = new List<BaseTimestampFormat>()
         {
             new DummyTimestampFormat(),
             new BlueMuseUnixTimestampFormat(),
-            new LSLLocalClockTimestampFormat()
+            new LSLLocalClockBlueMuseTimestampFormat(),
+            new LSLLocalClockNativeTimestampFormat()
         };
     }
 
@@ -49,15 +52,27 @@ namespace BlueMuse.Misc
         }
         public sealed override double GetNow()
         {
-            return Timestamps.GetNow().ToUnixTimeMilliseconds();
+            return Timestamps.GetNow().ToUnixTimeMilliseconds() / 1000d; // Converted to seconds.
         }
     }
 
-    public sealed class LSLLocalClockTimestampFormat : BaseTimestampFormat
+    public sealed class LSLLocalClockBlueMuseTimestampFormat : BaseTimestampFormat
     {
-        public LSLLocalClockTimestampFormat()
+        public LSLLocalClockBlueMuseTimestampFormat()
         {
-            DisplayName = "LSL Local Clock (System Uptime Seconds)";
+            DisplayName = "BlueMuse LSL Local Clock (System Uptime Seconds)";
+            Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK;
+        }
+        public sealed override double GetNow() {
+            return LSLLocalClock.GetNow();
+        }
+    }
+
+    public sealed class LSLLocalClockNativeTimestampFormat : BaseTimestampFormat
+    {
+        public LSLLocalClockNativeTimestampFormat()
+        {
+            DisplayName = "Native LSL Local Clock - Via Bridge (System Uptime Seconds)";
             Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK;
         }
         public sealed override double GetNow()
@@ -65,6 +80,7 @@ namespace BlueMuse.Misc
             return double.NegativeInfinity; // Spoofed value for now so LSL bridge knows to generate timestamps since I do not currently have a solution to call local_clock from UWP reliably.
         }
     }
+
 
     public sealed class DummyTimestampFormat : BaseTimestampFormat
     {

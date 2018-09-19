@@ -5,7 +5,7 @@ namespace BlueMuse.MuseManagement
 {
     public class MuseSample
     {
-        private double baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+        private double baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds() / 1000d;
         public double BaseTimestamp
         {
             get
@@ -20,7 +20,7 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        private double baseTimestamp2 = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds();
+        private double baseTimestamp2 = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds() / 1000d;
         public double BasetimeStamp2
         {
             get
@@ -40,12 +40,12 @@ namespace BlueMuse.MuseManagement
         {
             get
             {
-                double baseMillis = baseTimestamp;
+                double baseSeconds = baseTimestamp;
 
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
-                    timestamps[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
-                    timestamps[i] = timestamps[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
+                    timestamps[i] = baseSeconds - ((Constants.MUSE_SAMPLE_COUNT - i) * (Constants.MUSE_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps[i] = timestamps[i];
                 }
                 return timestamps;
             }
@@ -56,12 +56,12 @@ namespace BlueMuse.MuseManagement
         {
             get
             {
-                double baseMillis = baseTimestamp2;
+                double baseSeconds = baseTimestamp;
 
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
-                    timestamps2[i] = baseMillis - ((Constants.MUSE_SAMPLE_COUNT - i) * Constants.MUSE_SAMPLE_TIME_MILLIS); // Offset times based on sample rate.
-                    timestamps2[i] = timestamps2[i] / 1000d; // Convert to seconds, as this is a more standard Unix epoch timestamp format.
+                    timestamps2[i] = baseSeconds - ((Constants.MUSE_SAMPLE_COUNT - i) * (Constants.MUSE_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps2[i] = timestamps2[i] / 1000d;
                 }
                 return timestamps2;
             }

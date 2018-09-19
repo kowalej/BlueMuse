@@ -23,7 +23,7 @@ namespace BlueMuse.MuseManagement
         public BluetoothLEDevice Device;
 
         public static ITimestampFormat TimestampFormat = new BlueMuseUnixTimestampFormat();
-        public static ITimestampFormat TimestampFormat2 = new LSLLocalClockTimestampFormat();
+        public static ITimestampFormat TimestampFormat2 = new LSLLocalClockNativeTimestampFormat();
 
         private GattDeviceService deviceService;
         private List<GattCharacteristic> channels;
