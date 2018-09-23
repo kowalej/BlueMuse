@@ -48,6 +48,7 @@ namespace BlueMuse
         // Parent service for channel characteristics.
         public static readonly Guid MUSE_DATA_SERVICE_UUID = new Guid("0000fe8d-0000-1000-8000-00805f9b34fb");
 
+        // GAAT characteristics for device battery level and other general info.
         public static readonly Guid MUSE_BATTERY_UUID = new Guid("273e000b-4c4d-454d-96be-f03bac821358");
 
         // GAAT characteristics for the device position data, in order: Gyroscope, Accelerometer

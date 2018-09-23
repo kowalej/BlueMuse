@@ -6,7 +6,7 @@ namespace LSLBridge.Helpers
     public static class StreamHelper
     {
         // Get timestamps for a chunk using LSL local_clock.
-        public static double[] GenerateLSLNativeTimestamps(LSLStreamInfo streamInfo)
+        public static double[] GenerateLSLNativeTimestamps(LSLBridgeStreamInfo streamInfo)
         {
             int chunkSize = streamInfo.ChunkSize;
             double sampleTimeSeconds = 1.0d / streamInfo.NominalSRate;

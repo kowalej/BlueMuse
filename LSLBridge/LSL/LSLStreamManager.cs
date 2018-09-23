@@ -31,7 +31,7 @@ namespace LSLBridge.LSL
             };
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
-            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
+            //keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
         }
 
         private async void OpenService()
@@ -66,8 +66,12 @@ namespace LSLBridge.LSL
                 {
                     case Constants.LSL_MESSAGE_TYPE_OPEN_STREAM:
                         {
-                            LSLStreamInfo streamInfo = JsonConvert.DeserializeObject<LSLStreamInfo>((string)message[Constants.LSL_MESSAGE_STREAM_INFO]);
-                            bool sendSecondaryTimestamp = (bool)message[Constants.LSL_MESSAGE_SEND_SECONDARY_TIMESTAMP];
+                            LSLBridgeStreamInfo streamInfo = JsonConvert.DeserializeObject<LSLBridgeStreamInfo>((string)message[Constants.LSL_MESSAGE_STREAM_INFO]);
+                            if (streamInfo.SendSecondaryTimestamp)
+                            {
+                                streamInfo.Channels.Add(new LSLBridgeChannelInfo { Label = "Secondary Timestamp", Type = "timestamp", Unit = "seconds" });
+                                streamInfo.ChannelCount += 1;
+                            }
                             if (!streams.Any(x => x.StreamInfo.StreamName == streamInfo.StreamName))
                             {
                                 streams.Add(new LSLStream(streamInfo));
@@ -107,9 +111,9 @@ namespace LSLBridge.LSL
                                 }
 
                                 // Get our stream data, figure out data type, get secondary timestamps if needed, and push chunk.
-                                if (streamInfo.ChannelDataType == typeof(double)) {
+                                if (streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE) {
                                     double[] data1D = (double[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
-                                    double[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);
+                                    double[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount - (streamInfo.SendSecondaryTimestamp ? 1 : 0));
                                     // Potentially add in secondary timestamps to data chunk since we are using double format.
                                     double[] timestamps2 = null;
                                     if (streamInfo.SendSecondaryTimestamp)
@@ -122,19 +126,19 @@ namespace LSLBridge.LSL
                                     }
                                     stream.PushChunkLSL(data2D, timestamps, timestamps2);
                                 }
-                                else if (streamInfo.ChannelDataType == typeof(float))
+                                else if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
                                 {
                                     float[] data1D = (float[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
                                     float[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);
                                     stream.PushChunkLSL(data2D, timestamps);
                                 }
-                                else if (streamInfo.ChannelDataType == typeof(int))
+                                else if (streamInfo.ChannelDataType == LSLBridgeDataType.INT)
                                 {
                                     int[] data1D = (int[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
                                     int[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);
                                     stream.PushChunkLSL(data2D, timestamps);
                                 }
-                                else if (streamInfo.ChannelDataType == typeof(string))
+                                else if (streamInfo.ChannelDataType == LSLBridgeDataType.STRING)
                                 {
                                     string[] data1D = (string[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
                                     string[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);

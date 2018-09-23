@@ -93,7 +93,6 @@ namespace BlueMuse.Bluetooth
                         if (muse.Device != null)
                         {
                             muse.Device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
-                            muse.Dispose();
                         }
                         Muses.Remove(muse);
                     }

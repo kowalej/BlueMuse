@@ -23,7 +23,7 @@
                 <TextBlock Padding="8 8 5 5" HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White" Text="Muses Available" VerticalAlignment="Top" FontSize="24" FontWeight="SemiBold" IsColorFontEnabled="True" />
             </CommandBar.Content>
             <CommandBar.PrimaryCommands>
-                <AppBarButton Foreground="White" Name="ForceRefresh" Icon="Refresh" Label="Force Refresh" />
+                <AppBarButton Foreground="White" Name="ForceRefresh" Icon="Refresh" Label="Force Refresh" Command="{x:Bind ViewModel.ForceRefresh}" />
                 <AppBarButton AllowFocusOnInteraction="True" Click="BlueMuseSettings_Click" Foreground="White" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings">
                     <AppBarButton.Flyout>
                         <Flyout x:Name="SettingsFlyout" Placement="Full">

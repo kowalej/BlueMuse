@@ -56,7 +56,7 @@ namespace BlueMuse.MuseManagement
         {
             get
             {
-                double baseSeconds = baseTimestamp;
+                double baseSeconds = baseTimestamp2;
 
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {

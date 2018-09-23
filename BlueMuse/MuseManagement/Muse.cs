@@ -25,7 +25,7 @@ namespace BlueMuse.MuseManagement
         public BluetoothLEDevice Device;
 
         public static ITimestampFormat TimestampFormat = new BlueMuseUnixTimestampFormat();
-        public static ITimestampFormat TimestampFormat2 = new LSLLocalClockNativeTimestampFormat();
+        public static ITimestampFormat TimestampFormat2 = new LSLLocalClockBlueMuseTimestampFormat();
 
         private GattDeviceService deviceService;
         private List<GattCharacteristic> channels;
@@ -113,7 +113,7 @@ namespace BlueMuse.MuseManagement
             {
                 channelCount = Constants.MUSE_CHANNEL_COUNT;
                 channelUUIDs = Constants.MUSE_EGG_CHANNEL_UUIDS;
-                channelLabels = Constants.MUSE_SMXT_EEG_CHANNEL_LABELS;
+                channelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
                 deviceInfoName = Constants.MUSE_DEVICE_NAME;
                 deviceInfoManufacturer = Constants.MUSE_MANUFACTURER;
             }
@@ -234,21 +234,18 @@ namespace BlueMuse.MuseManagement
         {
             bool sendSecondaryTimestamp = TimestampFormat2.GetType() != typeof(DummyTimestampFormat);
 
-            var channelsInfo = new List<LSLChannelInfo>();
+            var channelsInfo = new List<LSLBridgeChannelInfo>();
             foreach (var c in channelLabels)
             {
-                channelsInfo.Add(new LSLChannelInfo { Label = c, Type = Constants.EEG_STREAM_TYPE, Unit = Constants.EEG_UNITS });
-            }
-            if (sendSecondaryTimestamp) { 
-                channelsInfo.Add(new LSLChannelInfo { Label = "Secondary Timestamp", Type = "timestamp", Unit = "seconds" });
+                channelsInfo.Add(new LSLBridgeChannelInfo { Label = c, Type = Constants.EEG_STREAM_TYPE, Unit = Constants.EEG_UNITS });
             }
 
-            LSLStreamInfo streamInfo = new LSLStreamInfo()
+            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
                 ChannelCount = channelCount,
-                ChannelDataType = typeof(double),
+                ChannelDataType = LSLBridgeDataType.DOUBLE,
                 ChunkSize = Constants.MUSE_SAMPLE_COUNT,
                 DeviceManufacturer = deviceInfoManufacturer,
                 DeviceName = deviceInfoName,

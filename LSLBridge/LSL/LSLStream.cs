@@ -13,8 +13,8 @@ namespace LSLBridge.LSL
 
         private liblsl.StreamOutlet lslStream;
 
-        private LSLStreamInfo streamInfo;
-        public LSLStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
+        private LSLBridgeStreamInfo streamInfo;
+        public LSLBridgeStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
 
         public string StreamDisplayInfo { get { return string.Format("Name: {0} - Nominal Rate: {1} - Channels ({2}): {3}", streamInfo.StreamName, streamInfo.NominalSRate, streamInfo.ChannelCount, string.Join(",", streamInfo.Channels.Select(x => x.Label).ToList())); } }
 
@@ -28,24 +28,24 @@ namespace LSLBridge.LSL
         private Stopwatch stopWatch;
         int sampleCountSec = 0;
 
-        public LSLStream(LSLStreamInfo streamInfo)
+        public LSLStream(LSLBridgeStreamInfo streamInfo)
         {
             StreamInfo = streamInfo;
             liblsl.channel_format_t channelFormat;
             
-            if(streamInfo.ChannelDataType == typeof(double))
+            if(streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE)
             {
                 channelFormat = liblsl.channel_format_t.cf_double64; // double64 is default.
             }
-            else if (streamInfo.ChannelDataType == typeof(float))
+            else if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
             {
                 channelFormat = liblsl.channel_format_t.cf_float32;
             }
-            else if (streamInfo.ChannelDataType == typeof(int))
+            else if (streamInfo.ChannelDataType == LSLBridgeDataType.INT)
             {
                 channelFormat = liblsl.channel_format_t.cf_int32;
             }
-            else if (streamInfo.ChannelDataType == typeof(string))
+            else if (streamInfo.ChannelDataType == LSLBridgeDataType.STRING)
             {
                 channelFormat = liblsl.channel_format_t.cf_string;
             }
