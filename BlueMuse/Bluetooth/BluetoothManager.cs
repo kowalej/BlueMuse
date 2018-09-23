@@ -107,7 +107,7 @@ namespace BlueMuse.Bluetooth
             try
             {
                 // Filter out Muses. A name filter is the best method currently, since wildcards are not supported in AQS string.
-                // A more robust method may be to query for a Muse specific GAAT service, however this requires devices to be powered on, and even if the device was previously paired with the machine, the service won't be cached.
+                // A more robust method may be to query for a Muse specific GATT service, however this requires devices to be powered on, and even if the device was previously paired with the machine, the service won't be cached.
                 if (Constants.DeviceNameFilter.Any(x => args.Name.Contains(x)))
                 {
                     var device = await BluetoothLEDevice.FromIdAsync(args.Id);

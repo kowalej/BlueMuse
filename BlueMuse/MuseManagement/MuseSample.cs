@@ -61,7 +61,7 @@ namespace BlueMuse.MuseManagement
                 for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
                 {
                     timestamps2[i] = baseSeconds - ((Constants.MUSE_SAMPLE_COUNT - i) * (Constants.MUSE_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
-                    timestamps2[i] = timestamps2[i] / 1000d;
+                    timestamps2[i] = timestamps2[i];
                 }
                 return timestamps2;
             }

@@ -40,7 +40,7 @@ namespace BlueMuse
         public const int MUSE_SAMPLE_COUNT = 12;
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
-        // GAAT service to start and stop streaming.
+        // GATT service to start and stop streaming.
         public static readonly Guid MUSE_TOGGLE_STREAM_UUID = new Guid("273e0001-4c4d-454d-96be-f03bac821358");
         public static readonly byte[] MUSE_TOGGLE_STREAM_START = new byte[3] { 0x02, 0x64, 0x0a };
         public static readonly byte[] MUSE_TOGGLE_STREAM_STOP = new byte[3] { 0x02, 0x68, 0x0a };
@@ -48,16 +48,16 @@ namespace BlueMuse
         // Parent service for channel characteristics.
         public static readonly Guid MUSE_DATA_SERVICE_UUID = new Guid("0000fe8d-0000-1000-8000-00805f9b34fb");
 
-        // GAAT characteristics for device battery level and other general info.
+        // GATT characteristics for device battery level and other general info.
         public static readonly Guid MUSE_BATTERY_UUID = new Guid("273e000b-4c4d-454d-96be-f03bac821358");
 
-        // GAAT characteristics for the device position data, in order: Gyroscope, Accelerometer
+        // GATT characteristics for the device position data, in order: Gyroscope, Accelerometer
         public static readonly Guid[] MUSE_POSITIONAL_DATA_CHANNEL_UUIDS = new Guid[2] {
             new Guid("273e0009-4c4d-454d-96be-f03bac821358"), // Gyroscope
             new Guid("273e000a-4c4d-454d-96be-f03bac821358") // Accelerometer
         };
 
-        // GAAT characteristics for the 5 EEG channels, in order: TP9-AF7-AF8-TP10-RIGHTAUX.
+        // GATT characteristics for the 5 EEG channels, in order: TP9-AF7-AF8-TP10-RIGHTAUX.
         public static readonly Guid[] MUSE_EGG_CHANNEL_UUIDS = new Guid[MUSE_CHANNEL_COUNT] {
             new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
             new Guid("273e0004-4c4d-454d-96be-f03bac821358"), // Handle 34
@@ -66,7 +66,7 @@ namespace BlueMuse
             new Guid("273e0007-4c4d-454d-96be-f03bac821358") // Handle 43
         };
 
-        // GAAT characteristics for the 4 EEG channels, in order: TP9-AF7-AF8-TP10.
+        // GATT characteristics for the 4 EEG channels, in order: TP9-AF7-AF8-TP10.
         public static readonly Guid[] MUSE_SMXT_EEG_CHANNEL_UUIDS = new Guid[MUSE_SMXT_CHANNEL_COUNT] {
             new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
             new Guid("273e0004-4c4d-454d-96be-f03bac821358"), // Handle 34
