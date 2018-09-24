@@ -35,6 +35,15 @@ Stop streaming all Muses:
 start bluemuse://stop?stopall
 ```
 
+Change primary timestamp format: 
+```powershell
+ start bluemuse://setting?key=primary_timestamp_format!value=<BLUEMUSE|LSL_LOCAL_CLOCK_BLUEMUSE|LSL_LOCAL_CLOCK_NATIVE
+```
+Change secondary timestamp format: 
+```powershell
+ start bluemuse://setting?key=secondary_timestamp_format!value=<BLUEMUSE|LSL_LOCAL_CLOCK_BLUEMUSE|LSL_LOCAL_CLOCK_NATIVE|NONE
+```
+
 Close the program: 
 ```powershell
 start bluemuse://shutdown
@@ -68,12 +77,16 @@ start bluemuse://shutdown
 
 # Versions
 ### Latest
-* **1.0.8.0**
+* **1.0.9.0**
+    * **Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).**
+    * Optionally send secondary timestamp (for comparison to primary timestamp) - sent as additional LSL channel.
+    * Improved UI to include settings menu. Settings menu allows user to choose timestamp formats and displays log file locations.
+    
+#### Older
+* 1.0.8.0
     * Increased timestamp accuracy by using a more precise API on Windows.
     * Added logging. See Troubleshooting -> Logs section for details.
     * LSLBridge won't falsely show stream if GATT problems occurred.
-    
-#### Older
 * 1.0.7.0
     * Added new install script `InstallBlueMuse.ps1`.
     * Refreshed the install certificate which was about to expire.
@@ -114,6 +127,24 @@ BlueMuse:
 LSLBridge:
 
 *C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalCache\Local\Locgs\LSLBridge-Log-{Timestamp}.log*
+
+### Timestamp Formats:
+
+* BlueMuse High Accuracy (Unix Epoch Seconds UTC-0)
+    * Recommended as primary timestamp if you don't have to time sync with other LSL streams.
+    * Generates timestamps that you can use to determine date and very accurate time.
+    * Settings value = BLUEMUSE.
+* BlueMuse LSL Local Clock (System Uptime Seconds)
+    * Called exactly when packet comes in from Muse.
+    * Generates timestamp by calling an equivalent function to lsl local_clock but utilizes the C++ std library instead of the underlying Boost lib call lsl does.
+    * Should be same as LSL native local clock.
+    * Settings value = LSL_LOCAL_CLOCK_BLUEMUSE
+* Native LSL Local Clock - Via Bridge (System Uptime Seconds)
+    * Generates timestamp by calling local_clock function from LSL .dll function directly on bridge.
+    * Settings value = LSL_LOCAL_CLOCK_NATIVE
+* None
+    * Don't send secondary timestamp
+    * Settings value = NONE
 
 ### If working on VS Solution - missing references in LSLBridge project:
 See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance

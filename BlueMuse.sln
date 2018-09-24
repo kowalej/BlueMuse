@@ -3,14 +3,14 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.10
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueMuse", "BlueMuse\BlueMuse.csproj", "{98546C95-E24E-436C-96F6-EEEEAF605029}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueMuse.App", "BlueMuse.App\BlueMuse.App.csproj", "{98546C95-E24E-436C-96F6-EEEEAF605029}"
 	ProjectSection(ProjectDependencies) = postProject
 		{6C526F27-76CB-4890-8D24-C1164EFA1FFB} = {6C526F27-76CB-4890-8D24-C1164EFA1FFB}
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSLBridge", "LSLBridge\LSLBridge.csproj", "{6C526F27-76CB-4890-8D24-C1164EFA1FFB}"
 EndProject
-Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "BlueMuse.Package", "BlueMuse.Package\BlueMuse.Package.wapproj", "{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}"
+Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "BlueMuse", "BlueMuse\BlueMuse.wapproj", "{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeHelpers", "NativeHelpers\NativeHelpers.vcxproj", "{FDB35546-5204-49A0-B249-F823FD548333}"
 EndProject

@@ -4,4 +4,3 @@ $certInfo = New-SelfSignedCertificate -Type Custom -Subject "CN=BlueMuse - Jason
 $thumbPrint = $certInfo.Thumbprint
 $pwSecure = ConvertTo-SecureString -String $pw -Force -AsPlainText 
 Export-PfxCertificate -cert "Cert:\LocalMachine\My\$thumbPrint" -FilePath BlueMuse_PackagingKey.pfx -Password $pwSecure
-	
