@@ -21,11 +21,10 @@ namespace BlueMuse.Bluetooth
         public bool StreamFirst = false;
         private bool museDeviceWatcherReset = false;
         private volatile bool LSLBridgeLaunched = false;
-        private static readonly Object syncLock = new object();
+        private static readonly object syncLock = new object();
         Timer pollMuseTimer;
         Timer pollBridge;
 
-        private static object syncRoot = new Object();
         private static volatile BluetoothManager instance;
         public static BluetoothManager Instance
         {
@@ -33,7 +32,7 @@ namespace BlueMuse.Bluetooth
             {
                 if (instance == null)
                 {
-                    lock (syncRoot)
+                    lock (syncLock)
                     {
                         if (instance == null)
                             instance = new BluetoothManager();

@@ -20,7 +20,7 @@ namespace BlueMuse.MuseManagement
 {
     public class Muse : ObservableObject, IDisposable
     {
-        private static readonly Object syncLock = new object();
+        private static readonly object syncLock = new object();
 
         public BluetoothLEDevice Device;
 
