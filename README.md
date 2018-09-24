@@ -135,16 +135,18 @@ LSLBridge:
     * Generates timestamps that you can use to determine date and very accurate time.
     * Settings value = BLUEMUSE.
 * BlueMuse LSL Local Clock (System Uptime Seconds)
+    * Recommended if syncing with other LSL streams.
     * Called exactly when packet comes in from Muse.
-    * Generates timestamp by calling an equivalent function to lsl local_clock but utilizes the C++ std library instead of the underlying Boost lib call lsl does.
-    * Should be same as LSL native local clock.
-    * Settings value = LSL_LOCAL_CLOCK_BLUEMUSE
+    * Generates timestamp by calling an equivalent function to LSL local_clock but utilizes the C++ Standard Library instead of the underlying Boost library call used by the LSL .dll.
+    * Should produce the exact same value as LSL native local clock with less jitter.
+    * Settings value = LSL_LOCAL_CLOCK_BLUEMUSE.
 * Native LSL Local Clock - Via Bridge (System Uptime Seconds)
     * Generates timestamp by calling local_clock function from LSL .dll function directly on bridge.
-    * Settings value = LSL_LOCAL_CLOCK_NATIVE
+    * May produce jitter.
+    * Settings value = LSL_LOCAL_CLOCK_NATIVE.
 * None
-    * Don't send secondary timestamp
-    * Settings value = NONE
+    * Don't send secondary timestamp.
+    * Settings value = NONE.
 
 ### If working on VS Solution - missing references in LSLBridge project:
 See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance
