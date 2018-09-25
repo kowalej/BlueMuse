@@ -98,6 +98,7 @@ namespace BlueMuse
             "AF8",
             "TP10",
         };
+
         public const string TIMESTAMP_FORMAT_BLUEMUSE_UNIX = "BLUEMUSE";
         public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_BLUEMUSE = "LSL_LOCAL_CLOCK_BLUEMUSE";
         public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_NATIVE = "LSL_LOCAL_CLOCK_NATIVE";
@@ -108,6 +109,5 @@ namespace BlueMuse
 
         public const string EEG_STREAM_TYPE = "EEG";
         public const string EEG_UNITS = "microvolts";
-
     }
 }
