@@ -81,6 +81,7 @@ start bluemuse://shutdown
     * **Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).**
     * Optionally send secondary timestamp (for comparison to primary timestamp) - sent as additional LSL channel.
     * Improved UI to include settings menu. Settings menu allows user to choose timestamp formats and displays log file locations.
+    * Should automatically add firewall rules when LSLBridge launches for the first time.
     
 #### Older
 * 1.0.8.0
