@@ -26,15 +26,18 @@ namespace BlueMuse.Settings
             // Init primary timestamp format, defaults to bluemuse.
             var tf = systemAppSettings.Values[Constants.SETTINGS_KEY_TIMESTAMP_FORMAT] as string;
             var tff = TimestampFormatsContainer.TimestampFormats.FirstOrDefault(x => x.Key == tf);
+            // Call public prop to trigger notification.
             TimestampFormat = tff ?? TimestampFormatsContainer.TimestampFormats.First(x => x.Key == Constants.TIMESTAMP_FORMAT_BLUEMUSE_UNIX);
 
             // Init secondary timestamp format, defaults to none.
             var tf2 = systemAppSettings.Values[Constants.SETTINGS_KEY_TIMESTAMP_FORMAT2] as string;
             var tff2 = TimestampFormatsContainer.TimestampFormats2.FirstOrDefault(x => x.Key == tf2);
+            // Call public prop to trigger notification.
             TimestampFormat2 = tff2 ?? TimestampFormatsContainer.TimestampFormats2.First(x => x.Key == Constants.TIMESTAMP_FORMAT_NONE);
 
             var cdt = systemAppSettings.Values[Constants.SETTINGS_KEY_CHANNEL_DATA_TYPE] as string;
             var cdtf = ChannelDataTypesContainer.ChannelDataTypes.FirstOrDefault(x => x.Key == cdt);
+            // Call public prop to trigger notification.
             ChannelDataType = cdtf ?? ChannelDataTypesContainer.ChannelDataTypes.First(x => x.Key == Constants.CHANNEL_DATA_TYPE_FLOAT);
         }
 
@@ -46,7 +49,7 @@ namespace BlueMuse.Settings
                     var tf = TimestampFormatsContainer.TimestampFormats.FirstOrDefault(x => x.Key.Equals(value, StringComparison.OrdinalIgnoreCase));
                     if (tf != null)
                     {
-                        TimestampFormat = tf;
+                        TimestampFormat = tf; // Call public prop to trigger notification.
                     }
                     break;
 
@@ -54,14 +57,15 @@ namespace BlueMuse.Settings
                     var tf2 = TimestampFormatsContainer.TimestampFormats2.FirstOrDefault(x => x.Key.Equals(value, StringComparison.OrdinalIgnoreCase));
                     if (tf2 != null)
                     {
-                        TimestampFormat2 = tf2;
+                        TimestampFormat2 = tf2; // Call public prop to trigger notification.
                     }
                     break;
+
                 case Constants.SETTINGS_KEY_CHANNEL_DATA_TYPE:
                     var cdt = ChannelDataTypesContainer.ChannelDataTypes.FirstOrDefault(x => x.Key.Equals(value, StringComparison.OrdinalIgnoreCase));
                     if (cdt != null)
                     {
-                        channelDataType = cdt;
+                        ChannelDataType = cdt; // Call public prop to trigger notification.
                     }
                     break;
             }

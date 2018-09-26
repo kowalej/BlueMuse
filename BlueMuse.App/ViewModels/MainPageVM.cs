@@ -25,8 +25,6 @@ namespace BlueMuse.ViewModels
         private string searchText = string.Empty;
         public string SearchText { get { return searchText; } set { SetProperty(ref searchText, value); } }
         private readonly Timer searchTextAnimateTimer;
-        private bool noneStreaming = false;
-        public bool NoneStreaming { get { return noneStreaming; } set { SetProperty(ref noneStreaming, value); } }
         public List<BaseTimestampFormat> TimestampFormats = TimestampFormatsContainer.TimestampFormats; // Use copy in case we want view level filtering.
         public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2; // Use copy in case we want view level filtering.
         public List<ChannelDataType> ChannelDataTypes = ChannelDataTypesContainer.ChannelDataTypes; // Use copy in case we want view level filtering.
@@ -50,7 +48,6 @@ namespace BlueMuse.ViewModels
             Muses = museManager.Muses;
             museManager.FindMuses();
             searchTextAnimateTimer = new Timer(SearchTextAnimate, null, 0, 600); // Start the Searching for Muses... animation.
-            CheckAnyStreaming();
         }
 
         private void SearchTextAnimate(object state)
@@ -63,11 +60,6 @@ namespace BlueMuse.ViewModels
             else if (searchText.Count(x => x == '.') == 2)
                 SearchText = baseText + "...";
             else SearchText = baseText;
-        }
-
-        private void CheckAnyStreaming()
-        {
-            NoneStreaming = !museManager.Muses.Any(x => x.IsStreaming == true);
         }
 
         private ICommand forceRefresh;
@@ -90,7 +82,6 @@ namespace BlueMuse.ViewModels
                 return startStreaming ?? (startStreaming = new CommandHandler((param) =>
                 {
                     museManager.StartStreaming(param);
-                    CheckAnyStreaming();
                 }, true));
             }
         }
@@ -103,7 +94,6 @@ namespace BlueMuse.ViewModels
                 return stopStreaming ?? (stopStreaming = new CommandHandler((param) =>
                 {
                     museManager.StopStreaming(param);
-                    CheckAnyStreaming();
                 }, true));
             }
         }
