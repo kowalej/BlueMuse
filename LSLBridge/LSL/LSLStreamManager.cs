@@ -69,8 +69,17 @@ namespace LSLBridge.LSL
                             LSLBridgeStreamInfo streamInfo = JsonConvert.DeserializeObject<LSLBridgeStreamInfo>((string)message[Constants.LSL_MESSAGE_STREAM_INFO]);
                             if (streamInfo.SendSecondaryTimestamp)
                             {
-                                streamInfo.Channels.Add(new LSLBridgeChannelInfo { Label = "Secondary Timestamp", Type = "timestamp", Unit = "seconds" });
-                                streamInfo.ChannelCount += 1;
+                                if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
+                                {
+                                    streamInfo.Channels.Add(new LSLBridgeChannelInfo { Label = "Secondary Timestamp (Base)", Type = "timestamp", Unit = "seconds" });
+                                    streamInfo.Channels.Add(new LSLBridgeChannelInfo { Label = "Secondary Timestamp (Remainder)", Type = "timestamp", Unit = "seconds" });
+                                    streamInfo.ChannelCount += 2;
+                                }
+                                else if (streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE)
+                                {
+                                    streamInfo.Channels.Add(new LSLBridgeChannelInfo { Label = "Secondary Timestamp", Type = "timestamp", Unit = "seconds" });
+                                    streamInfo.ChannelCount += 1;
+                                }
                             }
                             if (!streams.Any(x => x.StreamInfo.StreamName == streamInfo.StreamName))
                             {
@@ -110,27 +119,29 @@ namespace LSLBridge.LSL
                                     timestamps = nativeTimestamps;
                                 }
 
-                                // Get our stream data, figure out data type, get secondary timestamps if needed, and push chunk.
-                                if (streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE) {
-                                    double[] data1D = (double[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
-                                    double[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount - (streamInfo.SendSecondaryTimestamp ? 1 : 0));
-                                    // Potentially add in secondary timestamps to data chunk since we are using double format.
-                                    double[] timestamps2 = null;
-                                    if (streamInfo.SendSecondaryTimestamp)
+                                // Potentially add in secondary timestamps to be pushed with data chunk if we are using float/double format.
+                                double[] timestamps2 = null;
+                                if (streamInfo.SendSecondaryTimestamp)
+                                {
+                                    timestamps2 = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2]);
+                                    if (double.IsNegativeInfinity(timestamps2[0])) // Hack since main app can't call native lsl_local_clock().
                                     {
-                                        timestamps2 = ((double[])message[Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2]);
-                                        if (double.IsNegativeInfinity(timestamps2[0])) // Hack since main app can't call native lsl_local_clock().
-                                        {
-                                            timestamps2 = nativeTimestamps ?? StreamHelper.GenerateLSLNativeTimestamps(streamInfo);
-                                        }
+                                        timestamps2 = nativeTimestamps ?? StreamHelper.GenerateLSLNativeTimestamps(streamInfo);
                                     }
-                                    stream.PushChunkLSL(data2D, timestamps, timestamps2);
                                 }
-                                else if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
+
+                                // Get our stream data, figure out data type, get secondary timestamps if needed, and push chunk.                                
+                                if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
                                 {
                                     float[] data1D = (float[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
-                                    float[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);
-                                    stream.PushChunkLSL(data2D, timestamps);
+                                    float[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount - (streamInfo.SendSecondaryTimestamp ? 2 : 0)); // Two extra channels for float timestamp, so subtract 2 from length to get actual data part.
+                                    stream.PushChunkLSL(data2D, timestamps, timestamps2);
+                                }
+                                else if (streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE)
+                                {
+                                    double[] data1D = (double[])message[Constants.LSL_MESSAGE_CHUNK_DATA];
+                                    double[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount - (streamInfo.SendSecondaryTimestamp ? 1 : 0));
+                                    stream.PushChunkLSL(data2D, timestamps, timestamps2);
                                 }
                                 else if (streamInfo.ChannelDataType == LSLBridgeDataType.INT)
                                 {

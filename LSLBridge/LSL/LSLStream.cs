@@ -33,13 +33,13 @@ namespace LSLBridge.LSL
             StreamInfo = streamInfo;
             liblsl.channel_format_t channelFormat;
             
-            if(streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE)
-            {
-                channelFormat = liblsl.channel_format_t.cf_double64; // double64 is default.
-            }
-            else if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
+            if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
             {
                 channelFormat = liblsl.channel_format_t.cf_float32;
+            }
+            else if (streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE)
+            {
+                channelFormat = liblsl.channel_format_t.cf_double64;
             }
             else if (streamInfo.ChannelDataType == LSLBridgeDataType.INT)
             {
@@ -115,14 +115,37 @@ namespace LSLBridge.LSL
             }
         }
 
-        // Only double[] chunks can support appending secondary timestamp.
+        // Only double[] and float[] chunks can support appending secondary timestamp.
+        public void PushChunkLSL(float[,] data, double[] timestamps, double[] timestamps2 = null)
+        {
+            LatestTimestamp = timestamps[timestamps.Length - 1];
+            if (timestamps2 != null) // Append timestamp data to final column.
+            {
+                float[,] dataRevised = new float[data.GetLength(0), data.GetLength(1) + 2]; // Add extra 2 columns for timestamp.
+                int lastColIndex = data.GetLength(1) + 1;
+                for (int rowIndex = 0; rowIndex < data.GetLength(0); rowIndex++)
+                {
+                    for (int colIndex = 0; colIndex < data.GetLength(1); colIndex++)
+                    {
+                        dataRevised[rowIndex, colIndex] = data[rowIndex, colIndex];
+                    }
+                    float timestampBase = (float)timestamps2[rowIndex];
+                    float remainder = (float)(timestamps2[rowIndex] - timestampBase);
+                    dataRevised[rowIndex, lastColIndex - 1] = timestampBase;
+                    dataRevised[rowIndex, lastColIndex] = remainder;
+                }
+                lslStream.push_chunk(dataRevised, timestamps);
+            }
+            else lslStream.push_chunk(data, timestamps);
+        }
+
+        // Only double[] and float[] chunks can support appending secondary timestamp.
         public void PushChunkLSL(double[,] data, double[] timestamps, double[] timestamps2 = null)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
-
             if (timestamps2 != null) // Append timestamp data to final column.
             {
-                double[,] dataRevised = new double[data.GetLength(0), data.GetLength(1) + 1]; // Add extra column.
+                double[,] dataRevised = new double[data.GetLength(0), data.GetLength(1) + 1]; // Add extra column for timestamp.
                 int lastColIndex = data.GetLength(1);
                 for (int rowIndex = 0; rowIndex < data.GetLength(0); rowIndex++)
                 {
@@ -135,12 +158,6 @@ namespace LSLBridge.LSL
                 lslStream.push_chunk(dataRevised, timestamps);
             }
             else lslStream.push_chunk(data, timestamps);
-        }
-
-        public void PushChunkLSL(float[,] data, double[] timestamps)
-        {
-            LatestTimestamp = timestamps[timestamps.Length - 1];
-            lslStream.push_chunk(data, timestamps);
         }
 
         public void PushChunkLSL(int[,] data, double[] timestamps)

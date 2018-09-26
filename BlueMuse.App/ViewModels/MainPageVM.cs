@@ -27,8 +27,9 @@ namespace BlueMuse.ViewModels
         private readonly Timer searchTextAnimateTimer;
         private bool noneStreaming = false;
         public bool NoneStreaming { get { return noneStreaming; } set { SetProperty(ref noneStreaming, value); } }
-        public List<BaseTimestampFormat> TimestampFormats = TimestampFormatsContainer.TimestampFormats;
-        public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2;
+        public List<BaseTimestampFormat> TimestampFormats = TimestampFormatsContainer.TimestampFormats; // Use copy in case we want view level filtering.
+        public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2; // Use copy in case we want view level filtering.
+        public List<ChannelDataType> ChannelDataTypes = ChannelDataTypesContainer.ChannelDataTypes; // Use copy in case we want view level filtering.
         public string BlueMuseLogFolder;
         public string LSLBridgeLogFolder;
 

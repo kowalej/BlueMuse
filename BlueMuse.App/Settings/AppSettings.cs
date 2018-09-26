@@ -1,6 +1,7 @@
 ﻿using BlueMuse.Helpers;
 using BlueMuse.Misc;
 using BlueMuse.MuseManagement;
+using LSLBridge.LSL;
 using System;
 using System.Linq;
 
@@ -31,6 +32,10 @@ namespace BlueMuse.Settings
             var tf2 = systemAppSettings.Values[Constants.SETTINGS_KEY_TIMESTAMP_FORMAT2] as string;
             var tff2 = TimestampFormatsContainer.TimestampFormats2.FirstOrDefault(x => x.Key == tf2);
             TimestampFormat2 = tff2 ?? TimestampFormatsContainer.TimestampFormats2.First(x => x.Key == Constants.TIMESTAMP_FORMAT_NONE);
+
+            var cdt = systemAppSettings.Values[Constants.SETTINGS_KEY_CHANNEL_DATA_TYPE] as string;
+            var cdtf = ChannelDataTypesContainer.ChannelDataTypes.FirstOrDefault(x => x.Key == cdt);
+            ChannelDataType = cdtf ?? ChannelDataTypesContainer.ChannelDataTypes.First(x => x.Key == Constants.CHANNEL_DATA_TYPE_FLOAT);
         }
 
         public void SetCMDSetting(string key, string value)
@@ -50,6 +55,13 @@ namespace BlueMuse.Settings
                     if (tf2 != null)
                     {
                         TimestampFormat2 = tf2;
+                    }
+                    break;
+                case Constants.SETTINGS_KEY_CHANNEL_DATA_TYPE:
+                    var cdt = ChannelDataTypesContainer.ChannelDataTypes.FirstOrDefault(x => x.Key.Equals(value, StringComparison.OrdinalIgnoreCase));
+                    if (cdt != null)
+                    {
+                        channelDataType = cdt;
                     }
                     break;
             }
@@ -81,6 +93,21 @@ namespace BlueMuse.Settings
                 Muse.TimestampFormat2 = value;
                 systemAppSettings.Values[Constants.SETTINGS_KEY_TIMESTAMP_FORMAT2] = value.Key;
                 SetProperty(ref timestampFormat2, value);
+            }
+        }
+
+        private ChannelDataType channelDataType;
+        public ChannelDataType ChannelDataType
+        {
+            get
+            {
+                return channelDataType;
+            }
+            set
+            {
+                Muse.ChannelDataType = value;
+                systemAppSettings.Values[Constants.SETTINGS_KEY_CHANNEL_DATA_TYPE] = value.Key;
+                SetProperty(ref channelDataType, value);
             }
         }
     }

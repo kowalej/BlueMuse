@@ -26,6 +26,7 @@ namespace BlueMuse.MuseManagement
 
         public static ITimestampFormat TimestampFormat = new BlueMuseUnixTimestampFormat();
         public static ITimestampFormat TimestampFormat2 = new LSLLocalClockBlueMuseTimestampFormat();
+        public static ChannelDataType ChannelDataType = ChannelDataTypesContainer.ChannelDataTypes.FirstOrDefault();
 
         private GattDeviceService deviceService;
         private List<GattCharacteristic> channels;
@@ -245,7 +246,7 @@ namespace BlueMuse.MuseManagement
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
                 ChannelCount = channelCount,
-                ChannelDataType = LSLBridgeDataType.DOUBLE,
+                ChannelDataType = ChannelDataType.DataType,
                 ChunkSize = Constants.MUSE_SAMPLE_COUNT,
                 DeviceManufacturer = deviceInfoManufacturer,
                 DeviceName = deviceInfoName,
@@ -279,17 +280,35 @@ namespace BlueMuse.MuseManagement
             };
 
             // Can only send 1D array with garbage AppService :S - inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
-            double[] data = new double[Constants.MUSE_SAMPLE_COUNT * channelCount]; 
-            for (int i = 0; i < channelCount; i++)
+            if (ChannelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
-                for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
+                double[] data = new double[Constants.MUSE_SAMPLE_COUNT * channelCount];
+                for (int i = 0; i < channelCount; i++)
                 {
-                    data[(i * Constants.MUSE_SAMPLE_COUNT) + j] = channelData[j];
+                    var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
+                    for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_SAMPLE_COUNT) + j] = channelData[j];
+                    }
                 }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
             }
 
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            // Default to float.
+            else { 
+                float[] data = new float[Constants.MUSE_SAMPLE_COUNT * channelCount];
+                for (int i = 0; i < channelCount; i++)
+                {
+                    var channelData = sample.ChannelData[channelUUIDs[i]]; // Maintains muse-lsl.py ordering.
+                    for (int j = 0; j < Constants.MUSE_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_SAMPLE_COUNT) + j] = (float)channelData[j];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+
             message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
             message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
 

@@ -104,8 +104,12 @@ namespace BlueMuse
         public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_NATIVE = "LSL_LOCAL_CLOCK_NATIVE";
         public const string TIMESTAMP_FORMAT_NONE = "NONE";
 
+        public const string CHANNEL_DATA_TYPE_FLOAT = "FLOAT32";
+        public const string CHANNEL_DATA_TYPE_DOUBLE = "DOUBLE64";
+
         public const string SETTINGS_KEY_TIMESTAMP_FORMAT = "primary_timestamp_format";
         public const string SETTINGS_KEY_TIMESTAMP_FORMAT2 = "secondary_timestamp_format";
+        public const string SETTINGS_KEY_CHANNEL_DATA_TYPE = "channel_data_type";
 
         public const string EEG_STREAM_TYPE = "EEG";
         public const string EEG_UNITS = "microvolts";

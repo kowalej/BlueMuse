@@ -125,6 +125,7 @@
     <Compile Include="Helpers\PacketConversion.cs" />
     <Compile Include="AppService\AppServiceManager.cs" />
     <Compile Include="Helpers\Timestamps.cs" />
+    <Compile Include="Misc\ChannelDataFormats.cs" />
     <Compile Include="Misc\Constants.cs" />
     <Compile Include="Misc\TimestampFormats.cs" />
     <Compile Include="MuseManagement\Muse.cs" />

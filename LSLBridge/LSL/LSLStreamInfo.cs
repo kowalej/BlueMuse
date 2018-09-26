@@ -12,8 +12,8 @@ namespace LSLBridge.LSL
 
     public enum LSLBridgeDataType
     {
-        DOUBLE = 0,
-        FLOAT = 1,
+        FLOAT = 0,
+        DOUBLE = 1,
         INT = 2,
         STRING = 3
     }
