@@ -43,7 +43,7 @@
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                         <TextBlock FontWeight="Bold" Text="Secondary Timestamp Format (Optional)" Margin="0,12,0,0" />
-                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as LSL Channel Data" Margin="0,4,0,12" />
+                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as Data in Extra LSL Channel(s)" Margin="0,4,0,12" />
                                         <ComboBox Background="White" Width="350"
                                             ItemsSource="{x:Bind ViewModel.TimestampFormats2, Mode=OneWay}"
                                             SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat2, Mode=TwoWay}"  
