@@ -4,16 +4,24 @@
 # Features
 * Auto detects Muse headsets and provides a visual interface to open and close data streams. 
 * Can stream from multiple Muses simultaneously.
+* Choose between timestamp formats - LSL local_clock or Unix Epoch.
+* LSL streams in 64-bit or 32-bit.
 * Shows latest timestamp received and the current sample rate for each stream.
 
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
 
+### Basic Operations
 Start BlueMuse
 ```powershell
 start bluemuse:
 ```
+Close the program: 
+```powershell
+start bluemuse://shutdown
+```
 
+### Streaming
 Start streaming first Muse found: 
 ```powershell
 start bluemuse://start?streamfirst=true
@@ -35,21 +43,21 @@ Stop streaming all Muses:
 start bluemuse://stop?stopall
 ```
 
+**"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
+
+### Settings
 Change primary timestamp format: 
 ```powershell
- start bluemuse://setting?key=primary_timestamp_format!value=<BLUEMUSE|LSL_LOCAL_CLOCK_BLUEMUSE|LSL_LOCAL_CLOCK_NATIVE
+ start bluemuse://setting?key=primary_timestamp_format!value=<BLUEMUSE|LSL_LOCAL_CLOCK_BLUEMUSE|LSL_LOCAL_CLOCK_NATIVE>
 ```
 Change secondary timestamp format: 
 ```powershell
- start bluemuse://setting?key=secondary_timestamp_format!value=<BLUEMUSE|LSL_LOCAL_CLOCK_BLUEMUSE|LSL_LOCAL_CLOCK_NATIVE|NONE
+ start bluemuse://setting?key=secondary_timestamp_format!value=<BLUEMUSE|LSL_LOCAL_CLOCK_BLUEMUSE|LSL_LOCAL_CLOCK_NATIVE|NONE>
 ```
-
-Close the program: 
+Change channel data type: 
 ```powershell
-start bluemuse://shutdown
+ start bluemuse://setting?key=channel_data_type!value=<float32|double64>
 ```
-
-**"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
 
 # Installation
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
@@ -77,13 +85,16 @@ start bluemuse://shutdown
 
 # Versions
 ### Latest
-* **1.0.9.0**
-    * **Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).**
+* **1.1.0.0**
+    * Choose between 32-bit (float32) or 64-bit (double64) LSL stream data formats.
+    
+#### Older
+* 1.0.9.0 (Note - forced streams to use x64 data format.)
+    * Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).*
     * Optionally send secondary timestamp (for comparison to primary timestamp) - sent as additional LSL channel.
     * Improved UI to include settings menu. Settings menu allows user to choose timestamp formats and displays log file locations.
     * Should automatically add firewall rules when LSLBridge launches for the first time.
     
-#### Older
 * 1.0.8.0
     * Increased timestamp accuracy by using a more precise API on Windows.
     * Added logging. See Troubleshooting -> Logs section for details.
@@ -112,23 +123,6 @@ start bluemuse://shutdown
 * liblsl32.dll was dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).
 * The full dependencies of liblsl32.dll are: KERNEL32.dll, WINMM.dll, MSVCP90.dll, WS2_32.dll, MSWSOCK.dll, and MSVCR90.dll. Generated with dumpbin utility.
 
-# Troubleshooting
-### If your Muse is not showing up after searching for awhile: 
-  1. Ensure Muse is removed from "Bluetooth & other devices" list in control panel.
-  2. Reset Muse - hold down power button until device turns off then back on.
-  3. Make sure Muse is within reasonable range of your computer. Some built in Bluetooth antennas are not very powerful.
-  
-### Logs:
-The main app (BlueMuse) and LSL Bridge both write log files for various events and exceptions. These may help in troubleshooting issues. The files can be found within AppData:
-
-BlueMuse:
-
-*C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalState\Logs\BlueMuse-Log-{Timestamp}.log*
-
-LSLBridge:
-
-*C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalCache\Local\Locgs\LSLBridge-Log-{Timestamp}.log*
-
 ### Timestamp Formats:
 
 * BlueMuse High Accuracy (Unix Epoch Seconds UTC-0)
@@ -148,6 +142,24 @@ LSLBridge:
 * None
     * Don't send secondary timestamp.
     * Settings value = NONE.
+
+
+# Troubleshooting
+### If your Muse is not showing up after searching for awhile: 
+  1. Ensure Muse is removed from "Bluetooth & other devices" list in control panel.
+  2. Reset Muse - hold down power button until device turns off then back on.
+  3. Make sure Muse is within reasonable range of your computer. Some built in Bluetooth antennas are not very powerful.
+  
+### Logs:
+The main app (BlueMuse) and LSL Bridge both write log files for various events and exceptions. These may help in troubleshooting issues. The files can be found within AppData:
+
+BlueMuse:
+
+*C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalState\Logs\BlueMuse-Log-{Timestamp}.log*
+
+LSLBridge:
+
+*C:\Users\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalCache\Local\Locgs\LSLBridge-Log-{Timestamp}.log*
 
 ### If working on VS Solution - missing references in LSLBridge project:
 See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance

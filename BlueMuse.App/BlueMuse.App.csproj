@@ -213,9 +213,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="BitStream">
-      <Version>1.0.3</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.1.7</Version>
     </PackageReference>
