@@ -15,6 +15,7 @@ namespace BlueMuse.Bluetooth
 {
     public class BluetoothManager
     {
+        public static bool AlwaysPair { get; set; }
         public ObservableCollection<Muse> Muses;
         private DeviceWatcher museDeviceWatcher;
         public HashSet<string> MusesToAutoStream = new HashSet<string>();
@@ -62,7 +63,7 @@ namespace BlueMuse.Bluetooth
 
         public void FindMuses()
         {
-            string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.Devices.Aep.IsConnected", "System.ItemNameDisplay" };
+            string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.ItemNameDisplay" };
             museDeviceWatcher = DeviceInformation.CreateWatcher(Constants.ALL_AQS, requestedProperties, DeviceInformationKind.AssociationEndpoint);
 
             // Register event handlers before starting the watcher.
@@ -110,6 +111,7 @@ namespace BlueMuse.Bluetooth
                 if (Constants.DeviceNameFilter.Any(x => args.Name.Contains(x)))
                 {
                     var device = await BluetoothLEDevice.FromIdAsync(args.Id);
+                    
                     Debug.WriteLine("Device Name: " + device.Name);
                     Debug.WriteLine("Current Connection Status: " + device.ConnectionStatus);
 
@@ -125,12 +127,31 @@ namespace BlueMuse.Bluetooth
                     //    }
                     //}
 
+                    var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+
+                    // Don't try to pair an actively streaming Muse.
+                    if (muse == null || (muse != null && !muse.IsStreaming))
+                    {
+                        var di = await DeviceInformation.CreateFromIdAsync(args.Id);
+                        if (di.Pairing.IsPaired)
+                        {
+                            // Always unpair the device.
+                            await di.Pairing.UnpairAsync();
+                        }
+
+                        // Always repair device via BlueMuse if AlwaysPair is "on".
+                        if (AlwaysPair)
+                        {
+                            await di.Pairing.PairAsync();
+                        }
+                    }
+
                     // Retreive an arbitrary service. This will allow the device to auto connect.
                     await device.GetGattServicesForUuidAsync(Constants.MUSE_TOGGLE_STREAM_UUID);
 
                     lock (Muses)
                     {
-                        var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+                        muse = Muses.FirstOrDefault(x => x.Id == args.Id);
                         if (muse != null)
                         {
                             muse.Id = device.DeviceId;

@@ -80,6 +80,11 @@
                                         <TextBlock Text="LSLBridge" Margin="0 8 0 0"></TextBlock>
                                         <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
                                     </StackPanel>
+
+                                    <StackPanel Margin="0 24 0 0">
+                                        <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" 
+                                            FontWeight="Bold" Content="Always Pair Device (Experimental)?" />
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
@@ -94,8 +99,10 @@
 
     <ScrollViewer>
         <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="auto" Padding="10 0 10 10">
-            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1">
-                <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" HorizontalAlignment="Stretch" MinHeight="340" VerticalAlignment="Top">
+            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1" MinHeight="400">
+                <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" 
+                    ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" 
+                    HorizontalAlignment="Stretch"  VerticalAlignment="Top">
                     <ListView.Header>
                         <StackPanel Visibility="{x:Bind ViewModel.Muses.Count, Converter={StaticResource VisibleWhenZeroConverter}, Mode=OneWay}" Orientation="Horizontal" Margin="10,10,0,0">
                             <TextBlock Text="{x:Bind ViewModel.SearchText, Mode=OneWay}" />
@@ -127,7 +134,7 @@
             </StackPanel>
             <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" FontSize="13" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
                 <TextBlock TextWrapping="Wrap" Padding="10">
-                    <Run FontWeight="Bold" Text="Connection Help: " /><Run Text="Your Muse must be turned on and unpaired from other devices. It will showing incremental flashing lights when it's ready to pair followed by solid lights once connected." />
+                    <Run FontWeight="Bold" Text="Connection Tips: " /><Run Text="Your Muse should be powered on and unpaired from other devices. It will show incremental flashing lights when it's ready to pair followed by solid lights once connected." FontFamily="Segoe UI" />
                     <Run FontWeight="SemiBold" Text="Note: " /><Run Text="You may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
                     <LineBreak FontSize="10" /><LineBreak FontSize="10" />
                     <Run FontSize="10" FontWeight="SemiBold" FontStyle="Italic" Text="{Binding ViewModel.AppVersion, ElementName=PageRoot, Mode=OneTime}" />

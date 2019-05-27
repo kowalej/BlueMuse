@@ -110,6 +110,7 @@ namespace BlueMuse
         public const string SETTINGS_KEY_TIMESTAMP_FORMAT = "primary_timestamp_format";
         public const string SETTINGS_KEY_TIMESTAMP_FORMAT2 = "secondary_timestamp_format";
         public const string SETTINGS_KEY_CHANNEL_DATA_TYPE = "channel_data_type";
+        public const string SETTINGS_KEY_ALWAYS_PAIR = "always_pair";
 
         public const string EEG_STREAM_TYPE = "EEG";
         public const string EEG_UNITS = "microvolts";

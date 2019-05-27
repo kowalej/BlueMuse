@@ -43,7 +43,7 @@
     <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
     <AppInstallerUpdateFrequency>1</AppInstallerUpdateFrequency>
     <AppInstallerCheckForUpdateFrequency>OnApplicationRun</AppInstallerCheckForUpdateFrequency>
-    <PackageCertificateThumbprint>AACE2734BE7A2DB11F90B0EB22366D3DF8365D21</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>44CD5326E584E4A2E61F69ED329FA0F80B41AF2C</PackageCertificateThumbprint>
     <PackageCertificateKeyFile>BlueMuse_TemporaryKey.pfx</PackageCertificateKeyFile>
     <EntryPointProjectUniqueName>..\BlueMuse.App\BlueMuse.App.csproj</EntryPointProjectUniqueName>
   </PropertyGroup>

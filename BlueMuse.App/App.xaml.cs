@@ -86,13 +86,11 @@ namespace BlueMuse
                     else rootFrame.Navigate(typeof(MainPage), e);
                 }
 
-                float DPI = Windows.Graphics.Display.DisplayInformation.GetForCurrentView().LogicalDpi;
-                var desiredSize = new Size(425d, 550d);
-                ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
-                ApplicationView.PreferredLaunchViewSize = desiredSize;
-                ApplicationView.GetForCurrentView().SetPreferredMinSize(desiredSize);
-
                 // Ensure the current window is active
+                var desiredSize = new Size(425d, 620d);
+                ApplicationView.PreferredLaunchViewSize = desiredSize;
+                ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
+                ApplicationView.GetForCurrentView().SetPreferredMinSize(desiredSize);
                 Window.Current.Activate();
             }
         }
@@ -190,10 +188,7 @@ namespace BlueMuse
                     }
 
                 }
-                catch (UriFormatException)
-                {
-
-                }
+                catch (UriFormatException) {}
                 if (launching)
                     Launch(ApplicationExecutionState.NotRunning, false);
             }

@@ -1,7 +1,7 @@
-﻿using BlueMuse.Helpers;
+﻿using BlueMuse.Bluetooth;
+using BlueMuse.Helpers;
 using BlueMuse.Misc;
 using BlueMuse.MuseManagement;
-using LSLBridge.LSL;
 using System;
 using System.Linq;
 
@@ -9,9 +9,7 @@ namespace BlueMuse.Settings
 {
     public sealed class AppSettings : ObservableObject
     {
-
-        private static readonly Lazy<AppSettings> lazy =
-        new Lazy<AppSettings>(() => new AppSettings());
+        private static readonly Lazy<AppSettings> lazy = new Lazy<AppSettings>(() => new AppSettings());
 
         public static AppSettings Instance { get { return lazy.Value; } }
         Windows.Storage.ApplicationDataContainer systemAppSettings;
@@ -68,6 +66,12 @@ namespace BlueMuse.Settings
                         ChannelDataType = cdt; // Call public prop to trigger notification.
                     }
                     break;
+
+                case Constants.SETTINGS_KEY_ALWAYS_PAIR:
+                    if (value.ToLower() == "true" ? true : value.ToLower() == "false") {
+                        AlwaysPair = value.ToLower() == "true" ? true : false;
+                    }
+                    break;
             }
         }
 
@@ -112,6 +116,21 @@ namespace BlueMuse.Settings
                 Muse.ChannelDataType = value;
                 systemAppSettings.Values[Constants.SETTINGS_KEY_CHANNEL_DATA_TYPE] = value.Key;
                 SetProperty(ref channelDataType, value);
+            }
+        }
+
+        private bool alwaysPair;
+        public bool AlwaysPair
+        {
+            get
+            {
+                return alwaysPair;
+            }
+            set
+            {
+                BluetoothManager.AlwaysPair = value;
+                systemAppSettings.Values[Constants.SETTINGS_KEY_ALWAYS_PAIR] = value;
+                SetProperty(ref alwaysPair, value);
             }
         }
     }
