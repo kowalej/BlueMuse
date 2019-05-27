@@ -8,6 +8,11 @@
 * LSL streams in 64-bit or 32-bit.
 * Shows latest timestamp received and the current sample rate for each stream.
 
+# Screenshots
+![bluemuse screenshot](https://i.imgur.com/9vW3QIal.png "Streaming from a single Muse headset.")
+
+
+
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
 
@@ -63,7 +68,7 @@ Change channel data type:
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
 
 ### First Step
-**Download latest version from the /Dist folder** and unzip, then follow one of the methods below.
+**Download [latest version](https://github.com/kowalej/BlueMuse/raw/master/Dist/BlueMuse_1.1.0.0.zip) from the /Dist folder** and unzip, then follow one of the methods below.
 ### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the PowerShell command: 
 `.\InstallBlueMuse.ps1`
@@ -89,7 +94,7 @@ Change channel data type:
     * Choose between 32-bit (float32) or 64-bit (double64) LSL stream data formats.
     
 #### Older
-* 1.0.9.0 (Note - forced streams to use x64 data format.)
+* 1.0.9.0 (Note - forces streams to use double64 data format.)
     * Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).*
     * Optionally send secondary timestamp (for comparison to primary timestamp) - sent as additional LSL channel.
     * Improved UI to include settings menu. Settings menu allows user to choose timestamp formats and displays log file locations.
