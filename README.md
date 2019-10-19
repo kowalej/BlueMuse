@@ -76,7 +76,7 @@ Toggle "assume Muse 2":
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
 
 ### First Step
-**Download [latest version](https://github.com/kowalej/BlueMuse/raw/master/Dist/BlueMuse_1.1.0.0.zip) from the /Dist folder** and unzip, then follow one of the methods below.
+**Download [latest version](https://github.com/kowalej/BlueMuse/raw/master/Dist/BlueMuse_1.1.1.0.zip) from the /Dist folder** and unzip, then follow one of the methods below.
 ### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the PowerShell command: 
 `.\InstallBlueMuse.ps1`
