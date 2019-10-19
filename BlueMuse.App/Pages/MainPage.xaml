@@ -85,6 +85,11 @@
                                         <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" 
                                             FontWeight="Bold" Content="Always Pair Device (Experimental)?" />
                                     </StackPanel>
+
+                                    <StackPanel Margin="0 24 0 0">
+                                        <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AssumeMuse2, Mode=TwoWay}" 
+                                            FontWeight="Bold" Content="Assume Muse 2?" />
+                                    </StackPanel>
                                 </StackPanel>
 
                                 <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
@@ -99,7 +104,7 @@
 
     <ScrollViewer>
         <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="auto" Padding="10 0 10 10">
-            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1" MinHeight="400">
+            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1" MinHeight="460">
                 <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" 
                     ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" 
                     HorizontalAlignment="Stretch"  VerticalAlignment="Top">

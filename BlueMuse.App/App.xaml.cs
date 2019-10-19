@@ -87,7 +87,7 @@ namespace BlueMuse
                 }
 
                 // Ensure the current window is active
-                var desiredSize = new Size(425d, 620d);
+                var desiredSize = new Size(425d, 660d);
                 ApplicationView.PreferredLaunchViewSize = desiredSize;
                 ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
                 ApplicationView.GetForCurrentView().SetPreferredMinSize(desiredSize);

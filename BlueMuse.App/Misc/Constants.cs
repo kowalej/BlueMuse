@@ -29,10 +29,14 @@ namespace BlueMuse
         public const float MUSE_SAMPLE_TIME_MILLIS = 1000f / MUSE_SAMPLE_RATE;
 
         public const int MUSE_CHANNEL_COUNT = 5;
+        public const int MUSE_2_CHANNEL_COUNT = 4;
         public const int MUSE_SMXT_CHANNEL_COUNT = 4;
 
         public const string MUSE_DEVICE_NAME = "Muse EEG Headset";
         public const string MUSE_MANUFACTURER = "Interaxon";
+
+        public const string MUSE_2_DEVICE_NAME = "Muse 2 EEG Headset";
+        public const string MUSE_2_MANUFACTURER = "Interaxon";
 
         public const string MUSE_SMXT_DEVICE_NAME = "Smith Lowdown Focus";
         public const string MUSE_SMXT_MANUFACTURER = "Smith";
@@ -67,6 +71,14 @@ namespace BlueMuse
         };
 
         // GATT characteristics for the 4 EEG channels, in order: TP9-AF7-AF8-TP10.
+        public static readonly Guid[] MUSE_2_EEG_CHANNEL_UUIDS = new Guid[MUSE_2_CHANNEL_COUNT] {
+            new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
+            new Guid("273e0004-4c4d-454d-96be-f03bac821358"), // Handle 34
+            new Guid("273e0005-4c4d-454d-96be-f03bac821358"), // Handle 37
+            new Guid("273e0006-4c4d-454d-96be-f03bac821358") // Handle 40
+        };
+
+        // GATT characteristics for the 4 EEG channels, in order: TP9-AF7-AF8-TP10.
         public static readonly Guid[] MUSE_SMXT_EEG_CHANNEL_UUIDS = new Guid[MUSE_SMXT_CHANNEL_COUNT] {
             new Guid("273e0003-4c4d-454d-96be-f03bac821358"), // Handle 31
             new Guid("273e0004-4c4d-454d-96be-f03bac821358"), // Handle 34
@@ -91,6 +103,15 @@ namespace BlueMuse
         };
 
         // LSL labels for the 4 EEG channels, in specific order to match muse-lsl.py.
+        public static readonly string[] MUSE_2_EEG_CHANNEL_LABELS = new string[MUSE_2_CHANNEL_COUNT]
+        {
+            "TP9",
+            "AF7",
+            "AF8",
+            "TP10"
+        };
+
+        // LSL labels for the 4 EEG channels, in specific order to match muse-lsl.py.
         public static readonly string[] MUSE_SMXT_EEG_CHANNEL_LABELS = new string[MUSE_SMXT_CHANNEL_COUNT]
         {
             "TP9",
@@ -111,6 +132,7 @@ namespace BlueMuse
         public const string SETTINGS_KEY_TIMESTAMP_FORMAT2 = "secondary_timestamp_format";
         public const string SETTINGS_KEY_CHANNEL_DATA_TYPE = "channel_data_type";
         public const string SETTINGS_KEY_ALWAYS_PAIR = "always_pair";
+        public const string SETTINGS_KEY_ASSUME_MUSE_2 = "assume_muse_2";
 
         public const string EEG_STREAM_TYPE = "EEG";
         public const string EEG_UNITS = "microvolts";

@@ -63,6 +63,14 @@ Change channel data type:
 ```powershell
  start bluemuse://setting?key=channel_data_type!value=<float32|double64>
 ```
+Toggle "always pair": 
+```powershell
+ start bluemuse://setting?key=always_pair!value=<true|false>
+```
+Toggle "assume Muse 2": 
+```powershell
+ start bluemuse://setting?key=assume_muse_2!value=<true|false>
+```
 
 # Installation
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
@@ -90,10 +98,13 @@ Change channel data type:
 
 # Versions
 ### Latest
-* **1.1.0.0**
-    * Choose between 32-bit (float32) or 64-bit (double64) LSL stream data formats.
+* **1.1.1.0**
+    * **Muse 2 support (experimental) - for now, for this to work you have to go to Settings > Assume Muse 2 > Toggle On. Finally, hit Force Refresh (if your Muse was already in the list, otherwise it should work when your device is first found).** It will assume all you devices with "Muse" in the name are Muse 2's and will set the parameters accordingly. *In the future I hope to have Muse vs Muse 2 differentiation be auto detected*.
+    * Added "always pair" option which may help with some people's Bluetooth issues. It is set as Off by default, you can toggle it On in the settings menu.
     
 #### Older
+* 1.1.0.0
+    * Choose between 32-bit (float32) or 64-bit (double64) LSL stream data formats.
 * 1.0.9.0 (Note - forces streams to use double64 data format.)
     * Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).*
     * Optionally send secondary timestamp (for comparison to primary timestamp) - sent as additional LSL channel.

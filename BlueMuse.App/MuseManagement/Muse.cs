@@ -27,6 +27,7 @@ namespace BlueMuse.MuseManagement
         public static ITimestampFormat TimestampFormat = new BlueMuseUnixTimestampFormat();
         public static ITimestampFormat TimestampFormat2 = new LSLLocalClockBlueMuseTimestampFormat();
         public static ChannelDataType ChannelDataType = ChannelDataTypesContainer.ChannelDataTypes.FirstOrDefault();
+        public static bool AssumeMuse2 = false;
 
         private GattDeviceService deviceService;
         private List<GattCharacteristic> channels;
@@ -109,6 +110,15 @@ namespace BlueMuse.MuseManagement
                 channelLabels = Constants.MUSE_SMXT_EEG_CHANNEL_LABELS;
                 deviceInfoName = Constants.MUSE_SMXT_DEVICE_NAME;
                 deviceInfoManufacturer = Constants.MUSE_SMXT_MANUFACTURER;
+            }
+            // Muse 2.
+            else if(AssumeMuse2)
+            {
+                channelCount = Constants.MUSE_2_CHANNEL_COUNT;
+                channelUUIDs = Constants.MUSE_2_EEG_CHANNEL_UUIDS;
+                channelLabels = Constants.MUSE_2_EEG_CHANNEL_LABELS;
+                deviceInfoName = Constants.MUSE_2_DEVICE_NAME;
+                deviceInfoManufacturer = Constants.MUSE_2_MANUFACTURER;
             }
             // Default to Muse.
             else
