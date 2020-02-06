@@ -11,8 +11,8 @@ namespace BlueMuse
             "Muse", "SMTX"
         };
 
-        public const string ALL_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\"";
-        public const string MUSE_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\" AND (System.ItemNameDisplay:~~\"Muse\" OR System.ItemNameDisplay:~~\"SMTX\")"; // Needs testing.
+        // Query string for filtering system devices. We could probably filter in a better way, but this, along with the name match, works for now.
+        public const string DEVICE_AQS = "System.Devices.DevObjectType:=5 AND System.Devices.Aep.ProtocolId:=\"{BB7BB05E-5972-42B5-94FC-76EAA7084D49}\"";
 
         public const string ARGS_STREAMFIRST = "streamfirst";
         public const string ARGS_ADDRESSES = "addresses";

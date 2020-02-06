@@ -130,7 +130,7 @@
                                     <SymbolIcon Symbol="People" Margin="-6,0,12,0"/>
                                     <StackPanel>
                                         <TextBlock Text="{x:Bind LongName, Mode=OneWay}"/>
-                                        <TextBlock Text="{x:Bind MuseModel, Mode=OneWay}" />
+                                        <TextBlock Text="{x:Bind MuseModel, ConverterParameter=Model: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
                                         <StackPanel Orientation="Horizontal" Margin="4, 4, 4, 0">
                                             <TextBlock Text="{x:Bind Status, ConverterParameter=Status: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
                                             <TextBlock Margin="6, 0, 0, 0" Text="{x:Bind IsStreaming, ConverterParameter=Streaming: \{0\}, Converter={StaticResource YesNoValueFormatter}, Mode=OneWay}"/>

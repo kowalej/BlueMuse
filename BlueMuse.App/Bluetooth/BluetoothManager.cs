@@ -64,7 +64,7 @@ namespace BlueMuse.Bluetooth
         public void FindMuses()
         {
             string[] requestedProperties = { "System.Devices.Aep.DeviceAddress", "System.ItemNameDisplay" };
-            museDeviceWatcher = DeviceInformation.CreateWatcher(Constants.ALL_AQS, requestedProperties, DeviceInformationKind.AssociationEndpoint);
+            museDeviceWatcher = DeviceInformation.CreateWatcher(Constants.DEVICE_AQS, requestedProperties, DeviceInformationKind.AssociationEndpoint);
 
             // Register event handlers before starting the watcher.
             // Added, Updated and Removed are required to get all nearby devices

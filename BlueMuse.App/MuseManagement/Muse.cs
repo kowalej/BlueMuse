@@ -15,6 +15,7 @@ using Windows.Foundation.Collections;
 using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
 using Newtonsoft.Json;
+using System.Diagnostics;
 
 namespace BlueMuse.MuseManagement
 {
@@ -44,7 +45,7 @@ namespace BlueMuse.MuseManagement
         private GattDeviceService deviceService;
         private List<GattCharacteristic> inUseGattChannels;
 
-        private volatile Dictionary<UInt16, MuseEEGSamples> eegSampleBuffer;
+        private volatile Dictionary<UInt16, MuseEEGSamples> eegSampleBuffer = new Dictionary<ushort, MuseEEGSamples>();
 
         private MuseModel museModel;
         public MuseModel MuseModel { get { return museModel; } set { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } }
@@ -242,6 +243,7 @@ namespace BlueMuse.MuseManagement
         private async void FinishCloseOffStream()
         {
             inUseGattChannels.Clear();
+            eegSampleBuffer.Clear();
             await LSLCloseStream();
             deviceService.Dispose();
             IsStreaming = false;
@@ -431,22 +433,15 @@ namespace BlueMuse.MuseManagement
             await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);            
         }
 
-        private double[] DecodeEEGSamples(string bits)
-        {
-            // Extract our 12, 12-bit samples.
-            double[] samples = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
-            for (int i = 0; i < Constants.MUSE_EEG_SAMPLE_COUNT; i++)
-            {
-                samples[i] = PacketConversion.ToFakeUInt12(bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
-                samples[i] = (samples[i] - 2048d) * 0.48828125d; // 12 bits on a 2 mVpp range.
-            }
-            return samples;
-        }
-
         private static string GetBits(IBuffer buffer)
         {
-            CryptographicBuffer.CopyToByteArray(buffer, out byte[] raw);
-            string hexStr = BitConverter.ToString(raw);
+            byte[] vals = new byte[buffer.Length];
+            for (uint i = 0; i < buffer.Length; i++)
+            {
+                vals[i] = buffer.GetByte(i);
+            }
+            //CryptographicBuffer.CopyToByteArray(buffer, out byte[] raw);
+            string hexStr = BitConverter.ToString(vals);
             string[] hexSplit = hexStr.Split('-');
             string bits = string.Empty;
             foreach (var hex in hexSplit)
@@ -459,37 +454,60 @@ namespace BlueMuse.MuseManagement
 
         private async void EEGChannel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
+            double[] DecodeEEGSamples(string bits)
+            {
+                // Extract our 12, 12-bit samples.
+                double[] samples = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
+                for (int i = 0; i < Constants.MUSE_EEG_SAMPLE_COUNT; i++)
+                {
+                    samples[i] = PacketConversion.ToFakeUInt12(bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
+                    samples[i] = (samples[i] - 2048d) * 0.48828125d; // 12 bits on a 2 mVpp range.
+                }
+                return samples;
+            }
+
             if (isStreaming)
             {
-                if (sender.AttributeHandle == 43)
+                try
                 {
-                    string fish = "";
-                }
-                string bits = GetBits(args.CharacteristicValue);
-                ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
-                MuseEEGSamples samples;
-                lock (eegSampleBuffer)
-                {
-                    if (!eegSampleBuffer.ContainsKey(museTimestamp))
+                    if (sender.AttributeHandle == 43)
                     {
-                        samples = new MuseEEGSamples();
-                        eegSampleBuffer.Add(museTimestamp, samples);
-                        samples.BaseTimestamp = TimestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                        samples.BasetimeStamp2 = TimestampFormat.GetType() != TimestampFormat2.GetType() ?
-                              TimestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                            : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                        Debug.WriteLine("wtf..." + sender.Uuid);
+                        foreach (var entry in eegSampleBuffer)
+                        {
+                            entry.Value.ChannelData[sender.Uuid] = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
+                        }
                     }
-                    else samples = eegSampleBuffer[museTimestamp];
 
-                    // Get time samples.
-                    samples.ChannelData[sender.Uuid] = DecodeEEGSamples(bits);
+                    string bits = GetBits(args.CharacteristicValue);
+                    ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                    MuseEEGSamples samples;
+                    lock (eegSampleBuffer)
+                    {
+                        if (!eegSampleBuffer.ContainsKey(museTimestamp))
+                        {
+                            samples = new MuseEEGSamples();
+                            eegSampleBuffer.Add(museTimestamp, samples);
+                            samples.BaseTimestamp = TimestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                            samples.BasetimeStamp2 = TimestampFormat.GetType() != TimestampFormat2.GetType() ?
+                                  TimestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                                : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                        }
+                        else samples = eegSampleBuffer[museTimestamp];
+
+                        // Get time samples.
+                        samples.ChannelData[sender.Uuid] = DecodeEEGSamples(bits);
+                    }
+                    // If we have all EEG channels, we can push the 12 samples for each channel.
+                    if (samples.ChannelData.Count == eegChannelCount)
+                    {
+                        await LSLPushEEGChunk(samples);
+                        lock (eegSampleBuffer)
+                            eegSampleBuffer.Remove(museTimestamp);
+                    }
                 }
-                // If we have all EEG channels, we can push the 12 samples for each channel.
-                if (samples.ChannelData.Count == eegChannelCount)
-                {
-                    await LSLPushEEGChunk(samples);
-                    lock(eegSampleBuffer)
-                        eegSampleBuffer.Remove(museTimestamp);
+                catch(Exception ex) {
+                    Log.Error($"Exception during handling EEG channel values.", ex);
                 }
             }
         }
