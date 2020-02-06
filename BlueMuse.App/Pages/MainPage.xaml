@@ -8,6 +8,7 @@
     xmlns:h="using:BlueMuse.Helpers"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:Windows10FallCreatorsUpdate="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 5)"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -55,7 +56,7 @@
                                             </ComboBox.ItemTemplate>
                                         </ComboBox>
                                     </StackPanel>
-                                    
+
                                     <StackPanel Margin="0 24 0 0">
                                         <TextBlock FontWeight="Bold" Text="LSL Channel Data Type" Margin="0,0,0,0" />
                                         <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Single Precision Recommended for LSL Compatibility" Margin="0,4,0,12" />
@@ -71,6 +72,25 @@
                                         </ComboBox>
                                     </StackPanel>
 
+                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8">
+                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <TextBlock FontWeight="Bold" Text="EEG Enabled" VerticalAlignment="Center" />
+                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsEEGEnabled, Mode=TwoWay}" />
+                                        </StackPanel>
+                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <TextBlock FontWeight="Bold" Text="Accelerometer Enabled" VerticalAlignment="Center" />
+                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsAccelerometerEnabled, Mode=TwoWay}" />
+                                        </StackPanel>
+                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <TextBlock FontWeight="Bold" Text="Gyroscope Enabled" VerticalAlignment="Center" />
+                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsGyroscopeEnabled, Mode=TwoWay}" />
+                                        </StackPanel>
+                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <TextBlock FontWeight="Bold" Text="Always Pair Device (Experimental)?" VerticalAlignment="Center" />
+                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" />
+                                        </StackPanel>
+                                    </StackPanel>
+
                                     <StackPanel Margin="0 24 0 0">
                                         <TextBlock FontWeight="Bold" Text="Log File Locations (For Reference)" Margin="0,0,0,8" />
 
@@ -81,18 +101,8 @@
                                         <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
                                     </StackPanel>
 
-                                    <StackPanel Margin="0 24 0 0">
-                                        <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" 
-                                            FontWeight="Bold" Content="Always Pair Device (Experimental)?" />
-                                    </StackPanel>
-
-                                    <StackPanel Margin="0 24 0 0">
-                                        <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AssumeMuse2, Mode=TwoWay}" 
-                                            FontWeight="Bold" Content="Assume Muse 2?" />
-                                    </StackPanel>
+                                    <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
                                 </StackPanel>
-
-                                <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
                             </StackPanel>
                         </Flyout>
                     </AppBarButton.Flyout>
@@ -120,6 +130,7 @@
                                     <SymbolIcon Symbol="People" Margin="-6,0,12,0"/>
                                     <StackPanel>
                                         <TextBlock Text="{x:Bind LongName, Mode=OneWay}"/>
+                                        <TextBlock Text="{x:Bind MuseModel, Mode=OneWay}" />
                                         <StackPanel Orientation="Horizontal" Margin="4, 4, 4, 0">
                                             <TextBlock Text="{x:Bind Status, ConverterParameter=Status: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
                                             <TextBlock Margin="6, 0, 0, 0" Text="{x:Bind IsStreaming, ConverterParameter=Streaming: \{0\}, Converter={StaticResource YesNoValueFormatter}, Mode=OneWay}"/>

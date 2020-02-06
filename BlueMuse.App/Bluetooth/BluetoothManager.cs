@@ -147,7 +147,7 @@ namespace BlueMuse.Bluetooth
                     }
 
                     // Retreive an arbitrary service. This will allow the device to auto connect.
-                    await device.GetGattServicesForUuidAsync(Constants.MUSE_TOGGLE_STREAM_UUID);
+                    await device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
 
                     lock (Muses)
                     {
@@ -332,7 +332,7 @@ namespace BlueMuse.Bluetooth
                     if (muse.Device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
                     {
                         // Retreive an arbitrary service. This will allow the device to auto connect.
-                        await muse.Device.GetGattServicesForUuidAsync(Constants.MUSE_TOGGLE_STREAM_UUID);
+                        await muse.Device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
                     }
                 }
             }

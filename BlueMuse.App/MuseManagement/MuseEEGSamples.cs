@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace BlueMuse.MuseManagement
 {
-    public class MuseSample
+    public class MuseEEGSamples
     {
         private double baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds() / 1000d;
         public double BaseTimestamp
@@ -42,9 +42,9 @@ namespace BlueMuse.MuseManagement
             {
                 double baseSeconds = baseTimestamp;
 
-                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
+                for (int i = 0; i < Constants.MUSE_EEG_SAMPLE_COUNT; i++)
                 {
-                    timestamps[i] = baseSeconds - ((Constants.MUSE_SAMPLE_COUNT - i) * (Constants.MUSE_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps[i] = baseSeconds - ((Constants.MUSE_EEG_SAMPLE_COUNT - i) * (Constants.MUSE_EEG_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
                     timestamps[i] = timestamps[i];
                 }
                 return timestamps;
@@ -58,9 +58,9 @@ namespace BlueMuse.MuseManagement
             {
                 double baseSeconds = baseTimestamp2;
 
-                for (int i = 0; i < Constants.MUSE_SAMPLE_COUNT; i++)
+                for (int i = 0; i < Constants.MUSE_EEG_SAMPLE_COUNT; i++)
                 {
-                    timestamps2[i] = baseSeconds - ((Constants.MUSE_SAMPLE_COUNT - i) * (Constants.MUSE_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps2[i] = baseSeconds - ((Constants.MUSE_EEG_SAMPLE_COUNT - i) * (Constants.MUSE_EEG_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
                     timestamps2[i] = timestamps2[i];
                 }
                 return timestamps2;
@@ -69,11 +69,11 @@ namespace BlueMuse.MuseManagement
 
         public Dictionary<Guid, double[]> ChannelData { get; set; }
 
-        public MuseSample()
+        public MuseEEGSamples()
         {
             ChannelData = new Dictionary<Guid, double[]>();
-            timestamps = new double[Constants.MUSE_SAMPLE_COUNT];
-            timestamps2 = new double[Constants.MUSE_SAMPLE_COUNT];
+            timestamps = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
+            timestamps2 = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
         }
     }
 }
