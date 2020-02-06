@@ -311,7 +311,7 @@ namespace BlueMuse.MuseManagement
                 {
                     Label = c,
                     Type = Constants.ACCELEROMETER_STREAM_TYPE,
-                    Unit = "N/A"
+                    Unit = Constants.ACCELEROMETER_UNITS
                 });
             }
 
@@ -346,7 +346,7 @@ namespace BlueMuse.MuseManagement
                 {
                     Label = c,
                     Type = Constants.GYROSCOPE_STREAM_TYPE,
-                    Unit = "N/A"
+                    Unit = Constants.GYROSCOPE_UNITS
                 });
             }
 
@@ -374,6 +374,7 @@ namespace BlueMuse.MuseManagement
 
         private async Task LSLCloseStream()
         {
+            // It is safe to just iterate the possible stream names and request that the bridge closes them.
             foreach (var streamName in
                  new string[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName })
             {

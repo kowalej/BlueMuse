@@ -135,6 +135,7 @@
     <Compile Include="Helpers\ObservableCollection.cs" />
     <Compile Include="Helpers\ObservableObject.cs" />
     <Compile Include="MuseManagement\MuseConnectionStatus.cs" />
+    <Compile Include="MuseManagement\MusePPGSamples.cs" />
     <Compile Include="MuseManagement\MuseModel.cs" />
     <Compile Include="MuseManagement\MuseEEGSamples.cs" />
     <Compile Include="Pages\MainPage.xaml.cs">

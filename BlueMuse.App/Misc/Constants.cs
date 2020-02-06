@@ -30,13 +30,13 @@ namespace BlueMuse
         public const float MUSE_EEG_SAMPLE_TIME_MILLIS = 1000f / MUSE_EEG_SAMPLE_RATE;
 
         public const int MUSE_ACCELEROMETER_SAMPLE_RATE = 52;
-        public const float MUSE_ACCELEROMETER_SAMPLE_TIME_SECONDS = 1.0f / MUSE_ACCELEROMETER_SAMPLE_RATE; // Theoretical time between consecutive Accelerometer samples.
+        public const float MUSE_ACCELEROMETER_SAMPLE_TIME_MILLIS = 1.0f / MUSE_ACCELEROMETER_SAMPLE_RATE; // Theoretical time between consecutive Accelerometer samples.
 
         public const int MUSE_GYROSCOPE_SAMPLE_RATE = 52;
-        public const float MUSE_GYROSCOPE_SAMPLE_TIME_SECONDS = 1.0f / MUSE_GYROSCOPE_SAMPLE_RATE; // Theoretical time between consecutive Gyroscope samples.
+        public const float MUSE_GYROSCOPE_SAMPLE_TIME_MILLIS = 1.0f / MUSE_GYROSCOPE_SAMPLE_RATE; // Theoretical time between consecutive Gyroscope samples.
 
         public const int MUSE_PPG_SAMPLE_RATE = 64;
-        public const float MUSE_PPG_SAMPLE_TIME_SECONDS = 1.0f / MUSE_PPG_SAMPLE_RATE; // Theoretical time between consecutive PPG samples.
+        public const float MUSE_PPG_SAMPLE_TIME_MILLIS = 1.0f / MUSE_PPG_SAMPLE_RATE; // Theoretical time between consecutive PPG samples.
 
         // Muse specific channel counts.
         public const int MUSE_EEG_CHANNEL_COUNT = 5;
