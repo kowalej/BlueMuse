@@ -9,8 +9,6 @@ namespace LSLBridge.LSL
 {
     public class LSLStream : ObservableObject, IDisposable
     {
-        private static readonly object syncLock = new object();
-
         private liblsl.StreamOutlet lslStream;
 
         private LSLBridgeStreamInfo streamInfo;

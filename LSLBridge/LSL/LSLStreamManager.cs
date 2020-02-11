@@ -16,7 +16,6 @@ namespace LSLBridge.LSL
         private readonly Action<int> streamCountSetter;
         private AppServiceConnection lslStreamService;
         private readonly Timer keepAliveTimer;
-        private static readonly object syncLock = new object();
         private DateTime lastMessageTime = DateTime.MinValue;
 
         public LSLStreamManager(ObservableCollection<LSLStream> streams, Action<int> streamCounterSetter)
