@@ -215,7 +215,7 @@
       <Version>6.2.9</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>12.0.2</Version>
+      <Version>12.0.3</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
       <Version>2.9.0</Version>
@@ -226,11 +226,6 @@
     <PackageReference Include="Serilog.Sinks.RollingFile">
       <Version>3.3.0</Version>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <AppxManifest Include="Package.appxmanifest">
-      <SubType>Designer</SubType>
-    </AppxManifest>
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="Microsoft.VCLibs.Desktop, Version=14.0">
@@ -245,6 +240,11 @@
       <Project>{fdb35546-5204-49a0-b249-f823fd548333}</Project>
       <Name>NativeHelpers</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
+    </AppxManifest>
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

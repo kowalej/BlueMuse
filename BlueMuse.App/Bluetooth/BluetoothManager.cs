@@ -294,6 +294,15 @@ namespace BlueMuse.Bluetooth
             }
         }
 
+        public async void ResetMuse(object museId)
+        {
+            var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);
+            if(muse != null)
+            {
+                await muse.Reset();
+            }
+        }
+
         public async Task StartStreamingAll()
         {
             var muses = this.Muses.Where(x => !x.IsStreaming);

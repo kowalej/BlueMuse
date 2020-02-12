@@ -30,7 +30,7 @@ namespace LSLBridge.LSL
             };
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
-            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
+            //keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
         }
 
         private async void OpenService()

@@ -2,6 +2,7 @@
 using BlueMuse.Helpers;
 using BlueMuse.Misc;
 using LSLBridge.LSL;
+using Newtonsoft.Json;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -11,11 +12,9 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
+using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.Security.Cryptography;
 using Windows.Storage.Streams;
-using Newtonsoft.Json;
-using System.Diagnostics;
 
 namespace BlueMuse.MuseManagement
 {
@@ -42,10 +41,9 @@ namespace BlueMuse.MuseManagement
         private bool isGyroscopeEnabled = true;
         private bool isPPGEnabled = true;
 
-        private GattDeviceService deviceService;
-        private List<GattCharacteristic> inUseGattChannels;
-
-        private volatile Dictionary<UInt16, MuseEEGSamples> eegSampleBuffer = new Dictionary<ushort, MuseEEGSamples>();
+        // We have to buffer EEG and PPG, since any given sample is composed of data from multiple Bluetooth channels (Gatt characteristics).
+        private volatile Dictionary<ushort, MuseEEGSamples> eegSampleBuffer;
+        private volatile Dictionary<ushort, MusePPGSamples> ppgSampleBuffer;
 
         private MuseModel museModel;
         public MuseModel MuseModel { get { return museModel; } set { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } }
@@ -82,17 +80,24 @@ namespace BlueMuse.MuseManagement
             {
                 lock (syncLock)
                 {
+                    if (value == MuseConnectionStatus.Online)
+                    {
+                        DetermineMuseModel();
+                    }
                     SetProperty(ref status, value);
                     OnPropertyChanged(nameof(CanStream));
+                    OnPropertyChanged(nameof(CanReset));
                 }
             }
         }
 
         private bool isStreaming;
-        public bool IsStreaming { get { return isStreaming; } set { lock(syncLock) SetProperty(ref isStreaming, value); } }
+        public bool IsStreaming { get { return isStreaming; } set { lock (syncLock) { SetProperty(ref isStreaming, value); OnPropertyChanged(nameof(CanReset)); } } }
 
         private bool isSelected;
-        public bool IsSelected { get { return isSelected; } set { lock (syncLock) SetProperty(ref isSelected, value); } }
+        public bool IsSelected { get { return isSelected; } set { lock (syncLock) { SetProperty(ref isSelected, value); OnPropertyChanged(nameof(CanReset)); } } }
+
+        public bool CanReset { get { return isSelected && status == MuseConnectionStatus.Online && !isStreaming; } }
 
         public bool CanStream { get { return status == MuseConnectionStatus.Online; } }
         public string LongName { get { return string.Format("{0} ({1})", Name, MacAddress); } }
@@ -122,43 +127,76 @@ namespace BlueMuse.MuseManagement
             Name = name;
             Id = id;
             Status = status;
+            DetermineMuseModel();
+        }
 
-            // Is Smith Lowdown?
-            if (name.Contains(Constants.DeviceNameFilter[1]))
-            {
-                eegChannelCount = Constants.MUSE_SMXT_EEG_CHANNEL_COUNT;
-                eegChannelUUIDs = Constants.MUSE_SMXT_GATT_EEG_CHANNEL_UUIDS;
-                eegChannelLabels = Constants.MUSE_SMXT_EEG_CHANNEL_LABELS;
+        public async void DetermineMuseModel()
+        {
+            // Already determined model, no work to do.
+            if (MuseModel != MuseModel.Undetected) return;
+
+            // Device is Smith Lowdown.
+            if (name.Contains("SMXT")) {
+                MuseModel = MuseModel.Smith;
+                eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
+                eegChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
+                eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
                 deviceInfoName = Constants.MUSE_SMXT_DEVICE_NAME;
                 deviceInfoManufacturer = Constants.MUSE_SMXT_MANUFACTURER;
             }
-            //// Muse 2.
-            //else if(AssumeMuse2)
-            //{
-            //    channelCount = Constants.MUSE_2_CHANNEL_COUNT;
-            //    channelUUIDs = Constants.MUSE_2_EEG_CHANNEL_UUIDS;
-            //    channelLabels = Constants.MUSE_2_EEG_CHANNEL_LABELS;
-            //    deviceInfoName = Constants.MUSE_2_DEVICE_NAME;
-            //    deviceInfoManufacturer = Constants.MUSE_2_MANUFACTURER;
-            //}
-            // Default to Muse.
+
+            // Device must be a regular Muse or Muse 2, so we set basic properties.
             else
             {
-                eegChannelCount = Constants.MUSE_EEG_CHANNEL_COUNT;
-                eegChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
-                eegChannelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
-                deviceInfoName = Constants.MUSE_DEVICE_NAME;
                 deviceInfoManufacturer = Constants.MUSE_MANUFACTURER;
+            }
+
+            // Cannot determine any further (Muse Original vs Muse 2 until connected).
+            if (Status == MuseConnectionStatus.Offline) return;
+            try
+            {
+                var characteristics = await GetGattCharacteristics();
+                if (characteristics == null)
+                {
+                    Log.Error($"Cannot complete determining Muse model due to null GATT characteristics.");
+                    return;
+                }
+                // Device has PPG, therefore we know it's a Muse 2. Note we will also not use AUX channel.
+                if (characteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
+                {
+                    MuseModel = MuseModel.Muse2;
+                    eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
+                    eegChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
+                    eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
+                    deviceInfoName = Constants.MUSE_2_DEVICE_NAME;
+                }
+                else
+                {
+                    MuseModel = MuseModel.Original;
+                    eegChannelCount = Constants.MUSE_EEG_CHANNEL_COUNT;
+                    eegChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
+                    eegChannelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
+                    deviceInfoName = Constants.MUSE_DEVICE_NAME;
+                }
+            }
+            catch(Exception ex)
+            {
+                Log.Error($"Exception during determining Muse model. Exception message: {ex.Message}.", ex);
             }
         }
 
         public async Task ToggleStream(bool start)
         {
+            if (MuseModel == MuseModel.Undetected) DetermineMuseModel();
             if (start == isStreaming || (start && !CanStream)) return;
             try
             {
                 if (start)
                 {
+                    // Create fresh sample buffers.
+                    eegSampleBuffer = new Dictionary<ushort, MuseEEGSamples>();
+                    ppgSampleBuffer = new Dictionary<ushort, MusePPGSamples>();
+
                     // Pull properties for stream from static global settings.
                     timestampFormat = TimestampFormat;
                     timestampFormat2 = TimestampFormat2;
@@ -166,62 +204,74 @@ namespace BlueMuse.MuseManagement
                     isEEGEnabled = IsEEGEnabled;
                     isAccelerometerEnabled = IsAccelerometerEnabled;
                     isGyroscopeEnabled = IsGyroscopeEnabled;
-                    isPPGEnabled = IsPPGEnabled;
+                    isPPGEnabled = IsPPGEnabled && MuseModel == MuseModel.Muse2; // Only Muse 2 supports PPG.
 
                     if (!isEEGEnabled &&
                         !isAccelerometerEnabled &&
                         !isGyroscopeEnabled &&
                         !isPPGEnabled) return; // Nothing enabled, can't start under this condition.
 
-                    if (inUseGattChannels == null) inUseGattChannels = new List<GattCharacteristic>();
+                }
 
-                    // Get GATT service on start, therefore it will be already available when stopping.
-                    deviceService = (await Device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_DATA_SERVICE_UUID)).Services.First();
+                var characteristics = await GetGattCharacteristics();
+                if (characteristics == null)
+                {
+                    Log.Error($"Cannot complete toggle stream (start={start}) due to null GATT characteristics.");
+                    return;
+                }
+
+                // Subscribe or unsubscribe EEG.
+                if (isEEGEnabled)
+                {
+                    if (!await ToggleCharacteristics(eegChannelUUIDs, characteristics, start, EEGChannel_ValueChanged)) {
+                        Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for EEG.");
+                        return;
+                    }
+                }
+
+                // Subscribe or unsubscribe accelerometer.
+                if (isAccelerometerEnabled)
+                {
+                    //await ToggleCharacteristic(Constants.MUSE_GATT_ACCELEROMETER_UUID, characteristics, start, AccelerometerChannel_ValueChanged);
+                    //{
+                        //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
+                        //return;
+                    //}
+                }
+
+                // Subscribe or unsubscribe gyroscope.
+                if (isGyroscopeEnabled)
+                {
+                    //await ToggleCharacteristic(Constants.MUSE_GATT_GYROSCOPE_UUID, characteristics, start, GyroscopeChannel_ValueChanged);
+                    //{
+                        //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
+                        //return;
+                    //}
+                }
+
+                // Subscribe or unsubscribe PPG.
+                if (isPPGEnabled)
+                {
+                    //await ToggleCharacteristic(Constants.MUSE_GATT_PPG_CHANNEL_UUIDS, characteristics, start, PPGChannel_ValueChanged);
+                    //{
+                        //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
+                        //return;
+                    //}
                 }
 
                 // Determine if we are listening to Gatt channels or stopping (notify vs none) and what command to send to the Muse (start or stop data).
-                GattClientCharacteristicConfigurationDescriptorValue notify;
-                byte[] toggleData;
-                if (start)
-                {
-                    notify = GattClientCharacteristicConfigurationDescriptorValue.Notify;
-                    toggleData = Constants.MUSE_CMD_TOGGLE_STREAM_START;
-                }
-                else
-                {
-                    notify = GattClientCharacteristicConfigurationDescriptorValue.None;
-                    toggleData = Constants.MUSE_CMD_TOGGLE_STREAM_STOP;
-                }
-                var buffer = WindowsRuntimeBuffer.Create(toggleData, 0, toggleData.Length, toggleData.Length);
-
-                // Get our corresponding Gatt characteristics for the data we are targeting.
-                var characteristics = (await deviceService.GetCharacteristicsAsync()).Characteristics;
-                foreach (var c in eegChannelUUIDs)
-                {
-                    var characteristic = characteristics.SingleOrDefault(x => x.Uuid == c);
-                    if (characteristic == null)
-                    {
-                        Log.Error($"Unexpected null GATT characteristic (UUID={c}) during toggle stream (start={start}).");
-                        return;
-                    }
-                    inUseGattChannels.Add(characteristic);
-                }
-
-                for (int i = 0; i < inUseGattChannels.Count; i++)
-                {
-                    if (start)
-                    {
-                        inUseGattChannels[i].ValueChanged += EEGChannel_ValueChanged;
-                    }
-                    else inUseGattChannels[i].ValueChanged -= EEGChannel_ValueChanged;
-                    await inUseGattChannels[i].WriteClientCharacteristicConfigurationDescriptorAsync(notify);
-                }
+                byte[] toggleCommand = start ? Constants.MUSE_CMD_TOGGLE_STREAM_START : Constants.MUSE_CMD_TOGGLE_STREAM_STOP;
 
                 // Tell Muse to start or stop notifications.
-                await characteristics.Single(x => x.Uuid == Constants.MUSE_GATT_COMMAND_UUID).WriteValueWithResultAsync(buffer);
+                bool success = await WriteCommand(toggleCommand, characteristics);
+                if (!success)
+                {
+                    Log.Error($"Cannot complete toggle stream (start={start}) due to failure to run toggle command.");
+                    return;
+                }
             }
             catch (Exception ex) {
-                Log.Error($"Exception during toggle stream (start={start}).", ex);
+                Log.Error($"Exception during toggle stream (start={start}). Exception message: {ex.Message}.", ex);
                 if (isStreaming) FinishCloseOffStream();
                 return;
             }
@@ -232,6 +282,102 @@ namespace BlueMuse.MuseManagement
                 FinishCloseOffStream(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
         }
 
+        public async Task Reset()
+        {
+            var characteristics = await GetGattCharacteristics();
+            if (characteristics == null)
+            {
+                Log.Error($"Cannot reset device due to null GATT characteristics.");
+                return;
+            }
+            await WriteCommand(Constants.MUSE_CMD_ASK_RESET, characteristics);
+        }
+
+        private async Task<bool> WriteCommand(byte[] command, IReadOnlyList<GattCharacteristic> characteristics)
+        {
+            var commandCharacteristic = characteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_COMMAND_UUID);
+            if (commandCharacteristic == null)
+            {
+                Log.Error($"Cannot perform command {command} due to null GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}.");
+                return false;
+            }
+
+            var writeResult = await commandCharacteristic.WriteValueWithResultAsync(WindowsRuntimeBuffer.Create(command, 0, command.Length, command.Length));
+            if (writeResult.Status != GattCommunicationStatus.Success) {
+                Log.Error($"Cannot perform command {command} due to unexpected communication error with GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}). Status: {writeResult.Status}. Protocol Error {writeResult.ProtocolError}.");
+                return false;
+            }
+            return true;
+        }
+
+        private async Task<IReadOnlyList<GattCharacteristic>> GetGattCharacteristics(string deviceServiceUuid = null)
+        {
+            if (deviceServiceUuid == null) deviceServiceUuid = Constants.MUSE_GATT_DATA_SERVICE_UUID.ToString();
+
+            // Get GATT device service.
+            var deviceService = await Device.GetGattServicesForUuidAsync(new Guid(deviceServiceUuid));
+            if (deviceService == null)
+            {
+                Log.Error($"Cannot get GATT characteristics due to unexpected null GATT device service (UUID={deviceServiceUuid}).");
+                return null;
+            }
+            else if (deviceService.Status != GattCommunicationStatus.Success)
+            {
+                Log.Error($"Cannot get GATT characteristics due to unexpected communication error with GATT device service (UUID={deviceServiceUuid}). Status: {deviceService.Status}. Protocol Error {deviceService.ProtocolError}.");
+                return null;
+            }
+            else if (deviceService.Services.FirstOrDefault() == null)
+            {
+                Log.Error($"Cannot get GATT characteristics due to unexpected null GATT device service list of services (UUID={deviceServiceUuid}).");
+                return null;
+            }
+
+            var characteristics = await deviceService.Services.First().GetCharacteristicsAsync();
+            if (characteristics == null)
+            {
+                Log.Error($"Cannot get GATT characteristics due to unexpected null characteristics.");
+                return null;
+            }
+            else if (characteristics.Status != GattCommunicationStatus.Success)
+            {
+                Log.Error($"Cannot get GATT characteristics due to unexpected communication error with GATT device service (UUID={deviceServiceUuid}). Status: {characteristics.Status}. Protocol Error {characteristics.ProtocolError}.");
+                return null;
+            }
+            else return characteristics.Characteristics;
+        }
+
+        private async Task<bool> ToggleCharacteristics(Guid[] characteristicTargets, IReadOnlyList<GattCharacteristic> characteristics, bool start, TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs> eventHandler)
+        {
+            foreach (var c in characteristicTargets)
+            {
+                var characteristic = characteristics.SingleOrDefault(x => x.Uuid == c);
+                if (characteristic == null)
+                {
+                    Log.Error($"Cannot toggle characteristics (start={start}) due to unexpected null GATT characteristic (UUID={c}).");
+                    return false;
+                }
+
+                GattClientCharacteristicConfigurationDescriptorValue notifyToggle;
+                if(start)
+                {
+                    notifyToggle = GattClientCharacteristicConfigurationDescriptorValue.Notify;
+                    characteristic.ValueChanged += eventHandler;
+                }
+                else
+                {
+                    characteristic.ValueChanged -= eventHandler;
+                    notifyToggle = GattClientCharacteristicConfigurationDescriptorValue.None;
+                }
+                var writeResult = await characteristic.WriteClientCharacteristicConfigurationDescriptorWithResultAsync(notifyToggle);
+                if (writeResult.Status != GattCommunicationStatus.Success)
+                {
+                    Log.Error($"Cannot perform command {notifyToggle} due to unexpected communication error with GATT characteristic (UUID={c}). Status: {writeResult.Status}. Protocol Error {writeResult.ProtocolError}.");
+                    return false;
+                }
+            }
+            return true;
+        }
+
         // Handles LSL stream opening.
         private async void FinishOpenStream()
         {
@@ -239,13 +385,11 @@ namespace BlueMuse.MuseManagement
             IsStreaming = true;
         }
 
-        // Handles LSL stream closing, and Bluetooth cleanup.
+        // Handles LSL stream closing.
         private async void FinishCloseOffStream()
         {
-            inUseGattChannels.Clear();
             eegSampleBuffer.Clear();
             await LSLCloseStream();
-            deviceService.Dispose();
             IsStreaming = false;
         }
 
@@ -265,7 +409,7 @@ namespace BlueMuse.MuseManagement
             }
             if (isPPGEnabled)
             {
-                //await LSLOpenPPG();
+                await LSLOpenPPG();
             }
         }
 
@@ -374,6 +518,41 @@ namespace BlueMuse.MuseManagement
             await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }
 
+        private async Task LSLOpenPPG()
+        {
+            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            foreach (var c in Constants.MUSE_PPG_CHANNEL_LABELS)
+            {
+                channelsInfo.Add(new LSLBridgeChannelInfo
+                {
+                    Label = c,
+                    Type = Constants.PPG_STREAM_TYPE,
+                    Unit = Constants.PPG_UNITS
+                });
+            }
+
+            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            {
+                BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
+                Channels = channelsInfo,
+                ChannelCount = eegChannelCount,
+                ChannelDataType = channelDataType.DataType,
+                ChunkSize = Constants.MUSE_PPG_SAMPLE_COUNT,
+                DeviceManufacturer = deviceInfoManufacturer,
+                DeviceName = deviceInfoName,
+                NominalSRate = Constants.MUSE_PPG_SAMPLE_RATE,
+                StreamType = Constants.PPG_STREAM_TYPE,
+                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                StreamName = PPGStreamName
+            };
+
+            ValueSet message = new ValueSet
+            {
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
+            };
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+        }
+
         private async Task LSLCloseStream()
         {
             // It is safe to just iterate the possible stream names and request that the bridge closes them.
@@ -440,7 +619,6 @@ namespace BlueMuse.MuseManagement
             {
                 vals[i] = buffer.GetByte(i);
             }
-            //CryptographicBuffer.CopyToByteArray(buffer, out byte[] raw);
             string hexStr = BitConverter.ToString(vals);
             string[] hexSplit = hexStr.Split('-');
             string bits = string.Empty;
@@ -466,19 +644,10 @@ namespace BlueMuse.MuseManagement
                 return samples;
             }
 
-            if (isStreaming)
-            {
-                try
+    if (isStreaming)
+    {
+        try
                 {
-                    if (sender.AttributeHandle == 43)
-                    {
-                        Debug.WriteLine("wtf..." + sender.Uuid);
-                        foreach (var entry in eegSampleBuffer)
-                        {
-                            entry.Value.ChannelData[sender.Uuid] = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
-                        }
-                    }
-
                     string bits = GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseEEGSamples samples;
@@ -488,9 +657,9 @@ namespace BlueMuse.MuseManagement
                         {
                             samples = new MuseEEGSamples();
                             eegSampleBuffer.Add(museTimestamp, samples);
-                            samples.BaseTimestamp = TimestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                            samples.BasetimeStamp2 = TimestampFormat.GetType() != TimestampFormat2.GetType() ?
-                                  TimestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                            samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                            samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
+                                  timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
                                 : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
                         }
                         else samples = eegSampleBuffer[museTimestamp];

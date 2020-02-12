@@ -86,6 +86,18 @@ namespace BlueMuse.ViewModels
             }
         }
 
+        private ICommand resetMuse;
+        public ICommand ResetMuse
+        {
+            get
+            {
+                return resetMuse ?? (resetMuse = new CommandHandler((param) =>
+                {
+                    museManager.ResetMuse(param);
+                }, true));
+            }
+        }
+
         private ICommand stopStreaming;
         public ICommand StopStreaming
         {

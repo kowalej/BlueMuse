@@ -22,7 +22,7 @@ namespace BlueMuse
     public partial class App : Application
     {
         /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
+        /// Initializes the singleton application object.
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
         public App()
@@ -69,9 +69,9 @@ namespace BlueMuse
 
                 if (previousExecutionState == ApplicationExecutionState.Terminated)
                 {
-                    //TODO: Load state from previously suspended application
+                    // TODO: Load state from previously suspended application.
                 }
-                // Place the frame in the current Window
+                // Place the frame in the current Window.
                 Window.Current.Content = rootFrame;
             }
 
@@ -81,12 +81,12 @@ namespace BlueMuse
                 {
                     // When the navigation stack isn't restored navigate to the first page,
                     // configuring the new page by passing required information as a navigation
-                    // parameter
+                    // parameter.
                     if (e == null) rootFrame.Navigate(typeof(MainPage));
                     else rootFrame.Navigate(typeof(MainPage), e);
                 }
 
-                // Ensure the current window is active
+                // Ensure the current window is active.
                 var desiredSize = new Size(425d, 660d);
                 ApplicationView.PreferredLaunchViewSize = desiredSize;
                 ApplicationView.PreferredLaunchWindowingMode = ApplicationViewWindowingMode.PreferredLaunchViewSize;
@@ -97,7 +97,7 @@ namespace BlueMuse
 
         protected async override void OnActivated(IActivatedEventArgs args)
         {
-            // Check for protocol activation
+            // Check for protocol activation.
             if (args.Kind == ActivationKind.Protocol)
             {
                 bool launching = args.PreviousExecutionState != ApplicationExecutionState.Running;
@@ -195,10 +195,10 @@ namespace BlueMuse
         }
 
         /// <summary>
-        /// Invoked when Navigation to a certain page fails
+        /// Invoked when Navigation to a certain page fails.
         /// </summary>
-        /// <param name="sender">The Frame which failed navigation</param>
-        /// <param name="e">Details about the navigation failure</param>
+        /// <param name="sender">The Frame which failed navigation.</param>
+        /// <param name="e">Details about the navigation failure.</param>
         void OnNavigationFailed(object sender, NavigationFailedEventArgs e)
         {
             throw new Exception("Failed to load Page " + e.SourcePageType.FullName);
@@ -214,7 +214,7 @@ namespace BlueMuse
         private void OnSuspending(object sender, SuspendingEventArgs e)
         {
             var deferral = e.SuspendingOperation.GetDeferral();
-            //TODO: Save application state and stop any background activity
+            // TODO: Save application state and stop any background activity.
             deferral.Complete();
         }
 

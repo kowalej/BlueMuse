@@ -72,7 +72,7 @@
                                         </ComboBox>
                                     </StackPanel>
 
-                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8">
+                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
                                         <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                             <TextBlock FontWeight="Bold" Text="EEG Enabled" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsEEGEnabled, Mode=TwoWay}" />
@@ -85,6 +85,13 @@
                                             <TextBlock FontWeight="Bold" Text="Gyroscope Enabled" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsGyroscopeEnabled, Mode=TwoWay}" />
                                         </StackPanel>
+                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <TextBlock FontWeight="Bold" Text="PPG Enabled" VerticalAlignment="Center" />
+                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsPPGEnabled, Mode=TwoWay}" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
                                         <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
                                             <TextBlock FontWeight="Bold" Text="Always Pair Device (Experimental)?" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" />
@@ -101,7 +108,7 @@
                                         <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
                                     </StackPanel>
 
-                                    <Button VerticalAlignment="Bottom" Margin="8 8 0 0" HorizontalAlignment="Left" Content="Done" Click="SettingsDone_Click"></Button>
+                                    <Button VerticalAlignment="Bottom" Margin="0 24 30 0" FontSize="18" Background="LightBlue" HorizontalAlignment="Right" Content="Done" Click="SettingsDone_Click"></Button>
                                 </StackPanel>
                             </StackPanel>
                         </Flyout>
@@ -136,8 +143,11 @@
                                             <TextBlock Margin="6, 0, 0, 0" Text="{x:Bind IsStreaming, ConverterParameter=Streaming: \{0\}, Converter={StaticResource YesNoValueFormatter}, Mode=OneWay}"/>
                                         </StackPanel>
                                     </StackPanel>
+
+                                    <Button Visibility="{x:Bind CanReset, Mode=OneWay}" Margin="34 -24 0 0" Content="Reset Muse" Background="Firebrick" FontSize="12"
+                                        Command="{Binding ViewModel.ResetMuse, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
                                 </StackPanel>
-                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="32, 4, 0, 0">
+                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="30, 4, 0, 0">
                                     <Button IsEnabled="{x:Bind CanStream, Mode=OneWay}" Visibility="{x:Bind IsStreaming, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}" Content="Start Streaming"
                                         Command="{Binding ViewModel.StartStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
                                     <Button Visibility="{x:Bind IsStreaming, Mode=OneWay}" Content="Stop Streaming"
