@@ -193,8 +193,11 @@ namespace BlueMuse.MuseManagement
 
         public async Task ToggleStream(bool start)
         {
-            if (MuseModel == MuseModel.Undetected) DetermineMuseModel();
-            if (start == isStreaming || (start && !CanStream)) return;
+            lock (syncLock)
+            {
+                if (MuseModel == MuseModel.Undetected) DetermineMuseModel();
+                if (start == isStreaming || (start && !CanStream)) return;
+            }
             try
             {
                 if (start)
@@ -217,13 +220,14 @@ namespace BlueMuse.MuseManagement
                         !isGyroscopeEnabled &&
                         !isPPGEnabled) return; // Nothing enabled, can't start under this condition.
 
+                    // Should only need to acquire stream characteristics during start, they will then be reused upon stopping the stream.
+                    streamCharacteristics = streamCharacteristics ?? await GetGattCharacteristics();
                 }
 
-                streamCharacteristics = await GetGattCharacteristics();
                 if (streamCharacteristics == null)
                 {
                     Log.Error($"Cannot complete toggle stream (start={start}) due to null GATT characteristics.");
-                    return;
+                    if (start) return;
                 }
 
                 // Subscribe or unsubscribe EEG.
@@ -232,7 +236,7 @@ namespace BlueMuse.MuseManagement
                     if (!await ToggleCharacteristics(eegChannelUUIDs, streamCharacteristics, start, EEGChannel_ValueChanged))
                     {
                         Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for EEG.");
-                        return;
+                        if (start) return;
                     }
                 }
 
@@ -242,7 +246,7 @@ namespace BlueMuse.MuseManagement
                     //await ToggleCharacteristic(Constants.MUSE_GATT_ACCELEROMETER_UUID, characteristics, start, AccelerometerChannel_ValueChanged);
                     //{
                     //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
-                    //return;
+                    // if (start) return;
                     //}
                 }
 
@@ -252,7 +256,7 @@ namespace BlueMuse.MuseManagement
                     //await ToggleCharacteristic(Constants.MUSE_GATT_GYROSCOPE_UUID, characteristics, start, GyroscopeChannel_ValueChanged);
                     //{
                     //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
-                    //return;
+                    // if (start) return;
                     //}
                 }
 
@@ -262,7 +266,7 @@ namespace BlueMuse.MuseManagement
                     //await ToggleCharacteristic(Constants.MUSE_GATT_PPG_CHANNEL_UUIDS, characteristics, start, PPGChannel_ValueChanged);
                     //{
                     //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
-                    //return;
+                    // if (start) return;
                     //}
                 }
 
@@ -270,24 +274,23 @@ namespace BlueMuse.MuseManagement
                 byte[] toggleCommand = start ? Constants.MUSE_CMD_TOGGLE_STREAM_START : Constants.MUSE_CMD_TOGGLE_STREAM_STOP;
 
                 // Tell Muse to start or stop notifications.
-                bool success = await WriteCommand(toggleCommand, characteristics);
+                bool success = await WriteCommand(toggleCommand, streamCharacteristics);
                 if (!success)
                 {
                     Log.Error($"Cannot complete toggle stream (start={start}) due to failure to run toggle command.");
-                    return;
+                    // if (start) return;
                 }
             }
             catch (Exception ex)
             {
                 Log.Error($"Exception during toggle stream (start={start}). Exception message: {ex.Message}.", ex);
-                if (isStreaming) FinishCloseOffStream();
-                return;
+                if (!start) FinishCloseOffStream();
             }
-
+            
             if (start)
                 FinishOpenStream();
             else
-                FinishCloseOffStream(); // Don't have to keep service reference around anymore. The handlers for the channels will also stop.
+                FinishCloseOffStream();
         }
 
         public async Task Reset()
@@ -369,8 +372,8 @@ namespace BlueMuse.MuseManagement
                 GattClientCharacteristicConfigurationDescriptorValue notifyToggle;
                 if (start)
                 {
-                    notifyToggle = GattClientCharacteristicConfigurationDescriptorValue.Notify;
                     characteristic.ValueChanged += eventHandler;
+                    notifyToggle = GattClientCharacteristicConfigurationDescriptorValue.Notify;
                 }
                 else
                 {
@@ -400,6 +403,7 @@ namespace BlueMuse.MuseManagement
             eegSampleBuffer.Clear();
             await LSLCloseStream();
             IsStreaming = false;
+            streamCharacteristics = null;
         }
 
         private async Task LSLOpenStreams()
