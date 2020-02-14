@@ -30,7 +30,7 @@ namespace LSLBridge.LSL
             };
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
-            //keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1); // Check if we're running every second.
+            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 250); // Check if we're running every 250ms.
         }
 
         private async void OpenService()
@@ -41,7 +41,8 @@ namespace LSLBridge.LSL
         private void CheckLastMessage(object state)
         {
             // Auto close off bridge if we aren't receiving any data. This fixes LSLBridge not being shut down after closing main app.
-            if (lastMessageTime != DateTime.MinValue && (DateTime.Now - lastMessageTime).Seconds > 2)
+            // The main application should send a "keep alive" message every 500ms.
+            if (lastMessageTime != DateTime.MinValue && (DateTime.Now - lastMessageTime).Seconds > 1500)
             {
                 CloseBridge();
             }

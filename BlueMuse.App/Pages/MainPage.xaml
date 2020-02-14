@@ -141,9 +141,9 @@
                                     <StackPanel Margin="0,0,12,0" MaxWidth="60" MinWidth="60" HorizontalAlignment="Left" Orientation="Vertical">
                                         <SymbolIcon Symbol="People" Margin="-20 10 0 0" />
 
-                                        <StackPanel Orientation="Vertical" Margin="0 8 0 0">
+                                        <StackPanel Orientation="Vertical" Margin="0 8 0 0" Opacity="{x:Bind BatteryLevelOpacity, Mode=OneWay}">
                                             <TextBlock Text="Battery:" FontSize="12" HorizontalAlignment="Left" />
-                                            <ProgressBar Height="14" Foreground="Green" MaxWidth="50" MinWidth="50" HorizontalAlignment="Left" Value="10" />
+                                            <ProgressBar Height="14" Foreground="Green" MaxWidth="50" MinWidth="50" HorizontalAlignment="Left" Value="{x:Bind BatteryLevel, Mode=OneWay}" />
                                         </StackPanel>
                                     </StackPanel>
                                     <StackPanel>

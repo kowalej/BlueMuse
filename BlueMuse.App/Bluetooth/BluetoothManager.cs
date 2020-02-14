@@ -45,12 +45,12 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
-            pollBridge = new Timer(PollBridge, null, 0, 1000);
+            pollBridge = new Timer(PollBridge, null, 0, 500);
         }
 
         public async void PollBridge(object state)
         {
-            if(LSLBridgeLaunched && !Muses.Any(x => x.IsStreaming))
+            if(LSLBridgeLaunched)
                 await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE, new Windows.Foundation.Collections.ValueSet());
         }
 
@@ -58,7 +58,7 @@ namespace BlueMuse.Bluetooth
         {
             await StopStreamingAll();
             await DeactivateLSLBridge();
-            await Task.Delay(1500); // This delay ensures LSL bridge gets shutdown in time.
+            await Task.Delay(2000); // This delay ensures LSL bridge gets shutdown in time.
         }
 
         public void FindMuses()

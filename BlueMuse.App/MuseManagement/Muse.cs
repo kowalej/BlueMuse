@@ -103,7 +103,7 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        private volatile bool isStreaming;
+        private bool isStreaming;
         public bool IsStreaming { get { return isStreaming; } set { lock (syncLock) { SetProperty(ref isStreaming, value); OnPropertyChanged(nameof(CanReset)); } } }
 
         private bool isSelected;
@@ -134,7 +134,8 @@ namespace BlueMuse.MuseManagement
         public string TelemetryStreamName { get { return $"{LongName} {Constants.TELEMETRY_STREAM_TYPE}"; } }
 
         private int batteryLevel = -1;
-        public int BatteryLevel { get { return batteryLevel; } set { lock (syncLock) { SetProperty(ref batteryLevel, value); OnPropertyChanged(nameof(BatteryLevel)); } } }
+        public int BatteryLevel { get { return batteryLevel; } set { lock (syncLock) { SetProperty(ref batteryLevel, value); OnPropertyChanged(nameof(BatteryLevel)); OnPropertyChanged(nameof(BatteryLevelOpacity)); } } }
+        public double BatteryLevelOpacity { get { return batteryLevel > -1 ? 1.0d : 0.20d; } }
 
         private volatile string deviceInfoLive = string.Empty;
         private string deviceInfo;
@@ -166,7 +167,7 @@ namespace BlueMuse.MuseManagement
             Id = id;
             Status = status;
             DetermineMuseModel();
-            deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 0, 2000);
+            deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 0, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS);
         }
 
         public async void DetermineMuseModel()
@@ -340,7 +341,7 @@ namespace BlueMuse.MuseManagement
                 FinishOpenStream();
             else
             {
-                deviceInfoTimer.Change(0, 2000); // "Resume" the timer.
+                deviceInfoTimer.Change(0, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
                 FinishCloseOffStream();
             }
         }
@@ -469,6 +470,14 @@ namespace BlueMuse.MuseManagement
                     // If our message starts with '{' and ends with '}' we know it is complete JSON data that we can use.
                     if (controlStatusBuffer.FirstOrDefault() == '{' && controlStatusBuffer.LastOrDefault() == '}')
                     {
+                        var batteryPer = Regex.Match(controlStatusBuffer, "\"bp\":\\W*([0-9]+)");
+                        if (batteryPer.Success)
+                        {
+                            if (int.TryParse(batteryPer.Groups[1].Value, out int batteryInt))
+                            {
+                                BatteryLevel = batteryInt;
+                            }
+                        }
                         var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
                         if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
                         controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
