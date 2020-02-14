@@ -20,8 +20,8 @@ namespace LSLBridge.LSL
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }
 
         // Live rate update.
-        private int rate = 0;
-        public int Rate { get { return rate; } set { SetProperty(ref rate, value); } }
+        private double rate = 0;
+        public double Rate { get { return rate; } set { SetProperty(ref rate, value); } }
 
         private Stopwatch stopWatch;
         int sampleCountSec = 0;
@@ -106,8 +106,8 @@ namespace LSLBridge.LSL
             if (stopWatch.ElapsedMilliseconds >= 1000)
             {
                 var elapsed = stopWatch.ElapsedMilliseconds;
-                var elapsedAdjusted = 1000f / elapsed;
-                Rate = (int)(sampleCountSec * elapsedAdjusted);
+                var elapsedAdjusted = 1000d / elapsed;
+                Rate = sampleCountSec * elapsedAdjusted;
                 sampleCountSec = 0;
                 stopWatch.Restart();
             }

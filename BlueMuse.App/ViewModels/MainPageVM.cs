@@ -98,6 +98,18 @@ namespace BlueMuse.ViewModels
             }
         }
 
+        private ICommand refreshDeviceInfoAndControlStatus;
+        public ICommand RefreshDeviceInfoAndControlStatus
+        {
+            get
+            {
+                return refreshDeviceInfoAndControlStatus ?? (refreshDeviceInfoAndControlStatus = new CommandHandler((param) =>
+                {
+                    museManager.RefreshDeviceInfoAndControlStatus(param);
+                }, true));
+            }
+        }
+
         private ICommand stopStreaming;
         public ICommand StopStreaming
         {

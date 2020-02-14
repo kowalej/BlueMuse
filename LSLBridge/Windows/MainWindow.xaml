@@ -19,7 +19,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Stream Info" Width="5*" Binding="{Binding Path=StreamDisplayInfo, Mode=OneWay}"></DataGridTextColumn>
                 <DataGridTextColumn Header="Last Timestamp" Width="3*" Binding="{Binding Path=LatestTimestamp, Mode=OneWay}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Rate (Hz)" Width="2*" Binding="{Binding Path=Rate, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn Header="Rate (Hz)" Width="2*" Binding="{Binding Path=Rate, Mode=OneWay, StringFormat={}{0:#.00}}"></DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
     </StackPanel>

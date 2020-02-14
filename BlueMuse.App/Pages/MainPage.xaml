@@ -74,20 +74,24 @@
 
                                     <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
                                         <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="EEG Enabled" VerticalAlignment="Center" />
+                                            <TextBlock FontWeight="Bold" Text="EEG Enabled?" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsEEGEnabled, Mode=TwoWay}" />
                                         </StackPanel>
                                         <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="Accelerometer Enabled" VerticalAlignment="Center" />
+                                            <TextBlock FontWeight="Bold" Text="Accelerometer Enabled?" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsAccelerometerEnabled, Mode=TwoWay}" />
                                         </StackPanel>
                                         <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="Gyroscope Enabled" VerticalAlignment="Center" />
+                                            <TextBlock FontWeight="Bold" Text="Gyroscope Enabled?" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsGyroscopeEnabled, Mode=TwoWay}" />
                                         </StackPanel>
                                         <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="PPG Enabled" VerticalAlignment="Center" />
+                                            <TextBlock FontWeight="Bold" Text="PPG Enabled?" VerticalAlignment="Center" />
                                             <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsPPGEnabled, Mode=TwoWay}" />
+                                        </StackPanel>
+                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <TextBlock FontWeight="Bold" Text="Telemetry Enabled?" VerticalAlignment="Center" />
+                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsTelemetryEnabled, Mode=TwoWay}" />
                                         </StackPanel>
                                     </StackPanel>
 
@@ -134,20 +138,48 @@
                         <DataTemplate x:DataType="MuseDO:Muse">
                             <StackPanel Orientation="Vertical" Margin="6">
                                 <StackPanel Orientation="Horizontal">
-                                    <SymbolIcon Symbol="People" Margin="-6,0,12,0"/>
+                                    <StackPanel Margin="0,0,12,0" MaxWidth="60" MinWidth="60" HorizontalAlignment="Left" Orientation="Vertical">
+                                        <SymbolIcon Symbol="People" Margin="-20 10 0 0" />
+
+                                        <StackPanel Orientation="Vertical" Margin="0 8 0 0">
+                                            <TextBlock Text="Battery:" FontSize="12" HorizontalAlignment="Left" />
+                                            <ProgressBar Height="14" Foreground="Green" MaxWidth="50" MinWidth="50" HorizontalAlignment="Left" Value="10" />
+                                        </StackPanel>
+                                    </StackPanel>
                                     <StackPanel>
                                         <TextBlock Text="{x:Bind LongName, Mode=OneWay}"/>
                                         <TextBlock Text="{x:Bind MuseModel, ConverterParameter=Model: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
-                                        <StackPanel Orientation="Horizontal" Margin="4, 4, 4, 0">
+                                        <StackPanel Orientation="Horizontal" Margin="4, 4, 4, 0" Windows10FallCreatorsUpdate:Spacing="8">
                                             <TextBlock Text="{x:Bind Status, ConverterParameter=Status: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
-                                            <TextBlock Margin="6, 0, 0, 0" Text="{x:Bind IsStreaming, ConverterParameter=Streaming: \{0\}, Converter={StaticResource YesNoValueFormatter}, Mode=OneWay}"/>
+                                            <TextBlock FontWeight="SemiBold" Text="{x:Bind IsStreaming, ConverterParameter=Streaming: \{0\}, Converter={StaticResource YesNoValueFormatter}, Mode=OneWay}"/>
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <Button Visibility="{x:Bind CanReset, Mode=OneWay}" Margin="34 -24 0 0" Content="Reset Muse" Background="Firebrick" FontSize="12"
-                                        Command="{Binding ViewModel.ResetMuse, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
+                                    <StackPanel Orientation="Vertical"  Margin="34 0 0 0"  Windows10FallCreatorsUpdate:Spacing="8">
+                                        <Button Visibility="{x:Bind CanReset, Mode=OneWay}" Content="Reset Muse" Background="Firebrick" FontSize="12" Width="100"
+                                            Command="{Binding ViewModel.ResetMuse, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
+                                        <Button Visibility="{x:Bind CanRefreshInfo, Mode=OneWay}" Content="View Tech Info" Background="DarkSeaGreen" FontSize="12"  Width="100"
+                                            Command="{Binding ViewModel.RefreshDeviceInfoAndControlStatus, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" >
+                                            <Button.Flyout>
+                                                <Flyout>
+                                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" MinHeight="380" MinWidth="240">
+                                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" MinWidth="220" Width="200">
+                                                            <TextBlock Text="Device Info" FontWeight="Bold" HorizontalAlignment="Left" />
+                                                            <TextBox IsReadOnly="True" Text="{x:Bind DeviceInfo, Mode=OneWay}" Width="220" MaxWidth="220" Height="240" MinHeight="240"
+                                                                TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" MinWidth="220" Width="200">
+                                                            <TextBlock Text="Control Status" FontWeight="Bold" HorizontalAlignment="Left" />
+                                                            <TextBox IsReadOnly="True" Text="{x:Bind ControlStatus, Mode=OneWay}" Width="220" MaxWidth="220" Height="240" MinHeight="240"
+                                                                TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Flyout>
+                                            </Button.Flyout>
+                                        </Button>
+                                    </StackPanel>
                                 </StackPanel>
-                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="30, 4, 0, 0">
+                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 0, 0">
                                     <Button IsEnabled="{x:Bind CanStream, Mode=OneWay}" Visibility="{x:Bind IsStreaming, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}" Content="Start Streaming"
                                         Command="{Binding ViewModel.StartStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
                                     <Button Visibility="{x:Bind IsStreaming, Mode=OneWay}" Content="Stop Streaming"

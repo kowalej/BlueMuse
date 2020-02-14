@@ -8,7 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
@@ -31,6 +33,7 @@ namespace BlueMuse.MuseManagement
         public static bool IsAccelerometerEnabled = true;
         public static bool IsGyroscopeEnabled = true;
         public static bool IsPPGEnabled = true;
+        public static bool IsTelemetryEnabled = false;
 
         // Settings for a stream - read from static variables and fixed at stream start.
         private ITimestampFormat timestampFormat = TimestampFormat;
@@ -40,6 +43,7 @@ namespace BlueMuse.MuseManagement
         private bool isAccelerometerEnabled = true;
         private bool isGyroscopeEnabled = true;
         private bool isPPGEnabled = true;
+        private bool isTelemetryEnabled = false;
 
         // It is very important that we keep this referenced as a class member.
         // Otherwise our channels will stop having their event handlers called when the characteristics go out of scope (if referenced only inside a function).
@@ -48,12 +52,14 @@ namespace BlueMuse.MuseManagement
         // We have to buffer EEG and PPG, since any given sample is composed of data from multiple Bluetooth channels (Gatt characteristics).
         private volatile Dictionary<ushort, MuseEEGSamples> eegSampleBuffer;
         private volatile Dictionary<ushort, MusePPGSamples> ppgSampleBuffer;
+        private volatile string deviceInfoBuffer = string.Empty;
+        private volatile string controlStatusBuffer = string.Empty;
 
         private MuseModel museModel;
-        public MuseModel MuseModel { get { return museModel; } set { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } }
+        public MuseModel MuseModel { get { return museModel; } set { lock (syncLock) { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } } }
 
         private string name;
-        public string Name { get { return name; } set { SetProperty(ref name, value); OnPropertyChanged(nameof(LongName)); } }
+        public string Name { get { return name; } set { lock (syncLock) { SetProperty(ref name, value); OnPropertyChanged(nameof(LongName)); } } }
 
         private string id;
         public string Id
@@ -70,8 +76,8 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        private string deviceInfoManufacturer;
-        private string deviceInfoName;
+        private string lslDeviceInfoManufacturer;
+        private string lslDeviceInfoName;
 
         private int eegChannelCount;
         private Guid[] eegGattChannelUUIDs;
@@ -92,17 +98,30 @@ namespace BlueMuse.MuseManagement
                     SetProperty(ref status, value);
                     OnPropertyChanged(nameof(CanStream));
                     OnPropertyChanged(nameof(CanReset));
+                    OnPropertyChanged(nameof(CanRefreshInfo));
                 }
             }
         }
 
-        private bool isStreaming;
+        private volatile bool isStreaming;
         public bool IsStreaming { get { return isStreaming; } set { lock (syncLock) { SetProperty(ref isStreaming, value); OnPropertyChanged(nameof(CanReset)); } } }
 
         private bool isSelected;
-        public bool IsSelected { get { return isSelected; } set { lock (syncLock) { SetProperty(ref isSelected, value); OnPropertyChanged(nameof(CanReset)); } } }
+        public bool IsSelected
+        {
+            get { return isSelected; }
+            set { 
+                lock (syncLock) { 
+                    SetProperty(ref isSelected, value); 
+                    OnPropertyChanged(nameof(CanReset));
+                    OnPropertyChanged(nameof(CanRefreshInfo));
+                } 
+            }
+        }
 
-        public bool CanReset { get { return isSelected && status == MuseConnectionStatus.Online && !isStreaming; } }
+        public bool CanReset { get { return status == MuseConnectionStatus.Online && !isStreaming; } }
+
+        public bool CanRefreshInfo { get { return status == MuseConnectionStatus.Online && !isStreaming; } }
 
         public bool CanStream { get { return status == MuseConnectionStatus.Online; } }
         public string LongName { get { return string.Format("{0} ({1})", Name, MacAddress); } }
@@ -112,6 +131,18 @@ namespace BlueMuse.MuseManagement
         public string AccelerometerStreamName { get { return $"{LongName} {Constants.ACCELEROMETER_STREAM_TYPE}"; } }
         public string GyroscopeStreamName { get { return $"{LongName} {Constants.GYROSCOPE_STREAM_TYPE}"; } }
         public string PPGStreamName { get { return $"{LongName} {Constants.PPG_STREAM_TYPE}"; } }
+        public string TelemetryStreamName { get { return $"{LongName} {Constants.TELEMETRY_STREAM_TYPE}"; } }
+
+        private int batteryLevel = -1;
+        public int BatteryLevel { get { return batteryLevel; } set { lock (syncLock) { SetProperty(ref batteryLevel, value); OnPropertyChanged(nameof(BatteryLevel)); } } }
+
+        private volatile string deviceInfoLive = string.Empty;
+        private string deviceInfo;
+        public string DeviceInfo { get { return deviceInfo; } set { lock (syncLock) { SetProperty(ref deviceInfo, value); OnPropertyChanged(nameof(DeviceInfo)); } } }
+
+        private volatile string controlStatusLive = string.Empty;
+        private string controlStatus;
+        public string ControlStatus { get { return controlStatus; } set { lock (syncLock) { SetProperty(ref controlStatus, value); OnPropertyChanged(nameof(ControlStatus)); } } }
 
         public string MacAddress
         {
@@ -126,6 +157,8 @@ namespace BlueMuse.MuseManagement
             }
         }
 
+        Timer deviceInfoTimer;
+
         public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status)
         {
             Device = device;
@@ -133,6 +166,7 @@ namespace BlueMuse.MuseManagement
             Id = id;
             Status = status;
             DetermineMuseModel();
+            deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 0, 2000);
         }
 
         public async void DetermineMuseModel()
@@ -140,41 +174,41 @@ namespace BlueMuse.MuseManagement
             // Already determined model, no work to do.
             if (MuseModel != MuseModel.Undetected) return;
 
-            // Device is Smith Lowdown.
+            // Device is Smith Lowdown, we can determine this by name along, therefore the device doesn't need to be actively connected.
             if (name.Contains("SMXT"))
             {
                 MuseModel = MuseModel.Smith;
                 eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
                 eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
                 eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
-                deviceInfoName = Constants.MUSE_SMXT_DEVICE_NAME;
-                deviceInfoManufacturer = Constants.MUSE_SMXT_MANUFACTURER;
+                lslDeviceInfoName = Constants.MUSE_SMXT_DEVICE_NAME;
+                lslDeviceInfoManufacturer = Constants.MUSE_SMXT_MANUFACTURER;
             }
 
             // Device must be a regular Muse or Muse 2, so we set basic properties.
             else
             {
-                deviceInfoManufacturer = Constants.MUSE_MANUFACTURER;
+                lslDeviceInfoManufacturer = Constants.MUSE_MANUFACTURER;
             }
 
             // Cannot determine any further (Muse Original vs Muse 2 until connected).
             if (Status == MuseConnectionStatus.Offline) return;
             try
             {
-                var characteristics = await GetGattCharacteristics();
-                if (characteristics == null)
+                streamCharacteristics = await GetGattCharacteristics();
+                if (streamCharacteristics == null)
                 {
                     Log.Error($"Cannot complete determining Muse model due to null GATT characteristics.");
                     return;
                 }
                 // Device has PPG, therefore we know it's a Muse 2. Note we will also not use AUX channel.
-                if (characteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
+                if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
                 {
                     MuseModel = MuseModel.Muse2;
                     eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
                     eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
                     eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
-                    deviceInfoName = Constants.MUSE_2_DEVICE_NAME;
+                    lslDeviceInfoName = Constants.MUSE_2_DEVICE_NAME;
                 }
                 else
                 {
@@ -182,7 +216,7 @@ namespace BlueMuse.MuseManagement
                     eegChannelCount = Constants.MUSE_EEG_CHANNEL_COUNT;
                     eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
                     eegChannelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
-                    deviceInfoName = Constants.MUSE_DEVICE_NAME;
+                    lslDeviceInfoName = Constants.MUSE_DEVICE_NAME;
                 }
             }
             catch (Exception ex)
@@ -214,20 +248,29 @@ namespace BlueMuse.MuseManagement
                     isAccelerometerEnabled = IsAccelerometerEnabled;
                     isGyroscopeEnabled = IsGyroscopeEnabled;
                     isPPGEnabled = IsPPGEnabled && MuseModel == MuseModel.Muse2; // Only Muse 2 supports PPG.
+                    isTelemetryEnabled = IsTelemetryEnabled;
 
                     if (!isEEGEnabled &&
                         !isAccelerometerEnabled &&
                         !isGyroscopeEnabled &&
-                        !isPPGEnabled) return; // Nothing enabled, can't start under this condition.
+                        !isPPGEnabled &&
+                        !isTelemetryEnabled) return; // Nothing enabled, can't start under this condition.
 
                     // Should only need to acquire stream characteristics during start, they will then be reused upon stopping the stream.
                     streamCharacteristics = streamCharacteristics ?? await GetGattCharacteristics();
+
+                    deviceInfoTimer.Change(Timeout.Infinite, Timeout.Infinite); // "Pause" the timer.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, false, DeviceInfo_ValueChanged))
+                    {
+                        Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
+                    }
                 }
 
                 if (streamCharacteristics == null)
                 {
                     Log.Error($"Cannot complete toggle stream (start={start}) due to null GATT characteristics.");
                     if (start) return;
+                    else FinishCloseOffStream();
                 }
 
                 // Subscribe or unsubscribe EEG.
@@ -243,7 +286,7 @@ namespace BlueMuse.MuseManagement
                 // Subscribe or unsubscribe accelerometer.
                 if (isAccelerometerEnabled)
                 {
-                    if(!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ACCELEROMETER_UUID }, streamCharacteristics, start, Accelerometer_ValueChanged))
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ACCELEROMETER_UUID }, streamCharacteristics, start, Accelerometer_ValueChanged))
                     {
                         Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
                         if (start) return;
@@ -271,6 +314,7 @@ namespace BlueMuse.MuseManagement
                 }
 
                 // Subscribe or unsubscribe telemetry (battery, adc voltage, temperature).
+                // Note that we always subscribe to telemetry from a bluetooth standpoint, so that we can have an updated battery level.
                 if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_TELEMETRY_UUID }, streamCharacteristics, start, Telemetry_ValueChanged))
                 {
                     Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for telemetry.");
@@ -281,11 +325,9 @@ namespace BlueMuse.MuseManagement
                 byte[] toggleCommand = start ? Constants.MUSE_CMD_TOGGLE_STREAM_START : Constants.MUSE_CMD_TOGGLE_STREAM_STOP;
 
                 // Tell Muse to start or stop notifications.
-                bool success = await WriteCommand(toggleCommand, streamCharacteristics);
-                if (!success)
+                if (!await WriteCommand(toggleCommand, streamCharacteristics))
                 {
                     Log.Error($"Cannot complete toggle stream (start={start}) due to failure to run toggle command.");
-                    // if (start) return;
                 }
             }
             catch (Exception ex)
@@ -293,15 +335,19 @@ namespace BlueMuse.MuseManagement
                 Log.Error($"Exception during toggle stream (start={start}). Exception message: {ex.Message}.", ex);
                 if (!start) FinishCloseOffStream();
             }
-            
+
             if (start)
                 FinishOpenStream();
             else
+            {
+                deviceInfoTimer.Change(0, 2000); // "Resume" the timer.
                 FinishCloseOffStream();
+            }
         }
 
         public async Task Reset()
         {
+            if (!CanReset) return;
             var characteristics = await GetGattCharacteristics();
             if (characteristics == null)
             {
@@ -311,8 +357,139 @@ namespace BlueMuse.MuseManagement
             await WriteCommand(Constants.MUSE_CMD_ASK_RESET, characteristics);
         }
 
+        public async void RefreshDeviceInfoAndControlStatus(object state = null)
+        {
+            try
+            {
+                deviceInfoBuffer = string.Empty;
+                controlStatusBuffer = string.Empty;
+
+                if (CanRefreshInfo)
+                {
+                    streamCharacteristics = streamCharacteristics ?? await GetGattCharacteristics();
+                    if (streamCharacteristics == null)
+                    {
+                        Log.Error($"Cannot get device info due to null GATT characteristics.");
+                        return;
+                    }
+
+                    // Subscribe to the command channel which we will also write a command to which asks for device info.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, true, DeviceInfo_ValueChanged))
+                    {
+                        Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
+                    }
+                    // Ask for device info. We use the same command handler which waits for multiple packets to deliver a JSON value.
+                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, streamCharacteristics);
+                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, false, DeviceInfo_ValueChanged))
+                    {
+                        Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
+                    }
+                    DeviceInfo = deviceInfoLive; // Update "stable" property.
+
+                    // Subscribe to the command channel which we will also write a command to which asks for control status.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, true, ControlStatus_ValueChanged))
+                    {
+                        Log.Error($"Cannot get control status due to failure to toggle characteristics for info.");
+                    }
+                    // Ask for control status. We use the same command handler which waits for multiple packets to deliver a JSON value.
+                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, streamCharacteristics);
+                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, false, ControlStatus_ValueChanged))
+                    {
+                        Log.Error($"Cannot get control status due to failure to toggle characteristics for info.");
+                    }
+                    ControlStatus = controlStatusLive; // Update "stable" property.
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Unexpected error while getting device info / control status.", ex);
+            }
+        }
+
+        private void DeviceInfo_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            try
+            {
+                lock (syncLock)
+                {
+                    string bits = GetBits(args.CharacteristicValue);
+                    // Each packet contains a 1 byte values.
+                    int length = args.CharacteristicValue.GetByte(0);
+                    char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, 19));
+                    string text = new string(chars).Substring(0, length);
+
+                    if (string.IsNullOrEmpty(deviceInfoBuffer) && text.FirstOrDefault() == '{')
+                    {
+                        deviceInfoBuffer += text;
+                    }
+                    else if (!string.IsNullOrEmpty(deviceInfoBuffer) && !deviceInfoBuffer.EndsWith(text))
+                    {
+                        deviceInfoBuffer += text;
+                    }
+
+                    // If our message starts with '{' and ends with '}' we know it is complete JSON data that we can use.
+                    if (deviceInfoBuffer.FirstOrDefault() == '{' && deviceInfoBuffer.LastOrDefault() == '}')
+                    {
+                        var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(deviceInfoBuffer), Formatting.Indented);
+                        if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
+                        deviceInfoBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Exception during handling device info Bluetooth channel values.", ex);
+                deviceInfoBuffer = string.Empty;
+            }
+        }
+
+        private void ControlStatus_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            try
+            {
+                lock (syncLock)
+                {
+                    string bits = GetBits(args.CharacteristicValue);
+                    // Each packet contains a 1 byte values.
+                    int length = args.CharacteristicValue.GetByte(0);
+                    char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, 19));
+                    string text = new string(chars).Substring(0, length);
+
+                    if (string.IsNullOrEmpty(controlStatusBuffer) && text.FirstOrDefault() == '{')
+                    {
+                        controlStatusBuffer += text;
+                    }
+                    else if (!string.IsNullOrEmpty(controlStatusBuffer) && !controlStatusBuffer.EndsWith(text))
+                    {
+                        controlStatusBuffer += text;
+                    }
+
+                    // If our message starts with '{' and ends with '}' we know it is complete JSON data that we can use.
+                    if (controlStatusBuffer.FirstOrDefault() == '{' && controlStatusBuffer.LastOrDefault() == '}')
+                    {
+                        var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
+                        if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
+                        controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"Exception during handling control status Bluetooth channel values.", ex);
+                controlStatusBuffer = string.Empty;
+            }
+        }
+
         private async Task<bool> WriteCommand(byte[] command, IReadOnlyList<GattCharacteristic> characteristics)
         {
+            if (characteristics == null)
+            {
+                Log.Error($"Cannot perform command {command} due to null GATT characteristics.");
+                return false;
+            }
+
             var commandCharacteristic = characteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_COMMAND_UUID);
             if (commandCharacteristic == null)
             {
@@ -408,6 +585,7 @@ namespace BlueMuse.MuseManagement
         private async void FinishCloseOffStream()
         {
             eegSampleBuffer.Clear();
+            ppgSampleBuffer.Clear();
             await LSLCloseStream();
             IsStreaming = false;
             streamCharacteristics = null;
@@ -431,6 +609,10 @@ namespace BlueMuse.MuseManagement
             {
                 await LSLOpenPPG();
             }
+            if (isTelemetryEnabled)
+            {
+                await LSLOpenTelemetry();
+            }
         }
 
         private async Task LSLOpenEEG()
@@ -453,8 +635,8 @@ namespace BlueMuse.MuseManagement
                 ChannelCount = eegChannelCount,
                 ChannelDataType = channelDataType.DataType,
                 ChunkSize = Constants.MUSE_EEG_SAMPLE_COUNT,
-                DeviceManufacturer = deviceInfoManufacturer,
-                DeviceName = deviceInfoName,
+                DeviceManufacturer = lslDeviceInfoManufacturer,
+                DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_EEG_SAMPLE_RATE,
                 StreamType = Constants.EEG_STREAM_TYPE,
                 SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
@@ -488,8 +670,8 @@ namespace BlueMuse.MuseManagement
                 ChannelCount = Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT,
                 ChannelDataType = channelDataType.DataType,
                 ChunkSize = Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT,
-                DeviceManufacturer = deviceInfoManufacturer,
-                DeviceName = deviceInfoName,
+                DeviceManufacturer = lslDeviceInfoManufacturer,
+                DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_ACCELEROMETER_SAMPLE_RATE,
                 StreamType = Constants.ACCELEROMETER_STREAM_TYPE,
                 SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
@@ -523,8 +705,8 @@ namespace BlueMuse.MuseManagement
                 ChannelCount = Constants.MUSE_GYROSCOPE_CHANNEL_COUNT,
                 ChannelDataType = channelDataType.DataType,
                 ChunkSize = Constants.MUSE_GYROSCOPE_SAMPLE_COUNT,
-                DeviceManufacturer = deviceInfoManufacturer,
-                DeviceName = deviceInfoName,
+                DeviceManufacturer = lslDeviceInfoManufacturer,
+                DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_GYROSCOPE_SAMPLE_RATE,
                 StreamType = Constants.GYROSCOPE_STREAM_TYPE,
                 SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
@@ -558,8 +740,8 @@ namespace BlueMuse.MuseManagement
                 ChannelCount = eegChannelCount,
                 ChannelDataType = channelDataType.DataType,
                 ChunkSize = Constants.MUSE_PPG_SAMPLE_COUNT,
-                DeviceManufacturer = deviceInfoManufacturer,
-                DeviceName = deviceInfoName,
+                DeviceManufacturer = lslDeviceInfoManufacturer,
+                DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_PPG_SAMPLE_RATE,
                 StreamType = Constants.PPG_STREAM_TYPE,
                 SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
@@ -573,11 +755,46 @@ namespace BlueMuse.MuseManagement
             await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
         }
 
+        private async Task LSLOpenTelemetry()
+        {
+            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            foreach (var c in Constants.MUSE_TELEMETRY_CHANNEL_LABELS)
+            {
+                channelsInfo.Add(new LSLBridgeChannelInfo
+                {
+                    Label = c,
+                    Type = Constants.TELEMETRY_STREAM_TYPE,
+                    Unit = "Various"
+                });
+            }
+
+            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            {
+                BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
+                Channels = channelsInfo,
+                ChannelCount = Constants.MUSE_TELEMETRY_CHANNEL_COUNT,
+                ChannelDataType = channelDataType.DataType,
+                ChunkSize = Constants.MUSE_TELEMETRY_SAMPLE_COUNT,
+                DeviceManufacturer = lslDeviceInfoManufacturer,
+                DeviceName = lslDeviceInfoName,
+                NominalSRate = Constants.MUSE_TELEMETRY_SAMPLE_RATE,
+                StreamType = Constants.TELEMETRY_STREAM_TYPE,
+                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                StreamName = TelemetryStreamName
+            };
+
+            ValueSet message = new ValueSet
+            {
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
+            };
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+        }
+
         private async Task LSLCloseStream()
         {
             // It is safe to just iterate the possible stream names and request that the bridge closes them.
             foreach (var streamName in
-                 new string[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName })
+                 new string[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName, TelemetryStreamName })
             {
                 ValueSet message = new ValueSet
                 {
@@ -759,6 +976,48 @@ namespace BlueMuse.MuseManagement
             await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
         }
 
+        private async Task LSLPushTelemetryChunk(MuseTelemetrySamples sample)
+        {
+            ValueSet message = new ValueSet
+            {
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, TelemetryStreamName }
+            };
+
+            // Can only send 1D array with garbage AppService :S - inlined as batterysample1,batterysample2...temperaturesample1,temperaturesample2...
+            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            {
+                double[] data = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT * Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
+                {
+                    for (int j = 0; j < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_TELEMETRY_SAMPLE_COUNT) + j] = sample.TelemetryData[i];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            {
+                float[] data = new float[Constants.MUSE_TELEMETRY_SAMPLE_COUNT * Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
+                {
+                    for (int j = 0; j < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_TELEMETRY_SAMPLE_COUNT) + j] = (float)sample.TelemetryData[i];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else throw new InvalidOperationException("Can't push LSL Telemetry chunk - unsupported stream data type. Must use float32 or double64.");
+
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
+
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+        }
+
         private static string GetBits(IBuffer buffer)
         {
             byte[] vals = new byte[buffer.Length];
@@ -812,7 +1071,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling EEG channel values.", ex);
+                    Log.Error($"Exception during handling EEG Blueooth channel values.", ex);
                 }
             }
         }
@@ -852,7 +1111,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling PPG channel values.", ex);
+                    Log.Error($"Exception during handling PPG Bluetooth channel values.", ex);
                 }
             }
         }
@@ -876,7 +1135,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling PPG channel values.", ex);
+                    Log.Error($"Exception during handling accelerometer Bluetooth channel values.", ex);
                 }
             }
         }
@@ -900,14 +1159,39 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling PPG channel values.", ex);
+                    Log.Error($"Exception during handling gyroscope Bluetooth channel values.", ex);
                 }
             }
         }
 
         private async void Telemetry_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            throw new NotImplementedException();
+            if (isStreaming)
+            {
+                try
+                {
+                    string bits = GetBits(args.CharacteristicValue);
+                    ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                    MuseTelemetrySamples samples = new MuseTelemetrySamples();
+                    samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                    samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
+                            timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                        : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+
+                    samples.TelemetryData = MuseTelemetrySamples.DecodeTelemetrySamples(bits);
+
+                    BatteryLevel = (int)samples.TelemetryData[0];
+
+                    if (isTelemetryEnabled)
+                    {
+                        await LSLPushTelemetryChunk(samples);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Exception during handling telemetry Bluetooth channel values.", ex);
+                }
+            }
         }
 
     }

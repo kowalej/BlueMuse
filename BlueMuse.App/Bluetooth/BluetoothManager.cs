@@ -58,7 +58,7 @@ namespace BlueMuse.Bluetooth
         {
             await StopStreamingAll();
             await DeactivateLSLBridge();
-            await Task.Delay(1000); // This delay ensures LSL bridge gets shutdown in time.
+            await Task.Delay(1500); // This delay ensures LSL bridge gets shutdown in time.
         }
 
         public void FindMuses()
@@ -300,6 +300,15 @@ namespace BlueMuse.Bluetooth
             if(muse != null)
             {
                 await muse.Reset();
+            }
+        }
+
+        public void RefreshDeviceInfoAndControlStatus(object museId)
+        {
+            var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);
+            if (muse != null)
+            {
+                muse.RefreshDeviceInfoAndControlStatus();
             }
         }
 

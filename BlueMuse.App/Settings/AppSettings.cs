@@ -59,6 +59,10 @@ namespace BlueMuse.Settings
             // Init PPG enabled.
             var ppgEnabled = systemAppSettings.Values[Constants.SETTINGS_KEY_PPG_ENABLED] as bool?;
             IsPPGEnabled = ppgEnabled.HasValue ? ppgEnabled.Value : true;
+
+            // Init Telemetry enabled.
+            var telemetryEnabled = systemAppSettings.Values[Constants.SETTINGS_KEY_TELEMETRY_ENABLED] as bool?;
+            IsTelemetryEnabled = telemetryEnabled.HasValue ? telemetryEnabled.Value : false;
         }
 
         public void SetCMDSetting(string key, string value)
@@ -120,6 +124,13 @@ namespace BlueMuse.Settings
                     if (bool.TryParse(value, out bool ppgEnabled))
                     {
                         IsPPGEnabled = ppgEnabled; // Call public prop to trigger notification.
+                    }
+                    break;
+
+                case Constants.SETTINGS_KEY_TELEMETRY_ENABLED:
+                    if (bool.TryParse(value, out bool telemetryEnabled))
+                    {
+                        IsTelemetryEnabled = telemetryEnabled; // Call public prop to trigger notification.
                     }
                     break;
             }
@@ -234,13 +245,28 @@ namespace BlueMuse.Settings
         {
             get
             {
-                return isGyroscopeEnabled;
+                return isPPGEnabled;
             }
             set
             {
                 Muse.IsPPGEnabled = value;
                 systemAppSettings.Values[Constants.SETTINGS_KEY_PPG_ENABLED] = value;
-                SetProperty(ref isGyroscopeEnabled, value);
+                SetProperty(ref isPPGEnabled, value);
+            }
+        }
+
+        private bool isTelemetryEnabled;
+        public bool IsTelemetryEnabled
+        {
+            get
+            {
+                return isTelemetryEnabled;
+            }
+            set
+            {
+                Muse.IsTelemetryEnabled = value;
+                systemAppSettings.Values[Constants.SETTINGS_KEY_TELEMETRY_ENABLED] = value;
+                SetProperty(ref isTelemetryEnabled, value);
             }
         }
     }

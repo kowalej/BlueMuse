@@ -1,6 +1,5 @@
 ﻿using BlueMuse.Helpers;
 using System;
-using System.Collections.Generic;
 
 namespace BlueMuse.MuseManagement
 {
@@ -8,12 +7,21 @@ namespace BlueMuse.MuseManagement
     {
         public static double[] DecodeTelemetrySamples(string bits)
         {
-            // Each packet contains a 16 bit timestamp, followed by 6, 24-bit samples.
-            double[] samples = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT];
-            for (int i = 0; i < Constants.MUSE_Telemetry_SAMPLE_COUNT; i++)
+            // Each packet contains a 16 bit timestamp, followed by 4, 16-bit values representing battery, "fuel_gauge?", adc voltage, and temperature.
+            double[] samples = new double[Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+            for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
             {
-                samples[i] = PacketConversion.ToUInt24(bits, 16 + (i * 24)); // Initial offset by 16 bits for the timestamp.
+                samples[i] = PacketConversion.ToUInt16(bits, 16 + (i * 16)); // Initial offset by 16 bits for the timestamp.
             }
+
+            // The following conversion are from muse-lsl (inside muse.py). Not sure how accurate this info is. 2/13/2020.
+
+            // Battery.
+            samples[0] = samples[0] / 512;
+
+            // Fuel guage...
+            samples[1] = samples[1] * 2.2d;
+
             return samples;
         }
 
@@ -54,9 +62,9 @@ namespace BlueMuse.MuseManagement
             {
                 double baseSeconds = baseTimestamp;
 
-                for (int i = 0; i < Constants.MUSE_Telemetry_SAMPLE_COUNT; i++)
+                for (int i = 0; i < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; i++)
                 {
-                    timestamps[i] = baseSeconds - ((Constants.MUSE_Telemetry_SAMPLE_COUNT - i) * (Constants.MUSE_Telemetry_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps[i] = baseSeconds - ((Constants.MUSE_TELEMETRY_SAMPLE_COUNT - i) * (Constants.MUSE_TELEMETRY_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
                     timestamps[i] = timestamps[i];
                 }
                 return timestamps;
@@ -70,22 +78,22 @@ namespace BlueMuse.MuseManagement
             {
                 double baseSeconds = baseTimestamp2;
 
-                for (int i = 0; i < Constants.MUSE_Telemetry_SAMPLE_COUNT; i++)
+                for (int i = 0; i < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; i++)
                 {
-                    timestamps2[i] = baseSeconds - ((Constants.MUSE_Telemetry_SAMPLE_COUNT - i) * (Constants.MUSE_Telemetry_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps2[i] = baseSeconds - ((Constants.MUSE_TELEMETRY_SAMPLE_COUNT - i) * (Constants.MUSE_TELEMETRY_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
                     timestamps2[i] = timestamps2[i];
                 }
                 return timestamps2;
             }
         }
 
-        public Dictionary<Guid, double[]> ChannelData { get; set; }
+        public double[] TelemetryData { get; set; }
 
         public MuseTelemetrySamples()
         {
-            ChannelData = new Dictionary<Guid, double[]>();
-            timestamps = new double[Constants.MUSE_Telemetry_SAMPLE_COUNT];
-            timestamps2 = new double[Constants.MUSE_Telemetry_SAMPLE_COUNT];
+            TelemetryData = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT];
+            timestamps = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT];
+            timestamps2 = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT];
         }
     }
 }

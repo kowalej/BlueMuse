@@ -41,8 +41,8 @@ namespace BlueMuse
         public const int MUSE_PPG_SAMPLE_RATE = 64; // 64 hz.
         public const float MUSE_PPG_SAMPLE_TIME_MILLIS = 1.0f / MUSE_PPG_SAMPLE_RATE; // Theoretical time between consecutive PPG samples.
 
-        public const int MUSE_TELEMETRY_SAMPLE_RATE = 1; // 1 hz.
-        public const float MUSE_PPG_SAMPLE_TIME_MILLIS = 1.0f / MUSE_PPG_SAMPLE_RATE; // Theoretical time between consecutive PPG samples.
+        public const float MUSE_TELEMETRY_SAMPLE_RATE = 0.1f; // 0.1 hz (once every 10 seconds).
+        public const float MUSE_TELEMETRY_SAMPLE_TIME_MILLIS = 1.0f / MUSE_TELEMETRY_SAMPLE_RATE; // Theoretical time between consecutive telemetry samples.
 
         // Channel counts.
         public const int MUSE_EEG_CHANNEL_COUNT = 5;
@@ -50,6 +50,7 @@ namespace BlueMuse
         public const int MUSE_ACCELEROMETER_CHANNEL_COUNT = 3;
         public const int MUSE_GYROSCOPE_CHANNEL_COUNT = 3;
         public const int MUSE_PPG_CHANNEL_COUNT = 3;
+        public const int MUSE_TELEMETRY_CHANNEL_COUNT = 4;
 
         // Names and manufacturers.
         public const string MUSE_DEVICE_NAME = "Muse EEG Headset";
@@ -69,6 +70,7 @@ namespace BlueMuse
         public const int MUSE_ACCELEROMETER_SAMPLE_COUNT = 3; // Number of samples for each accelerometer LSL push.
         public const int MUSE_GYROSCOPE_SAMPLE_COUNT = 3; // Number of samples for each grysocope LSL push.
         public const int MUSE_PPG_SAMPLE_COUNT = 6; // Number of samples for each PPG LSL push.
+        public const int MUSE_TELEMETRY_SAMPLE_COUNT = 1; // Number of samples for each telemetry LSL push.
 
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
 
@@ -81,6 +83,7 @@ namespace BlueMuse
 
         public static readonly byte[] MUSE_CMD_ASK_RESET = new byte[4] { 0x03, 0x2a, 0x31, 0x0a };
         public static readonly byte[] MUSE_CMD_ASK_DEVICE_INFO = new byte[4] { 0x03, 0x76, 0x31, 0x0a };
+        public static readonly byte[] MUSE_CMD_ASK_CONTROL_STATUS = new byte[3] { 0x02, 0x73, 0x0a };
 
         // "Preset" modes.
         // See details on https://goo.gl/FPN1ib
@@ -147,14 +150,14 @@ namespace BlueMuse
         };
 
         // LSL labels for the Accelerometer stream channels.
-        public static readonly string[] MUSE_ACCELEROMETER_CHANNEL_LABELS = new string[3] {
+        public static readonly string[] MUSE_ACCELEROMETER_CHANNEL_LABELS = new string[MUSE_ACCELEROMETER_CHANNEL_COUNT] {
             "X",
             "Y",
             "Z"
         };
 
         // LSL labels for the Gyroscope stream channels.
-        public static readonly string[] MUSE_GYROSCOPE_CHANNEL_LABELS = new string[3] {
+        public static readonly string[] MUSE_GYROSCOPE_CHANNEL_LABELS = new string[MUSE_GYROSCOPE_CHANNEL_COUNT] {
             "X",
             "Y",
             "Z"
@@ -165,6 +168,14 @@ namespace BlueMuse
             "PPG1",
             "PPG2",
             "PPG3"
+        };
+
+        // LSL labels for the Telemetry stream channels.
+        public static readonly string[] MUSE_TELEMETRY_CHANNEL_LABELS = new string[MUSE_TELEMETRY_CHANNEL_COUNT] {
+            "Battery",
+            "Unknown (fuel?)",
+            "ADC Voltage",
+            "Temperature"
         };
 
         public const string TIMESTAMP_FORMAT_BLUEMUSE_UNIX = "BLUEMUSE";
@@ -183,6 +194,7 @@ namespace BlueMuse
         public const string SETTINGS_KEY_ACCELEROMETER_ENABLED = "accelerometer_enabled";
         public const string SETTINGS_KEY_GYROSCOPE_ENABLED = "gyroscope_enabled";
         public const string SETTINGS_KEY_PPG_ENABLED = "ppg_enabled";
+        public const string SETTINGS_KEY_TELEMETRY_ENABLED = "telemetry_enabled";
 
         public const string EEG_STREAM_TYPE = "EEG";
         public const string EEG_UNITS = "microvolts";
@@ -195,5 +207,7 @@ namespace BlueMuse
 
         public const string PPG_STREAM_TYPE = "PPG";
         public const string PPG_UNITS = "mmHg";
+
+        public const string TELEMETRY_STREAM_TYPE = "Telemetry";
     }
 }
