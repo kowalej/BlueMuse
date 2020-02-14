@@ -94,8 +94,8 @@ Toggle "always pair":
 ### First Step
 **Download [latest version](https://github.com/kowalej/BlueMuse/raw/master/Dist/BlueMuse_1.1.1.0.zip) from the /Dist folder** and unzip, then follow one of the methods below.
 ### Auto Install (Recommended)
-1. Navigate to the unzipped app folder and run the PowerShell command: 
-`.\Install.ps1`
+1. Navigate to the unzipped app folder and run the `.\InstallBlueMuse.ps1` PowerShell command (right click and choose Run with PowerShell or execute from terminal directly): 
+
 2. Follow the prompts - the script should automatically install the security certificate, all dependencies, and the BlueMuse app.
 
 ### Manual Install
@@ -122,7 +122,7 @@ Toggle "always pair":
     * Added button to "hard reset" the Muse. *This can sometimes help resolve connectivity issues.*
     * Cleaned up UI (improved button colours and important text is bolded).
     * Added a lot more logging for Bluetooth and other processing errors. This will hopefully lead to issues being resolved in the future if users are having streaming issues.
-    * Using generated UWP package Install.ps1 Powershell install script (no longer relying on customer InstallBlueMuse.ps1 script).
+    * Utilizing generated UWP package Install.ps1 Powershell install script (instead of calling Add-AppDevPackage directly).
     
 #### Older
 * 1.1.1.0

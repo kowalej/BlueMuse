@@ -34,7 +34,7 @@ if($Package){
 	Write-Host ("Removed BlueMuse " + $Package.Version)
 }
 
-$InstallScript = Join-Path $ScriptDir "./Add-AppDevPackage.ps1"
+$InstallScript = Join-Path $ScriptDir "./Install.ps1"
 Write-Host ("Running: " + $InstallScript)
 & $InstallScript
 

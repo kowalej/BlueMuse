@@ -245,7 +245,7 @@ namespace BlueMuse.MuseManagement
                 }
                 else
                 {
-                    MuseModel = MuseModel.Original;
+                    MuseModel = MuseModel.Muse2016;
                     eegChannelCount = Constants.MUSE_EEG_CHANNEL_COUNT;
                     eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
                     eegChannelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
