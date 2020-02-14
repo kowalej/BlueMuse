@@ -42,7 +42,7 @@ namespace LSLBridge.LSL
         {
             // Auto close off bridge if we aren't receiving any data. This fixes LSLBridge not being shut down after closing main app.
             // The main application should send a "keep alive" message every 500ms.
-            if (lastMessageTime != DateTime.MinValue && (DateTime.Now - lastMessageTime).Seconds > 1500)
+            if (lastMessageTime != DateTime.MinValue && (DateTime.UtcNow - lastMessageTime).TotalMilliseconds > 1500)
             {
                 CloseBridge();
             }
@@ -57,7 +57,7 @@ namespace LSLBridge.LSL
 
         private void LSLService_RequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)
         {
-            lastMessageTime = DateTime.Now;
+            lastMessageTime = DateTime.UtcNow;
             ValueSet message = args.Request.Message;
             if (message.TryGetValue(Constants.LSL_MESSAGE_TYPE, out object value))
             {
