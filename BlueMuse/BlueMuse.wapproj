@@ -43,11 +43,12 @@
     <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
     <AppInstallerUpdateFrequency>0</AppInstallerUpdateFrequency>
     <AppInstallerCheckForUpdateFrequency>OnApplicationRun</AppInstallerCheckForUpdateFrequency>
-    <PackageCertificateThumbprint>5635D664D342A777F406A6827D17F05AFACAA808</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>EE9989372CCE657C5FA40351A1EC5A240AC43FB3</PackageCertificateThumbprint>
     <EntryPointProjectUniqueName>..\BlueMuse.App\BlueMuse.App.csproj</EntryPointProjectUniqueName>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AppxBundle>Always</AppxBundle>
@@ -77,6 +78,7 @@
     <ProjectReference Include="..\LSLBridge\LSLBridge.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="BlueMuse_PackagingKey.pfx" />
     <Content Include="Images\BadgeLogo.scale-100.png" />
     <Content Include="Images\BadgeLogo.scale-125.png" />
     <Content Include="Images\BadgeLogo.scale-150.png" />

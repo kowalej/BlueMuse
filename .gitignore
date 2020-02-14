@@ -259,5 +259,4 @@ paket-files/
 __pycache__/
 *.pyc
 
-!BlueMuse/AppPackages/*/Dependencies/x64
-!BlueMuse/AppPackages/*/Dependencies/x86
+BlueMuse/AppPackages/
