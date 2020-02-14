@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using Serilog.Exceptions;
 using System;
 using System.IO;
 using System.Windows;
@@ -21,8 +22,10 @@ namespace LSLBridge
             var localFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             var logPath = Path.Combine(localFolder, "Logs", "LSLBridge-Log-{Date}.log");
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.RollingFile(logPath,
-                                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
+                .Enrich.WithExceptionDetails()
+                .WriteTo.RollingFile(
+                    logPath,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
                 .CreateLogger();
             Log.Information("LSL Bridge started.");
         }

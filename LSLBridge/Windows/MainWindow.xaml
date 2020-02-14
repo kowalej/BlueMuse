@@ -6,21 +6,22 @@
         mc:Ignorable="d"
         Title="LSL Bridge" Height="350" Width="525" Visibility="{Binding Path=WindowVisible, Mode=TwoWay}">
 
-    <StackPanel>
+    <VirtualizingStackPanel>
         <TextBlock FontSize="18" Margin="5, 5, 5, 5">
             <Run Text="Number of Open Streams: " /><Run Text="{Binding Path=StreamCount, Mode=OneWay}" />
         </TextBlock>
-        <DataGrid ItemsSource="{Binding Path=Streams, Mode=OneWay}" HorizontalAlignment="Left" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
+        <DataGrid Margin="0 0 0 0" ItemsSource="{Binding Path=Streams, Mode=OneWay}" HorizontalAlignment="Left" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
+            
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Command="Copy" />
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Columns>
-                <DataGridTextColumn Header="Stream Info" Width="5*" Binding="{Binding Path=StreamDisplayInfo, Mode=OneWay}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Last Timestamp" Width="3*" Binding="{Binding Path=LatestTimestamp, Mode=OneWay}"></DataGridTextColumn>
-                <DataGridTextColumn Header="Rate (Hz)" Width="2*" Binding="{Binding Path=Rate, Mode=OneWay, StringFormat={}{0:0.00}}"></DataGridTextColumn>
+                <DataGridTextColumn IsReadOnly="True" Header="Stream Info" Width="5*" Binding="{Binding Path=StreamDisplayInfo, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn IsReadOnly="True" Header="Last Timestamp" Width="3*" Binding="{Binding Path=LatestTimestamp, Mode=OneWay}"></DataGridTextColumn>
+                <DataGridTextColumn IsReadOnly="True" Header="Rate (Hz)" Width="2*" Binding="{Binding Path=Rate, Mode=OneWay, StringFormat={}{0:0.00}}"></DataGridTextColumn>
             </DataGrid.Columns>
         </DataGrid>
-    </StackPanel>
+    </VirtualizingStackPanel>
 </Window>

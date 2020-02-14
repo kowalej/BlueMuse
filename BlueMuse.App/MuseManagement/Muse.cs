@@ -48,12 +48,16 @@ namespace BlueMuse.MuseManagement
         // It is very important that we keep this referenced as a class member.
         // Otherwise our channels will stop having their event handlers called when the characteristics go out of scope (if referenced only inside a function).
         private IReadOnlyList<GattCharacteristic> streamCharacteristics;
+        private IReadOnlyList<GattCharacteristic> deviceControlCharacteristics;
 
         // We have to buffer EEG and PPG, since any given sample is composed of data from multiple Bluetooth channels (Gatt characteristics).
         private volatile Dictionary<ushort, MuseEEGSamples> eegSampleBuffer;
         private volatile Dictionary<ushort, MusePPGSamples> ppgSampleBuffer;
         private volatile string deviceInfoBuffer = string.Empty;
         private volatile string controlStatusBuffer = string.Empty;
+
+        private volatile bool togglingStream = false;
+        private volatile bool resetLocked = false;
 
         private MuseModel museModel;
         public MuseModel MuseModel { get { return museModel; } set { lock (syncLock) { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } } }
@@ -139,17 +143,19 @@ namespace BlueMuse.MuseManagement
 
         public bool CanReset { get { return connectionStatus == MuseConnectionStatus.Online && !isStreaming && isSelected; } }
 
-        public bool CanViewTechInfo { 
-            get {
+        public bool CanViewTechInfo
+        {
+            get
+            {
                 return
-                    ( (connectionStatus == MuseConnectionStatus.Online && !isStreaming) || (!string.IsNullOrEmpty(DeviceInfo) && !string.IsNullOrEmpty(ControlStatus)) )
+                    ((connectionStatus == MuseConnectionStatus.Online && !isStreaming) || (!string.IsNullOrEmpty(DeviceInfo) && !string.IsNullOrEmpty(ControlStatus)))
                     &&
                     isSelected
                 ;
-            } 
+            }
         }
 
-        public bool CanStream { get { return connectionStatus == MuseConnectionStatus.Online; } }
+        public bool CanStream { get { return connectionStatus == MuseConnectionStatus.Online && !resetLocked; } }
         public string LongName { get { return string.Format("{0} ({1})", Name, MacAddress); } }
 
         // Stream names.
@@ -223,10 +229,10 @@ namespace BlueMuse.MuseManagement
             try
             {
                 streamCharacteristics = await GetGattCharacteristics();
-                if (streamCharacteristics == null)
+                if (streamCharacteristics?.Count < 1)
                 {
-                    Log.Error($"Cannot complete determining Muse model due to null GATT characteristics.");
-                    return;
+                    Log.Error($"Cannot complete determining Muse model due to null or empty GATT characteristics.");
+                    MuseModel = MuseModel.Undetected;
                 }
                 // Device has PPG, therefore we know it's a Muse 2. Note we will also not use AUX channel.
                 if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
@@ -248,7 +254,7 @@ namespace BlueMuse.MuseManagement
             }
             catch (Exception ex)
             {
-                Log.Error($"Exception during determining Muse model. Exception message: {ex.Message}.", ex);
+                Log.Error(ex, $"Exception during determining Muse model. Exception message: {ex.Message}.");
             }
         }
 
@@ -258,6 +264,7 @@ namespace BlueMuse.MuseManagement
             {
                 if (MuseModel == MuseModel.Undetected) DetermineMuseModel();
                 if (start == isStreaming || (start && !CanStream)) return;
+                togglingStream = true;
             }
             try
             {
@@ -284,18 +291,15 @@ namespace BlueMuse.MuseManagement
                         !isTelemetryEnabled) return; // Nothing enabled, can't start under this condition.
 
                     // Should only need to acquire stream characteristics during start, they will then be reused upon stopping the stream.
-                    streamCharacteristics = streamCharacteristics ?? await GetGattCharacteristics();
+                    streamCharacteristics = await GetGattCharacteristics();
 
                     deviceInfoTimer.Change(Timeout.Infinite, Timeout.Infinite); // "Pause" the timer.
-                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, false, DeviceInfo_ValueChanged))
-                    {
-                        Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
-                    }
+                    deviceControlCharacteristics = null;
                 }
 
-                if (streamCharacteristics == null)
+                if (streamCharacteristics?.Count < 1)
                 {
-                    Log.Error($"Cannot complete toggle stream (start={start}) due to null GATT characteristics.");
+                    Log.Error($"Cannot complete toggle stream (start={start}) due to null or empty GATT characteristics.");
                     if (start) return;
                     else FinishCloseOffStream();
                 }
@@ -356,19 +360,23 @@ namespace BlueMuse.MuseManagement
                 {
                     Log.Error($"Cannot complete toggle stream (start={start}) due to failure to run toggle command.");
                 }
+
+                if (start)
+                    FinishOpenStream();
+                else
+                {
+                    deviceInfoTimer.Change(Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
+                    FinishCloseOffStream();
+                }
             }
             catch (Exception ex)
             {
-                Log.Error($"Exception during toggle stream (start={start}). Exception message: {ex.Message}.", ex);
+                Log.Error(ex, $"Exception during toggle stream (start={start}). Exception message: {ex.Message}.");
                 if (!start) FinishCloseOffStream();
             }
-
-            if (start)
-                FinishOpenStream();
-            else
+            finally
             {
-                deviceInfoTimer.Change(0, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
-                FinishCloseOffStream();
+                togglingStream = false;
             }
         }
 
@@ -376,12 +384,24 @@ namespace BlueMuse.MuseManagement
         {
             if (!CanReset) return;
             var characteristics = await GetGattCharacteristics();
-            if (characteristics == null)
+            if (characteristics?.Count < 1)
             {
-                Log.Error($"Cannot reset device due to null GATT characteristics.");
+                Log.Error($"Cannot reset device due to null or empty GATT characteristics.");
                 return;
             }
             await WriteCommand(Constants.MUSE_CMD_ASK_RESET, characteristics);
+
+            lock (syncLock)
+            {
+                resetLocked = true;
+                OnPropertyChanged(nameof(CanStream));
+            }
+            await Task.Delay(6000); // Add a reasonably long delay so the device has a chance to fully reset, otherwise we can get some sketchy errors.
+            lock (syncLock)
+            {
+                resetLocked = false;
+                OnPropertyChanged(nameof(CanStream));
+            }
         }
 
         public async void RefreshDeviceInfoAndControlStatus(object state = null)
@@ -391,47 +411,54 @@ namespace BlueMuse.MuseManagement
                 deviceInfoBuffer = string.Empty;
                 controlStatusBuffer = string.Empty;
 
-                if (connectionStatus == MuseConnectionStatus.Online && !isStreaming)
+                if (connectionStatus == MuseConnectionStatus.Online && !isStreaming && !resetLocked)
                 {
-                    streamCharacteristics = streamCharacteristics ?? await GetGattCharacteristics();
-                    if (streamCharacteristics == null)
+                    deviceControlCharacteristics = await GetGattCharacteristics();
+                    if (deviceControlCharacteristics?.Count < 1)
                     {
-                        Log.Error($"Cannot get device info due to null GATT characteristics.");
+                        Log.Error($"Cannot get device info due to null or empty GATT characteristics.");
                         return;
                     }
+                    if (togglingStream || resetLocked) return;
 
                     // Subscribe to the command channel which we will also write a command to which asks for device info.
-                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, true, DeviceInfo_ValueChanged))
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, true, DeviceInfo_ValueChanged))
                     {
                         Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
+                        return;
                     }
                     // Ask for device info. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, streamCharacteristics);
-                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
-                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, false, DeviceInfo_ValueChanged))
+                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
+                    await Task.Delay(1200); // Small delay to ensure we fully receive the info.
+                    if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, DeviceInfo_ValueChanged))
                     {
                         Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
+                        return;
                     }
                     DeviceInfo = deviceInfoLive; // Update "stable" property.
 
                     // Subscribe to the command channel which we will also write a command to which asks for control status.
-                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, true, ControlStatus_ValueChanged))
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, true, ControlStatus_ValueChanged))
                     {
                         Log.Error($"Cannot get control status due to failure to toggle characteristics for info.");
+                        return;
                     }
                     // Ask for control status. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, streamCharacteristics);
-                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
-                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, streamCharacteristics, false, ControlStatus_ValueChanged))
+                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, deviceControlCharacteristics);
+                    await Task.Delay(1200); // Small delay to ensure we fully receive the info.
+                    if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, ControlStatus_ValueChanged))
                     {
                         Log.Error($"Cannot get control status due to failure to toggle characteristics for info.");
+                        return;
                     }
                     ControlStatus = controlStatusLive; // Update "stable" property.
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"Unexpected error while getting device info / control status.", ex);
+                Log.Error(ex, $"Unexpected error while getting device info / control status.");
             }
         }
 
@@ -459,15 +486,22 @@ namespace BlueMuse.MuseManagement
                     // If our message starts with '{' and ends with '}' we know it is complete JSON data that we can use.
                     if (deviceInfoBuffer.FirstOrDefault() == '{' && deviceInfoBuffer.LastOrDefault() == '}')
                     {
-                        var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(deviceInfoBuffer), Formatting.Indented);
-                        if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
-                        deviceInfoBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
+                        try
+                        {
+                            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(deviceInfoBuffer), Formatting.Indented);
+                            if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
+                        }
+                        catch (Exception) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        finally
+                        {
+                            deviceInfoBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"Exception during handling device info Bluetooth channel values.", ex);
+                Log.Error(ex, $"Exception during handling device info Bluetooth channel values.");
                 deviceInfoBuffer = string.Empty;
             }
         }
@@ -504,81 +538,115 @@ namespace BlueMuse.MuseManagement
                                 BatteryLevel = batteryInt;
                             }
                         }
-                        var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
-                        if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
-                        controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
+                        try
+                        {
+                            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
+                            if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
+                        }
+                        catch (Exception) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        finally
+                        {
+                            controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Log.Error($"Exception during handling control status Bluetooth channel values.", ex);
+                Log.Error(ex, $"Exception during handling control status Bluetooth channel values.");
                 controlStatusBuffer = string.Empty;
             }
         }
 
         private async Task<bool> WriteCommand(byte[] command, IReadOnlyList<GattCharacteristic> characteristics)
         {
-            if (characteristics == null)
+            try
             {
-                Log.Error($"Cannot perform command {command} due to null GATT characteristics.");
-                return false;
-            }
+                if (characteristics == null || characteristics.Count < 1)
+                {
+                    Log.Error($"Cannot perform command {command} due to null or empty GATT characteristics.");
+                    return false;
+                }
 
-            var commandCharacteristic = characteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_COMMAND_UUID);
-            if (commandCharacteristic == null)
-            {
-                Log.Error($"Cannot perform command {command} due to null GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}.");
-                return false;
-            }
+                var commandCharacteristic = characteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_COMMAND_UUID);
+                if (commandCharacteristic == null)
+                {
+                    Log.Error($"Cannot perform command {command} due to null GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}.");
+                    return false;
+                }
 
-            var writeResult = await commandCharacteristic.WriteValueWithResultAsync(WindowsRuntimeBuffer.Create(command, 0, command.Length, command.Length));
-            if (writeResult.Status != GattCommunicationStatus.Success)
+                var writeResult = await commandCharacteristic.WriteValueWithResultAsync(WindowsRuntimeBuffer.Create(command, 0, command.Length, command.Length));
+                if (writeResult.Status != GattCommunicationStatus.Success)
+                {
+                    Log.Error($"Cannot perform command {command} due to unexpected communication error with GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}). Status: {writeResult.Status}. Protocol Error {writeResult.ProtocolError}.");
+                    return false;
+                }
+                return true;
+            }
+            catch (Exception ex)
             {
-                Log.Error($"Cannot perform command {command} due to unexpected communication error with GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}). Status: {writeResult.Status}. Protocol Error {writeResult.ProtocolError}.");
+                Log.Error(ex, $"Unexpected error during write command {command}");
                 return false;
             }
-            return true;
         }
 
         private async Task<IReadOnlyList<GattCharacteristic>> GetGattCharacteristics(string deviceServiceUuid = null)
         {
-            if (deviceServiceUuid == null) deviceServiceUuid = Constants.MUSE_GATT_DATA_SERVICE_UUID.ToString();
+            try
+            {
+                if (deviceServiceUuid == null) deviceServiceUuid = Constants.MUSE_GATT_DATA_SERVICE_UUID.ToString();
 
-            // Get GATT device service.
-            var deviceService = await Device.GetGattServicesForUuidAsync(new Guid(deviceServiceUuid));
-            if (deviceService == null)
-            {
-                Log.Error($"Cannot get GATT characteristics due to unexpected null GATT device service (UUID={deviceServiceUuid}).");
-                return null;
-            }
-            else if (deviceService.Status != GattCommunicationStatus.Success)
-            {
-                Log.Error($"Cannot get GATT characteristics due to unexpected communication error with GATT device service (UUID={deviceServiceUuid}). Status: {deviceService.Status}. Protocol Error {deviceService.ProtocolError}.");
-                return null;
-            }
-            else if (deviceService.Services.FirstOrDefault() == null)
-            {
-                Log.Error($"Cannot get GATT characteristics due to unexpected null GATT device service list of services (UUID={deviceServiceUuid}).");
-                return null;
-            }
+                // Get GATT device service.
+                var deviceService = await Device.GetGattServicesForUuidAsync(new Guid(deviceServiceUuid), BluetoothCacheMode.Uncached);
+                if (deviceService == null)
+                {
+                    Log.Error($"Cannot get GATT characteristics due to unexpected null GATT device service (UUID={deviceServiceUuid}).");
+                    return new List<GattCharacteristic>();
+                }
+                else if (deviceService.Status != GattCommunicationStatus.Success)
+                {
+                    Log.Error($"Cannot get GATT characteristics due to unexpected communication error with GATT device service (UUID={deviceServiceUuid}). Status: {deviceService.Status}. Protocol Error {deviceService.ProtocolError}.");
+                    return new List<GattCharacteristic>();
+                }
+                else if (deviceService.Services == null || deviceService.Services.Count < 1)
+                {
+                    Log.Error($"Cannot get GATT characteristics due to unexpected null or empty GATT device service (UUID={deviceServiceUuid}) services.");
+                    return new List<GattCharacteristic>();
+                }
+                else if (deviceService.Services.FirstOrDefault() == null)
+                {
+                    Log.Error($"Cannot get GATT characteristics due to unexpected null GATT device service list of services (UUID={deviceServiceUuid}).");
+                    return new List<GattCharacteristic>();
+                }
 
-            var characteristics = await deviceService.Services.First().GetCharacteristicsAsync();
-            if (characteristics == null)
-            {
-                Log.Error($"Cannot get GATT characteristics due to unexpected null characteristics.");
-                return null;
+                var characteristics = await deviceService.Services.First().GetCharacteristicsAsync(BluetoothCacheMode.Uncached);
+                if (characteristics == null)
+                {
+                    Log.Error($"Cannot get GATT characteristics due to unexpected null characteristics.");
+                    return new List<GattCharacteristic>();
+                }
+                else if (characteristics.Status != GattCommunicationStatus.Success)
+                {
+                    Log.Error($"Cannot get GATT characteristics due to unexpected communication error with GATT device service (UUID={deviceServiceUuid}). Status: {characteristics.Status}. Protocol Error {characteristics.ProtocolError}.");
+                    return new List<GattCharacteristic>();
+                }
+                else return characteristics.Characteristics;
             }
-            else if (characteristics.Status != GattCommunicationStatus.Success)
+            catch (Exception ex)
             {
-                Log.Error($"Cannot get GATT characteristics due to unexpected communication error with GATT device service (UUID={deviceServiceUuid}). Status: {characteristics.Status}. Protocol Error {characteristics.ProtocolError}.");
-                return null;
+                Log.Error(ex, $"Unexpected error get GATT characteristics with GATT device service (UUID={deviceServiceUuid}).");
+                return new List<GattCharacteristic>();
             }
-            else return characteristics.Characteristics;
         }
 
         private async Task<bool> ToggleCharacteristics(Guid[] characteristicTargets, IReadOnlyList<GattCharacteristic> characteristics, bool start, TypedEventHandler<GattCharacteristic, GattValueChangedEventArgs> eventHandler)
         {
+            if (characteristics == null || characteristics.Count < 1)
+            {
+                Log.Error($"Cannot toggle characteristics (start={start}) due to unexpected null or empty characteristics list.");
+                return false;
+            }
+
             foreach (var c in characteristicTargets)
             {
                 var characteristic = characteristics.SingleOrDefault(x => x.Uuid == c);
@@ -623,7 +691,6 @@ namespace BlueMuse.MuseManagement
             ppgSampleBuffer.Clear();
             await LSLCloseStream();
             IsStreaming = false;
-            streamCharacteristics = null;
         }
 
         private async Task LSLOpenStreams()
@@ -1106,7 +1173,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling EEG Blueooth channel values.", ex);
+                    Log.Error(ex, $"Exception during handling EEG Blueooth channel values.");
                 }
             }
         }
@@ -1146,7 +1213,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling PPG Bluetooth channel values.", ex);
+                    Log.Error(ex, $"Exception during handling PPG Bluetooth channel values.");
                 }
             }
         }
@@ -1170,7 +1237,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling accelerometer Bluetooth channel values.", ex);
+                    Log.Error(ex, $"Exception during handling accelerometer Bluetooth channel values.");
                 }
             }
         }
@@ -1194,7 +1261,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling gyroscope Bluetooth channel values.", ex);
+                    Log.Error(ex, $"Exception during handling gyroscope Bluetooth channel values.");
                 }
             }
         }
@@ -1224,7 +1291,7 @@ namespace BlueMuse.MuseManagement
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"Exception during handling telemetry Bluetooth channel values.", ex);
+                    Log.Error(ex, $"Exception during handling telemetry Bluetooth channel values.");
                 }
             }
         }

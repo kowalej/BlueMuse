@@ -3,6 +3,7 @@ using BlueMuse.Bluetooth;
 using BlueMuse.Helpers;
 using BlueMuse.Settings;
 using Serilog;
+using Serilog.Exceptions;
 using System;
 using System.IO;
 using System.Linq;
@@ -33,8 +34,11 @@ namespace BlueMuse
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
             var logPath = Path.Combine(localFolder, "Logs", "BlueMuse-Log-{Date}.log");
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.RollingFile(logPath, 
-                                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
+                .Enrich.WithExceptionDetails()
+                .MinimumLevel.Information()
+                .WriteTo.RollingFile(
+                    logPath,
+                    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
                 .CreateLogger();
             UnhandledException += App_UnhandledException;
             AppSettings.Instance.LoadInitialSettings();

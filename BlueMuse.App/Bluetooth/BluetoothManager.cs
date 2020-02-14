@@ -134,7 +134,11 @@ namespace BlueMuse.Bluetooth
                     {
                         var di = await DeviceInformation.CreateFromIdAsync(args.Id);
                         
-                        // Always repair device via BlueMuse if AlwaysPair is "on".
+                        // Always re-pair device via BlueMuse if AlwaysPair is "on".
+                        if (AlwaysPair && di.Pairing != null && di.Pairing.IsPaired && di.Pairing.CanPair)
+                        {
+                            await di.Pairing.UnpairAsync();
+                        }
                         if (AlwaysPair && di.Pairing != null && !di.Pairing.IsPaired && di.Pairing.CanPair)
                         {
                             await di.Pairing.PairAsync();
@@ -168,7 +172,7 @@ namespace BlueMuse.Bluetooth
             }
             catch(Exception ex)
             {
-                Log.Error($"Exception during find device (DeviceWatcher_Added) (device ID={args.Id}).", ex);
+                Log.Error(ex, $"Exception during find device (DeviceWatcher_Added) (device ID={args.Id}).");
             }
         }
 
