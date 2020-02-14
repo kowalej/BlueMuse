@@ -396,7 +396,7 @@ namespace BlueMuse.MuseManagement
                 resetLocked = true;
                 OnPropertyChanged(nameof(CanStream));
             }
-            await Task.Delay(6000); // Add a reasonably long delay so the device has a chance to fully reset, otherwise we can get some sketchy errors.
+            await Task.Delay(10000); // Add a reasonably long delay so the device has a chance to fully reset, otherwise we can get some sketchy errors.
             lock (syncLock)
             {
                 resetLocked = false;
