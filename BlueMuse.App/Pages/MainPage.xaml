@@ -147,38 +147,40 @@
                                         </StackPanel>
                                     </StackPanel>
                                     <StackPanel>
-                                        <TextBlock Text="{x:Bind LongName, Mode=OneWay}"/>
+                                        <TextBlock FontWeight="Bold" Text="{x:Bind LongName, Mode=OneWay}" />
                                         <TextBlock Text="{x:Bind MuseModel, ConverterParameter=Model: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
                                         <StackPanel Orientation="Horizontal" Margin="4, 4, 4, 0" Windows10FallCreatorsUpdate:Spacing="8">
-                                            <TextBlock Text="{x:Bind Status, ConverterParameter=Status: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
+                                            <TextBlock Text="{x:Bind ConnectionStatus, ConverterParameter=Status: \{0\}, Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"/>
                                             <TextBlock FontWeight="SemiBold" Text="{x:Bind IsStreaming, ConverterParameter=Streaming: \{0\}, Converter={StaticResource YesNoValueFormatter}, Mode=OneWay}"/>
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <StackPanel Orientation="Vertical"  Margin="38 0 0 0"  Windows10FallCreatorsUpdate:Spacing="8">
+                                    <StackPanel Orientation="Vertical"  Margin="18 0 0 0"  Windows10FallCreatorsUpdate:Spacing="8">
                                         <StackPanel MinHeight="30">
                                             <Button Visibility="{x:Bind CanReset, Mode=OneWay}" Content="Reset Muse" Background="Firebrick" FontSize="12" Width="100"
                                                 Command="{Binding ViewModel.ResetMuse, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle }" />
                                         </StackPanel>
-                                        <Button Content="View Tech Info" Background="DodgerBlue" FontSize="12"  Width="100"
+                                        <StackPanel MinHeight="30">
+                                            <Button Visibility="{x:Bind CanViewTechInfo, Mode=OneWay}" Content="View Tech Info" Background="DodgerBlue" FontSize="12"  Width="100"
                                             Command="{Binding ViewModel.RefreshDeviceInfoAndControlStatus, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" >
-                                            <Button.Flyout>
-                                                <Flyout>
-                                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" MinHeight="380" MinWidth="240">
-                                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" MinWidth="220" Width="200">
-                                                            <TextBlock Text="Device Info" FontWeight="Bold" HorizontalAlignment="Left" />
-                                                            <TextBox IsReadOnly="True" Text="{x:Bind DeviceInfo, Mode=OneWay}" Width="220" MaxWidth="220" Height="240" MinHeight="240"
+                                                <Button.Flyout>
+                                                    <Flyout>
+                                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="8" MinHeight="380" MinWidth="240">
+                                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" MinWidth="220" Width="200">
+                                                                <TextBlock Text="Device Info" FontWeight="Bold" HorizontalAlignment="Left" />
+                                                                <TextBox IsReadOnly="True" Text="{x:Bind DeviceInfo, Mode=OneWay}" Width="220" MaxWidth="220" Height="240" MinHeight="240"
                                                                 TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" />
-                                                        </StackPanel>
-                                                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" MinWidth="220" Width="200">
-                                                            <TextBlock Text="Control Status" FontWeight="Bold" HorizontalAlignment="Left" />
-                                                            <TextBox IsReadOnly="True" Text="{x:Bind ControlStatus, Mode=OneWay}" Width="220" MaxWidth="220" Height="240" MinHeight="240"
+                                                            </StackPanel>
+                                                            <StackPanel Orientation="Vertical" HorizontalAlignment="Center" MinWidth="220" Width="200">
+                                                                <TextBlock Text="Control Status" FontWeight="Bold" HorizontalAlignment="Left" />
+                                                                <TextBox IsReadOnly="True" Text="{x:Bind ControlStatus, Mode=OneWay}" Width="220" MaxWidth="220" Height="240" MinHeight="240"
                                                                 TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" />
+                                                            </StackPanel>
                                                         </StackPanel>
-                                                    </StackPanel>
-                                                </Flyout>
-                                            </Button.Flyout>
-                                        </Button>
+                                                    </Flyout>
+                                                </Button.Flyout>
+                                            </Button>
+                                        </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
                                 <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 0, 0">

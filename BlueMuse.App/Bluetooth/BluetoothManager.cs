@@ -133,14 +133,9 @@ namespace BlueMuse.Bluetooth
                     if (muse == null || (muse != null && !muse.IsStreaming))
                     {
                         var di = await DeviceInformation.CreateFromIdAsync(args.Id);
-                        if (di.Pairing.IsPaired)
-                        {
-                            // Always unpair the device.
-                            await di.Pairing.UnpairAsync();
-                        }
-
+                        
                         // Always repair device via BlueMuse if AlwaysPair is "on".
-                        if (AlwaysPair)
+                        if (AlwaysPair && di.Pairing != null && !di.Pairing.IsPaired && di.Pairing.CanPair)
                         {
                             await di.Pairing.PairAsync();
                         }
@@ -156,7 +151,7 @@ namespace BlueMuse.Bluetooth
                         {
                             muse.Id = device.DeviceId;
                             muse.Name = device.Name;
-                            muse.Status = device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
+                            muse.ConnectionStatus = device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
                         }
                         else
                         {
@@ -181,7 +176,7 @@ namespace BlueMuse.Bluetooth
         {
             foreach(var muse in Muses)
             {
-                if (muse.Status == MuseConnectionStatus.Online)
+                if (muse.ConnectionStatus == MuseConnectionStatus.Online)
                     ResolveAutoStream(muse);
             }
         }
@@ -215,7 +210,7 @@ namespace BlueMuse.Bluetooth
                 var device = muse.Device;
                 muse.Id = device.DeviceId;
                 muse.Name = device.Name;
-                muse.Status = device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
+                muse.ConnectionStatus = device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
             }
         }
 
@@ -238,7 +233,7 @@ namespace BlueMuse.Bluetooth
             var muse = Muses.FirstOrDefault(x => x.Id == sender.DeviceId);
             if (muse != null)
             {
-                muse.Status = sender.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
+                muse.ConnectionStatus = sender.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline;
                 if (sender.ConnectionStatus == BluetoothConnectionStatus.Disconnected && muse.IsStreaming) StopStreaming(muse.Id);
                 else ResolveAutoStream(muse);
                 Debug.WriteLine(string.Format("Device: {0} is now {1}.", sender.Name, sender.ConnectionStatus));

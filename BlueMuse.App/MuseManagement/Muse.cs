@@ -83,10 +83,10 @@ namespace BlueMuse.MuseManagement
         private Guid[] eegGattChannelUUIDs;
         private string[] eegChannelLabels;
 
-        private MuseConnectionStatus status;
-        public MuseConnectionStatus Status
+        private MuseConnectionStatus connectionStatus;
+        public MuseConnectionStatus ConnectionStatus
         {
-            get { return status; }
+            get { return connectionStatus; }
             set
             {
                 lock (syncLock)
@@ -95,10 +95,11 @@ namespace BlueMuse.MuseManagement
                     {
                         DetermineMuseModel();
                     }
-                    SetProperty(ref status, value);
+                    SetProperty(ref connectionStatus, value);
+                    OnPropertyChanged(nameof(MuseModel));
                     OnPropertyChanged(nameof(CanStream));
                     OnPropertyChanged(nameof(CanReset));
-                    OnPropertyChanged(nameof(CanRefreshInfo));
+                    OnPropertyChanged(nameof(CanViewTechInfo));
                 }
             }
         }
@@ -116,7 +117,7 @@ namespace BlueMuse.MuseManagement
                 {
                     SetProperty(ref isStreaming, value);
                     OnPropertyChanged(nameof(CanReset));
-                    OnPropertyChanged(nameof(CanRefreshInfo));
+                    OnPropertyChanged(nameof(CanViewTechInfo));
                 }
             }
         }
@@ -131,16 +132,24 @@ namespace BlueMuse.MuseManagement
                 {
                     SetProperty(ref isSelected, value);
                     OnPropertyChanged(nameof(CanReset));
-                    OnPropertyChanged(nameof(CanRefreshInfo));
+                    OnPropertyChanged(nameof(CanViewTechInfo));
                 }
             }
         }
 
-        public bool CanReset { get { return status == MuseConnectionStatus.Online && !isStreaming; } }
+        public bool CanReset { get { return connectionStatus == MuseConnectionStatus.Online && !isStreaming && isSelected; } }
 
-        public bool CanRefreshInfo { get { return status == MuseConnectionStatus.Online && !isStreaming; } }
+        public bool CanViewTechInfo { 
+            get {
+                return
+                    ( (connectionStatus == MuseConnectionStatus.Online && !isStreaming) || (!string.IsNullOrEmpty(DeviceInfo) && !string.IsNullOrEmpty(ControlStatus)) )
+                    &&
+                    isSelected
+                ;
+            } 
+        }
 
-        public bool CanStream { get { return status == MuseConnectionStatus.Online; } }
+        public bool CanStream { get { return connectionStatus == MuseConnectionStatus.Online; } }
         public string LongName { get { return string.Format("{0} ({1})", Name, MacAddress); } }
 
         // Stream names.
@@ -182,7 +191,7 @@ namespace BlueMuse.MuseManagement
             Device = device;
             Name = name;
             Id = id;
-            Status = status;
+            ConnectionStatus = status;
             DetermineMuseModel();
             deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 0, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS);
         }
@@ -210,7 +219,7 @@ namespace BlueMuse.MuseManagement
             }
 
             // Cannot determine any further (Muse Original vs Muse 2 until connected).
-            if (Status == MuseConnectionStatus.Offline) return;
+            if (ConnectionStatus == MuseConnectionStatus.Offline) return;
             try
             {
                 streamCharacteristics = await GetGattCharacteristics();
@@ -382,7 +391,7 @@ namespace BlueMuse.MuseManagement
                 deviceInfoBuffer = string.Empty;
                 controlStatusBuffer = string.Empty;
 
-                if (CanRefreshInfo)
+                if (connectionStatus == MuseConnectionStatus.Online && !isStreaming)
                 {
                     streamCharacteristics = streamCharacteristics ?? await GetGattCharacteristics();
                     if (streamCharacteristics == null)

@@ -2,16 +2,16 @@
 * Windows 10 app to stream data from Muse EEG headsets via LSL (Lab Streaming Layer).
 
 # Features
-* Auto detects Muse headsets and provides a visual interface to open and close data streams. 
-* Can stream from multiple Muses simultaneously.
+* Auto detects Muse headsets and provides a visual interface to manage streams.
+* Supports Muse (2016, i.e. "original"), Muse 2, and Smith Lowdown Focus glasses (device models are auto detected).
+* Supports EEG, PPG, accelerometer, gyroscope, and telemetry data. *Note: PPG is only available on Muse 2*.
+* Can stream from multiple Muses simultaneously (see notes).
 * Choose between timestamp formats - LSL local_clock or Unix Epoch.
 * LSL streams in 64-bit or 32-bit.
 * Shows latest timestamp received and the current sample rate for each stream.
 
 # Screenshots
-![bluemuse screenshot](https://i.imgur.com/9vW3QIal.png "Streaming from a single Muse headset.")
-
-
+<img src="screenshot.png" width="400">
 
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
@@ -63,13 +63,29 @@ Change channel data type:
 ```powershell
  start bluemuse://setting?key=channel_data_type!value=<float32|double64>
 ```
+Enable / disable EEG data (applies when opening streams):
+```powershell
+ start bluemuse://setting?key=eeg_enabled!value=<true|false>
+```
+Enable / disable accelerometer data (applies when opening streams):
+```powershell
+ start bluemuse://setting?key=accelerometer_enabled!value=<true|false>
+```
+Enable / disable gyroscope data (applies when opening streams):
+```powershell
+ start bluemuse://setting?key=gyroscope_enabled!value=<true|false>
+```
+Enable / disable PPG data (applies when opening streams):
+```powershell
+ start bluemuse://setting?key=ppg_enabled!value=<true|false>
+```
+Enable / disable telemetry data (applies when opening streams):
+```powershell
+ start bluemuse://setting?key=telemetry_enabled!value=<true|false>
+```
 Toggle "always pair": 
 ```powershell
  start bluemuse://setting?key=always_pair!value=<true|false>
-```
-Toggle "assume Muse 2": 
-```powershell
- start bluemuse://setting?key=assume_muse_2!value=<true|false>
 ```
 
 # Installation
@@ -98,11 +114,19 @@ Toggle "assume Muse 2":
 
 # Versions
 ### Latest
-* **1.1.1.0**
-    * **Muse 2 support (experimental) - for now, for this to work you have to go to Settings > Assume Muse 2 > Toggle On. Finally, hit Force Refresh (if your Muse was already in the list, otherwise it should work when your device is first found).** It will assume all you devices with "Muse" in the name are Muse 2's and will set the parameters accordingly. *In the future I hope to have Muse vs Muse 2 differentiation be auto detected*.
-    * Added "always pair" option which may help with some people's Bluetooth issues. It is set as Off by default, you can toggle it On in the settings menu.
+* 2.0.0.0
+    * Stream PPG, accelerometer, gyroscope, and telemetry data.
+    * Muse 2 (and other models) auto detection. Removed "Assume Muse 2" setting.
+    * Battery level indicator in the UI.
+    * Added support for "tech info" which will show some device and control status information from the Muse. This data includes firmware information, serial number, battery info, and more.
+    * Added button to "hard reset" the Muse. *This can sometimes help resolve connectivity issues.*
+    * Cleaned up UI (improved button colours and important text is bolded).
+    * Added a lot more logging for Bluetooth and other processing errors. This will hopefully lead to issues being resolved in the future if users are having streaming issues.
     
 #### Older
+* 1.1.1.0
+    * **Muse 2 support (experimental) - for now, for this to work you have to go to Settings > Assume Muse 2 > Toggle On. Finally, hit Force Refresh (if your Muse was already in the list, otherwise it should work when your device is first found).** It will assume all you devices with "Muse" in the name are Muse 2's and will set the parameters accordingly. *In the future I hope to have Muse vs Muse 2 differentiation be auto detected*.
+    * Added "always pair" option which may help with some people's Bluetooth issues. It is set as Off by default, you can toggle it On in the settings menu.
 * 1.1.0.0
     * Choose between 32-bit (float32) or 64-bit (double64) LSL stream data formats.
 * 1.0.9.0 (Note - forces streams to use double64 data format.)
@@ -134,10 +158,12 @@ Toggle "assume Muse 2":
 
 # Notes
 * **Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).**
+* **Streaming multiple Muses simultaneously -** maintaining consistent data rates for multiple devices may be difficult on some machines, depending on Bluetooth and compute hardware.
 * Application requires side loading a Win32 application which does the LSL streaming. This is because UWP apps run in a restricted environment with network isolation. This restricts LSL streams from being seen across the local network if launched from the  UWP app. To get around this issue, the data is shuffled through to the "LSL Bridge", a Win32 application which can run in a normal environment. Note: when you first start a stream, you may need to add a firewall exception for LSLBridge.exe.
 * Uses 32-bit binaries for LSL. Acquired from: ftp://sccn.ucsd.edu/pub/software/LSL/SDK/liblsl-All-Languages-1.11.zip
 * liblsl32.dll was dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).
 * The full dependencies of liblsl32.dll are: KERNEL32.dll, WINMM.dll, MSVCP90.dll, WS2_32.dll, MSWSOCK.dll, and MSVCR90.dll. Generated with dumpbin utility.
+* Muse 2 has AUX channel disabled - if I try to stream from this channel I get errors. It looks like no data comes from the channel when debugging Bluetooth inside a sniffing tool, so I'm making the assumption that Muse 2 doesn't actually support the AUX (secret electrode) input - it just has a (non functioning) GATT characteristic which is the same UUID as the Muse (2016). 
 
 ### Timestamp Formats:
 
