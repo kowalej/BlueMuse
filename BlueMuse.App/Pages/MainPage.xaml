@@ -155,10 +155,12 @@
                                         </StackPanel>
                                     </StackPanel>
 
-                                    <StackPanel Orientation="Vertical"  Margin="34 0 0 0"  Windows10FallCreatorsUpdate:Spacing="8">
-                                        <Button Visibility="{x:Bind CanReset, Mode=OneWay}" Content="Reset Muse" Background="Firebrick" FontSize="12" Width="100"
-                                            Command="{Binding ViewModel.ResetMuse, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
-                                        <Button Visibility="{x:Bind CanRefreshInfo, Mode=OneWay}" Content="View Tech Info" Background="DarkSeaGreen" FontSize="12"  Width="100"
+                                    <StackPanel Orientation="Vertical"  Margin="38 0 0 0"  Windows10FallCreatorsUpdate:Spacing="8">
+                                        <StackPanel MinHeight="30">
+                                            <Button Visibility="{x:Bind CanReset, Mode=OneWay}" Content="Reset Muse" Background="Firebrick" FontSize="12" Width="100"
+                                                Command="{Binding ViewModel.ResetMuse, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle }" />
+                                        </StackPanel>
+                                        <Button Content="View Tech Info" Background="DodgerBlue" FontSize="12"  Width="100"
                                             Command="{Binding ViewModel.RefreshDeviceInfoAndControlStatus, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" >
                                             <Button.Flyout>
                                                 <Flyout>
@@ -181,9 +183,11 @@
                                 </StackPanel>
                                 <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 0, 0">
                                     <Button IsEnabled="{x:Bind CanStream, Mode=OneWay}" Visibility="{x:Bind IsStreaming, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}" Content="Start Streaming"
-                                        Command="{Binding ViewModel.StartStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
+                                        Command="{Binding ViewModel.StartStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" 
+                                            Background="ForestGreen" Style="{StaticResource AccentButtonStyle}" />
                                     <Button Visibility="{x:Bind IsStreaming, Mode=OneWay}" Content="Stop Streaming"
-                                        Command="{Binding ViewModel.StopStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" Style="{StaticResource AccentButtonStyle}" />
+                                        Command="{Binding ViewModel.StopStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}"
+                                            Background="Maroon" Style="{StaticResource AccentButtonStyle}" />
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>
@@ -193,7 +197,7 @@
             <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" FontSize="13" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
                 <TextBlock TextWrapping="Wrap" Padding="10">
                     <Run FontWeight="Bold" Text="Connection Tips: " /><Run Text="Your Muse should be powered on and unpaired from other devices. It will show incremental flashing lights when it's ready to pair followed by solid lights once connected." FontFamily="Segoe UI" />
-                    <Run FontWeight="SemiBold" Text="Note: " /><Run Text="You may need to remove the device from your PC's Bluetooth device list to eliminate connection issues." />
+                    <Run FontWeight="SemiBold" Text="Note: " /><Run Text="You may need to remove the device from your PC's Bluetooth device list or press 'Reset Muse' to eliminate connectivity issues." />
                     <LineBreak FontSize="10" /><LineBreak FontSize="10" />
                     <Run FontSize="10" FontWeight="SemiBold" FontStyle="Italic" Text="{Binding ViewModel.AppVersion, ElementName=PageRoot, Mode=OneTime}" />
                 </TextBlock>

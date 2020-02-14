@@ -104,18 +104,35 @@ namespace BlueMuse.MuseManagement
         }
 
         private bool isStreaming;
-        public bool IsStreaming { get { return isStreaming; } set { lock (syncLock) { SetProperty(ref isStreaming, value); OnPropertyChanged(nameof(CanReset)); } } }
+        public bool IsStreaming
+        {
+            get
+            {
+                return isStreaming;
+            }
+            set
+            {
+                lock (syncLock)
+                {
+                    SetProperty(ref isStreaming, value);
+                    OnPropertyChanged(nameof(CanReset));
+                    OnPropertyChanged(nameof(CanRefreshInfo));
+                }
+            }
+        }
 
         private bool isSelected;
         public bool IsSelected
         {
             get { return isSelected; }
-            set { 
-                lock (syncLock) { 
-                    SetProperty(ref isSelected, value); 
+            set
+            {
+                lock (syncLock)
+                {
+                    SetProperty(ref isSelected, value);
                     OnPropertyChanged(nameof(CanReset));
                     OnPropertyChanged(nameof(CanRefreshInfo));
-                } 
+                }
             }
         }
 
@@ -746,7 +763,7 @@ namespace BlueMuse.MuseManagement
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
-                ChannelCount = eegChannelCount,
+                ChannelCount = Constants.MUSE_PPG_CHANNEL_COUNT,
                 ChannelDataType = channelDataType.DataType,
                 ChunkSize = Constants.MUSE_PPG_SAMPLE_COUNT,
                 DeviceManufacturer = lslDeviceInfoManufacturer,
