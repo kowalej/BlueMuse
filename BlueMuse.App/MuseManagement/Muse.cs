@@ -74,7 +74,7 @@ namespace BlueMuse.MuseManagement
         private string deviceInfoName;
 
         private int eegChannelCount;
-        private Guid[] eegChannelUUIDs;
+        private Guid[] eegGattChannelUUIDs;
         private string[] eegChannelLabels;
 
         private MuseConnectionStatus status;
@@ -145,7 +145,7 @@ namespace BlueMuse.MuseManagement
             {
                 MuseModel = MuseModel.Smith;
                 eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
-                eegChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
+                eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
                 eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
                 deviceInfoName = Constants.MUSE_SMXT_DEVICE_NAME;
                 deviceInfoManufacturer = Constants.MUSE_SMXT_MANUFACTURER;
@@ -172,7 +172,7 @@ namespace BlueMuse.MuseManagement
                 {
                     MuseModel = MuseModel.Muse2;
                     eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
-                    eegChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
+                    eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
                     eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
                     deviceInfoName = Constants.MUSE_2_DEVICE_NAME;
                 }
@@ -180,7 +180,7 @@ namespace BlueMuse.MuseManagement
                 {
                     MuseModel = MuseModel.Original;
                     eegChannelCount = Constants.MUSE_EEG_CHANNEL_COUNT;
-                    eegChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
+                    eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
                     eegChannelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
                     deviceInfoName = Constants.MUSE_DEVICE_NAME;
                 }
@@ -233,7 +233,7 @@ namespace BlueMuse.MuseManagement
                 // Subscribe or unsubscribe EEG.
                 if (isEEGEnabled)
                 {
-                    if (!await ToggleCharacteristics(eegChannelUUIDs, streamCharacteristics, start, EEGChannel_ValueChanged))
+                    if (!await ToggleCharacteristics(eegGattChannelUUIDs, streamCharacteristics, start, EEGChannel_ValueChanged))
                     {
                         Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for EEG.");
                         if (start) return;
@@ -243,31 +243,38 @@ namespace BlueMuse.MuseManagement
                 // Subscribe or unsubscribe accelerometer.
                 if (isAccelerometerEnabled)
                 {
-                    //await ToggleCharacteristic(Constants.MUSE_GATT_ACCELEROMETER_UUID, characteristics, start, AccelerometerChannel_ValueChanged);
-                    //{
-                    //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
-                    // if (start) return;
-                    //}
+                    if(!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ACCELEROMETER_UUID }, streamCharacteristics, start, Accelerometer_ValueChanged))
+                    {
+                        Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
+                        if (start) return;
+                    }
                 }
 
                 // Subscribe or unsubscribe gyroscope.
                 if (isGyroscopeEnabled)
                 {
-                    //await ToggleCharacteristic(Constants.MUSE_GATT_GYROSCOPE_UUID, characteristics, start, GyroscopeChannel_ValueChanged);
-                    //{
-                    //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
-                    // if (start) return;
-                    //}
+                    if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_GYROSCOPE_UUID }, streamCharacteristics, start, Gyroscope_ValueChanged))
+                    {
+                        Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for gyroscope.");
+                        if (start) return;
+                    }
                 }
 
                 // Subscribe or unsubscribe PPG.
                 if (isPPGEnabled)
                 {
-                    //await ToggleCharacteristic(Constants.MUSE_GATT_PPG_CHANNEL_UUIDS, characteristics, start, PPGChannel_ValueChanged);
-                    //{
-                    //Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for accelerometer.");
-                    // if (start) return;
-                    //}
+                    if (!await ToggleCharacteristics(Constants.MUSE_GATT_PPG_CHANNEL_UUIDS, streamCharacteristics, start, PPGChannel_ValueChanged))
+                    {
+                        Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for PPG.");
+                        if (start) return;
+                    }
+                }
+
+                // Subscribe or unsubscribe telemetry (battery, adc voltage, temperature).
+                if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_TELEMETRY_UUID }, streamCharacteristics, start, Telemetry_ValueChanged))
+                {
+                    Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for telemetry.");
+                    if (start) return;
                 }
 
                 // Determine if we are listening to Gatt channels or stopping (notify vs none) and what command to send to the Muse (start or stop data).
@@ -593,7 +600,7 @@ namespace BlueMuse.MuseManagement
                 double[] data = new double[Constants.MUSE_EEG_SAMPLE_COUNT * eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
                 {
-                    var channelData = sample.ChannelData[eegChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
+                    var channelData = sample.ChannelData[eegGattChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_EEG_SAMPLE_COUNT; j++)
                     {
                         data[(i * Constants.MUSE_EEG_SAMPLE_COUNT) + j] = channelData[j];
@@ -602,13 +609,12 @@ namespace BlueMuse.MuseManagement
                 message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
             }
 
-            // Default to float.
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
                 float[] data = new float[Constants.MUSE_EEG_SAMPLE_COUNT * eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
                 {
-                    var channelData = sample.ChannelData[eegChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
+                    var channelData = sample.ChannelData[eegGattChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_EEG_SAMPLE_COUNT; j++)
                     {
                         data[(i * Constants.MUSE_EEG_SAMPLE_COUNT) + j] = (float)channelData[j];
@@ -617,7 +623,135 @@ namespace BlueMuse.MuseManagement
                 message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
             }
 
-            else throw new InvalidOperationException("Can't push LSL chunk - unsupported stream data type. Must use float32 or double64.");
+            else throw new InvalidOperationException("Can't push LSL EEG chunk - unsupported stream data type. Must use float32 or double64.");
+
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
+
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+        }
+
+        private async Task LSLPushPPGChunk(MusePPGSamples sample)
+        {
+            ValueSet message = new ValueSet
+            {
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, PPGStreamName }
+            };
+
+            // Can only send 1D array with garbage AppService :S - inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
+            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            {
+                double[] data = new double[Constants.MUSE_PPG_SAMPLE_COUNT * Constants.MUSE_PPG_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
+                {
+                    var channelData = sample.ChannelData[Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
+                    for (int j = 0; j < Constants.MUSE_PPG_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_PPG_SAMPLE_COUNT) + j] = channelData[j];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            {
+                float[] data = new float[Constants.MUSE_PPG_SAMPLE_COUNT * Constants.MUSE_PPG_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
+                {
+                    var channelData = sample.ChannelData[Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
+                    for (int j = 0; j < Constants.MUSE_PPG_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_PPG_SAMPLE_COUNT) + j] = (float)channelData[j];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else throw new InvalidOperationException("Can't push LSL PPG chunk - unsupported stream data type. Must use float32 or double64.");
+
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
+
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+        }
+
+        private async Task LSLPushAccelerometerChunk(MuseAccelerometerSamples sample)
+        {
+            ValueSet message = new ValueSet
+            {
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, AccelerometerStreamName }
+            };
+
+            // Can only send 1D array with garbage AppService :S - inlined as xsample1,xsample2...zsample1,zsample2...
+            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            {
+                double[] data = new double[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT * Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
+                {
+                    for (int j = 0; j < Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT) + j] = sample.XYZSamples[j, i];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            {
+                float[] data = new float[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT * Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
+                {
+                    for (int j = 0; j < Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT) + j] = (float)sample.XYZSamples[j, i];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else throw new InvalidOperationException("Can't push LSL Accelerometer chunk - unsupported stream data type. Must use float32 or double64.");
+
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
+            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
+
+            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+        }
+
+        private async Task LSLPushGyroscopeChunk(MuseGyroscopeSamples sample)
+        {
+            ValueSet message = new ValueSet
+            {
+                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, GyroscopeStreamName }
+            };
+
+            // Can only send 1D array with garbage AppService :S - inlined as xsample1,xsample2...zsample1,zsample2...
+            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            {
+                double[] data = new double[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
+                {
+                    for (int j = 0; j < Constants.MUSE_GYROSCOPE_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_GYROSCOPE_SAMPLE_COUNT) + j] = sample.XYZSamples[j, i];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            {
+                float[] data = new float[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
+                for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
+                {
+                    for (int j = 0; j < Constants.MUSE_GYROSCOPE_SAMPLE_COUNT; j++)
+                    {
+                        data[(i * Constants.MUSE_GYROSCOPE_SAMPLE_COUNT) + j] = (float)sample.XYZSamples[j, i];
+                    }
+                }
+                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+            }
+
+            else throw new InvalidOperationException("Can't push LSL Accelerometer chunk - unsupported stream data type. Must use float32 or double64.");
 
             message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
             message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
@@ -645,18 +779,6 @@ namespace BlueMuse.MuseManagement
 
         private async void EEGChannel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
-            double[] DecodeEEGSamples(string bits)
-            {
-                // Extract our 12, 12-bit samples.
-                double[] samples = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
-                for (int i = 0; i < Constants.MUSE_EEG_SAMPLE_COUNT; i++)
-                {
-                    samples[i] = PacketConversion.ToFakeUInt12(bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
-                    samples[i] = (samples[i] - 2048d) * 0.48828125d; // 12 bits on a 2 mVpp range.
-                }
-                return samples;
-            }
-
             if (isStreaming)
             {
                 try
@@ -678,7 +800,7 @@ namespace BlueMuse.MuseManagement
                         else samples = eegSampleBuffer[museTimestamp];
 
                         // Get time samples.
-                        samples.ChannelData[sender.Uuid] = DecodeEEGSamples(bits);
+                        samples.ChannelData[sender.Uuid] = MuseEEGSamples.DecodeEEGSamples(bits);
                     }
                     // If we have all EEG channels, we can push the 12 samples for each channel.
                     if (samples.ChannelData.Count == eegChannelCount)
@@ -694,5 +816,99 @@ namespace BlueMuse.MuseManagement
                 }
             }
         }
+
+        private async void PPGChannel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            if (isStreaming)
+            {
+                try
+                {
+                    string bits = GetBits(args.CharacteristicValue);
+                    ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                    MusePPGSamples samples;
+                    lock (ppgSampleBuffer)
+                    {
+                        if (!ppgSampleBuffer.ContainsKey(museTimestamp))
+                        {
+                            samples = new MusePPGSamples();
+                            ppgSampleBuffer.Add(museTimestamp, samples);
+                            samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                            samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
+                                  timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                                : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                        }
+                        else samples = ppgSampleBuffer[museTimestamp];
+
+                        // Get time samples.
+                        samples.ChannelData[sender.Uuid] = MusePPGSamples.DecodePPGSamples(bits);
+                    }
+                    // If we have all PPG channels, we can push the 12 samples for each channel.
+                    if (samples.ChannelData.Count == Constants.MUSE_PPG_CHANNEL_COUNT)
+                    {
+                        await LSLPushPPGChunk(samples);
+                        lock (ppgSampleBuffer)
+                            ppgSampleBuffer.Remove(museTimestamp);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Exception during handling PPG channel values.", ex);
+                }
+            }
+        }
+
+        private async void Accelerometer_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            if (isStreaming)
+            {
+                try
+                {
+                    string bits = GetBits(args.CharacteristicValue);
+                    ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                    MuseAccelerometerSamples samples = new MuseAccelerometerSamples();
+                    samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                    samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
+                            timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                        : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+
+                    samples.XYZSamples = MuseAccelerometerSamples.DecodeAccelerometerSamples(bits);
+                    await LSLPushAccelerometerChunk(samples);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Exception during handling PPG channel values.", ex);
+                }
+            }
+        }
+
+        private async void Gyroscope_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            if (isStreaming)
+            {
+                try
+                {
+                    string bits = GetBits(args.CharacteristicValue);
+                    ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
+                    MuseGyroscopeSamples samples = new MuseGyroscopeSamples();
+                    samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
+                    samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
+                            timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
+                        : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+
+                    samples.XYZSamples = MuseGyroscopeSamples.DecodeGyroscopeSamples(bits);
+                    await LSLPushGyroscopeChunk(samples);
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"Exception during handling PPG channel values.", ex);
+                }
+            }
+        }
+
+        private async void Telemetry_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            throw new NotImplementedException();
+        }
+
     }
 }

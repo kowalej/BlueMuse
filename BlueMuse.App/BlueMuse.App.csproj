@@ -134,7 +134,10 @@
     <Compile Include="Helpers\Converters.cs" />
     <Compile Include="Helpers\ObservableCollection.cs" />
     <Compile Include="Helpers\ObservableObject.cs" />
+    <Compile Include="MuseManagement\MuseGyroscopeSamples.cs" />
     <Compile Include="MuseManagement\MuseConnectionStatus.cs" />
+    <Compile Include="MuseManagement\MuseAccelerometerSamples.cs" />
+    <Compile Include="MuseManagement\MuseTelemetrySamples.cs" />
     <Compile Include="MuseManagement\MusePPGSamples.cs" />
     <Compile Include="MuseManagement\MuseModel.cs" />
     <Compile Include="MuseManagement\MuseEEGSamples.cs" />

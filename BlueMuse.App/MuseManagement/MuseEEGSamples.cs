@@ -1,10 +1,23 @@
-﻿using System;
+﻿using BlueMuse.Helpers;
+using System;
 using System.Collections.Generic;
 
 namespace BlueMuse.MuseManagement
 {
     public class MuseEEGSamples
     {
+        public static double[] DecodeEEGSamples(string bits)
+        {
+            // Each packet contains a 16 bit timestamp, followed by 12, 12-bit samples.
+            double[] samples = new double[12];
+            for (int i = 0; i < 12; i++)
+            {
+                samples[i] = PacketConversion.ToUInt12(bits, 16 + (i * 12)); // Initial offset by 16 bits for the timestamp.
+                samples[i] = (samples[i] - 2048d) * 0.48828125d; // 12 bits on a 2 mVpp range.
+            }
+            return samples;
+        }
+
         private double baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds() / 1000d;
         public double BaseTimestamp
         {

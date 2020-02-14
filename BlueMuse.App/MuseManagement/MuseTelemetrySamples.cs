@@ -4,13 +4,13 @@ using System.Collections.Generic;
 
 namespace BlueMuse.MuseManagement
 {
-    public class MusePPGSamples
+    public class MuseTelemetrySamples
     {
-        public static double[] DecodePPGSamples(string bits)
+        public static double[] DecodeTelemetrySamples(string bits)
         {
             // Each packet contains a 16 bit timestamp, followed by 6, 24-bit samples.
-            double[] samples = new double[Constants.MUSE_PPG_SAMPLE_COUNT];
-            for (int i = 0; i < Constants.MUSE_PPG_SAMPLE_COUNT; i++)
+            double[] samples = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT];
+            for (int i = 0; i < Constants.MUSE_Telemetry_SAMPLE_COUNT; i++)
             {
                 samples[i] = PacketConversion.ToUInt24(bits, 16 + (i * 24)); // Initial offset by 16 bits for the timestamp.
             }
@@ -54,9 +54,9 @@ namespace BlueMuse.MuseManagement
             {
                 double baseSeconds = baseTimestamp;
 
-                for (int i = 0; i < Constants.MUSE_PPG_SAMPLE_COUNT; i++)
+                for (int i = 0; i < Constants.MUSE_Telemetry_SAMPLE_COUNT; i++)
                 {
-                    timestamps[i] = baseSeconds - ((Constants.MUSE_PPG_SAMPLE_COUNT - i) * (Constants.MUSE_PPG_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps[i] = baseSeconds - ((Constants.MUSE_Telemetry_SAMPLE_COUNT - i) * (Constants.MUSE_Telemetry_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
                     timestamps[i] = timestamps[i];
                 }
                 return timestamps;
@@ -70,9 +70,9 @@ namespace BlueMuse.MuseManagement
             {
                 double baseSeconds = baseTimestamp2;
 
-                for (int i = 0; i < Constants.MUSE_PPG_SAMPLE_COUNT; i++)
+                for (int i = 0; i < Constants.MUSE_Telemetry_SAMPLE_COUNT; i++)
                 {
-                    timestamps2[i] = baseSeconds - ((Constants.MUSE_PPG_SAMPLE_COUNT - i) * (Constants.MUSE_PPG_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
+                    timestamps2[i] = baseSeconds - ((Constants.MUSE_Telemetry_SAMPLE_COUNT - i) * (Constants.MUSE_Telemetry_SAMPLE_TIME_MILLIS / 1000d)); // Offset times based on sample rate.
                     timestamps2[i] = timestamps2[i];
                 }
                 return timestamps2;
@@ -81,11 +81,11 @@ namespace BlueMuse.MuseManagement
 
         public Dictionary<Guid, double[]> ChannelData { get; set; }
 
-        public MusePPGSamples()
+        public MuseTelemetrySamples()
         {
             ChannelData = new Dictionary<Guid, double[]>();
-            timestamps = new double[Constants.MUSE_PPG_SAMPLE_COUNT];
-            timestamps2 = new double[Constants.MUSE_PPG_SAMPLE_COUNT];
+            timestamps = new double[Constants.MUSE_Telemetry_SAMPLE_COUNT];
+            timestamps2 = new double[Constants.MUSE_Telemetry_SAMPLE_COUNT];
         }
     }
 }

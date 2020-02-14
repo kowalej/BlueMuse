@@ -29,16 +29,19 @@ namespace BlueMuse
         public const string CMD_SET_SETTING = "setting";
 
         // Streaming rates.
-        public const int MUSE_EEG_SAMPLE_RATE = 256;
+        public const int MUSE_EEG_SAMPLE_RATE = 256; // 256 hz.
         public const float MUSE_EEG_SAMPLE_TIME_MILLIS = 1000f / MUSE_EEG_SAMPLE_RATE;
 
-        public const int MUSE_ACCELEROMETER_SAMPLE_RATE = 52;
+        public const int MUSE_ACCELEROMETER_SAMPLE_RATE = 52; // 52 hz.
         public const float MUSE_ACCELEROMETER_SAMPLE_TIME_MILLIS = 1.0f / MUSE_ACCELEROMETER_SAMPLE_RATE; // Theoretical time between consecutive Accelerometer samples.
 
-        public const int MUSE_GYROSCOPE_SAMPLE_RATE = 52;
+        public const int MUSE_GYROSCOPE_SAMPLE_RATE = 52; // 52 hz.
         public const float MUSE_GYROSCOPE_SAMPLE_TIME_MILLIS = 1.0f / MUSE_GYROSCOPE_SAMPLE_RATE; // Theoretical time between consecutive Gyroscope samples.
 
-        public const int MUSE_PPG_SAMPLE_RATE = 64;
+        public const int MUSE_PPG_SAMPLE_RATE = 64; // 64 hz.
+        public const float MUSE_PPG_SAMPLE_TIME_MILLIS = 1.0f / MUSE_PPG_SAMPLE_RATE; // Theoretical time between consecutive PPG samples.
+
+        public const int MUSE_TELEMETRY_SAMPLE_RATE = 1; // 1 hz.
         public const float MUSE_PPG_SAMPLE_TIME_MILLIS = 1.0f / MUSE_PPG_SAMPLE_RATE; // Theoretical time between consecutive PPG samples.
 
         // Channel counts.
@@ -57,10 +60,14 @@ namespace BlueMuse
         public const string MUSE_SMXT_DEVICE_NAME = "Smith Lowdown Focus";
         public const string MUSE_SMXT_MANUFACTURER = "Smith";
 
+        // Scale factors.
+        public const float MUSE_ACCELEROMETER_SCALE_FACTOR = 0.0000610352f;
+        public const float MUSE_GYROSCOPE_SCALE_FACTOR = 0.0074768f;
+
         // Sample sizes (chunk size) for LSL.
         public const int MUSE_EEG_SAMPLE_COUNT = 12; // Number of samples for each EEG LSL push.
-        public const int MUSE_ACCELEROMETER_SAMPLE_COUNT = 1; // Number of samples for each accelerometer LSL push.
-        public const int MUSE_GYROSCOPE_SAMPLE_COUNT = 1; // Number of samples for each grysocope LSL push.
+        public const int MUSE_ACCELEROMETER_SAMPLE_COUNT = 3; // Number of samples for each accelerometer LSL push.
+        public const int MUSE_GYROSCOPE_SAMPLE_COUNT = 3; // Number of samples for each grysocope LSL push.
         public const int MUSE_PPG_SAMPLE_COUNT = 6; // Number of samples for each PPG LSL push.
 
         public const int MUSE_LSL_BUFFER_LENGTH = 360;
