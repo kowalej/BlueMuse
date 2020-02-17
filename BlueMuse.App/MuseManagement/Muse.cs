@@ -199,7 +199,7 @@ namespace BlueMuse.MuseManagement
             Id = id;
             ConnectionStatus = status;
             DetermineMuseModel();
-            deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 0, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS);
+            deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 250, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS);
         }
 
         public async void DetermineMuseModel()
@@ -428,15 +428,17 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for device info. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
-                    await Task.Delay(1200); // Small delay to ensure we fully receive the info.
+                    await Task.Delay(800); // Small delay to ensure we fully receive the info.
                     if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, DeviceInfo_ValueChanged))
                     {
                         Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
                         return;
                     }
+                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
                     DeviceInfo = deviceInfoLive; // Update "stable" property.
+
+                    await Task.Delay(1000); // Small delay so that we don't get device info values coming into the control handlers.
 
                     // Subscribe to the command channel which we will also write a command to which asks for control status.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, true, ControlStatus_ValueChanged))
@@ -445,14 +447,14 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for control status. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, deviceControlCharacteristics);
-                    await Task.Delay(1200); // Small delay to ensure we fully receive the info.
+                    await Task.Delay(800); // Small delay to ensure we fully receive the info.
                     if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, ControlStatus_ValueChanged))
                     {
                         Log.Error($"Cannot get control status due to failure to toggle characteristics for info.");
                         return;
                     }
+                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, deviceControlCharacteristics);
                     ControlStatus = controlStatusLive; // Update "stable" property.
                 }
             }
@@ -469,29 +471,27 @@ namespace BlueMuse.MuseManagement
                 lock (syncLock)
                 {
                     string bits = GetBits(args.CharacteristicValue);
-                    // Each packet contains a 1 byte values.
+                    // Each packet contains a 1 byte length value (n) at the beginning followed by characters of length n.
                     int length = args.CharacteristicValue.GetByte(0);
-                    char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, 19));
-                    string text = new string(chars).Substring(0, length);
+                    char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, length));
+                    string text = new string(chars);
 
-                    if (string.IsNullOrEmpty(deviceInfoBuffer) && text.FirstOrDefault() == '{')
-                    {
-                        deviceInfoBuffer += text;
-                    }
-                    else if (!string.IsNullOrEmpty(deviceInfoBuffer) && !deviceInfoBuffer.EndsWith(text))
+                    // Sometimes it seems duplicate data comes in bursts, so this check prevents that.
+                    if(!deviceInfoBuffer.EndsWith(text))
                     {
                         deviceInfoBuffer += text;
                     }
 
-                    // If our message starts with '{' and ends with '}' we know it is complete JSON data that we can use.
-                    if (deviceInfoBuffer.FirstOrDefault() == '{' && deviceInfoBuffer.LastOrDefault() == '}')
+                    // If our message contains a '{' and ends with '}' we know somewhere, we have complete JSON data that we can use.
+                    if (deviceInfoBuffer.Contains("{") && deviceInfoBuffer.LastOrDefault() == '}')
                     {
+                        deviceInfoBuffer = deviceInfoBuffer.Substring(deviceInfoBuffer.LastIndexOf('{'));
                         try
                         {
                             var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(deviceInfoBuffer), Formatting.Indented);
                             if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
                         }
-                        catch (Exception) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        catch (JsonReaderException) { } // Don't care, probably throws a JSON error since the data is messed up.
                         finally
                         {
                             deviceInfoBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
@@ -513,23 +513,23 @@ namespace BlueMuse.MuseManagement
                 lock (syncLock)
                 {
                     string bits = GetBits(args.CharacteristicValue);
-                    // Each packet contains a 1 byte values.
+                    // Each packet contains a 1 byte length value (n) at the beginning followed by characters of length n.
                     int length = args.CharacteristicValue.GetByte(0);
-                    char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, 19));
-                    string text = new string(chars).Substring(0, length);
+                    char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, length));
+                    string text = new string(chars);
 
-                    if (string.IsNullOrEmpty(controlStatusBuffer) && text.FirstOrDefault() == '{')
-                    {
-                        controlStatusBuffer += text;
-                    }
-                    else if (!string.IsNullOrEmpty(controlStatusBuffer) && !controlStatusBuffer.EndsWith(text))
+                    // Sometimes it seems duplicate data comes in bursts, so this check prevents that.
+                    if (!controlStatusBuffer.EndsWith(text))
                     {
                         controlStatusBuffer += text;
                     }
 
-                    // If our message starts with '{' and ends with '}' we know it is complete JSON data that we can use.
-                    if (controlStatusBuffer.FirstOrDefault() == '{' && controlStatusBuffer.LastOrDefault() == '}')
+                    // If our message contains a '{' and ends with '}' we know somewhere, we have complete JSON data that we can use.
+                    if (controlStatusBuffer.Contains("{") && controlStatusBuffer.LastOrDefault() == '}')
                     {
+                        controlStatusBuffer = controlStatusBuffer.Substring(controlStatusBuffer.LastIndexOf('{'));
+
+                        // Pull our battery info, we can do this before parsing the JSON.
                         var batteryPer = Regex.Match(controlStatusBuffer, "\"bp\":\\W*([0-9]+)");
                         if (batteryPer.Success)
                         {
@@ -543,7 +543,7 @@ namespace BlueMuse.MuseManagement
                             var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
                             if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
                         }
-                        catch (Exception) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        catch (JsonReaderException) { } // Don't care, probably throws a JSON error since the data is messed up.
                         finally
                         {
                             controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
