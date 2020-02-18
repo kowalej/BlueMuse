@@ -178,7 +178,7 @@ namespace BlueMuse
             "Temperature"
         };
 
-        public const int MUSE_DEVICE_INFO_CONTROL_REFRESH_MS = 2000;
+        public const int MUSE_DEVICE_INFO_CONTROL_REFRESH_MS = 4000;
 
         public const string TIMESTAMP_FORMAT_BLUEMUSE_UNIX = "BLUEMUSE";
         public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_BLUEMUSE = "LSL_LOCAL_CLOCK_BLUEMUSE";

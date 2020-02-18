@@ -294,7 +294,6 @@ namespace BlueMuse.MuseManagement
                     streamCharacteristics = await GetGattCharacteristics();
 
                     deviceInfoTimer.Change(Timeout.Infinite, Timeout.Infinite); // "Pause" the timer.
-                    deviceControlCharacteristics = null;
                 }
 
                 if (streamCharacteristics?.Count < 1)
@@ -419,7 +418,7 @@ namespace BlueMuse.MuseManagement
                         Log.Error($"Cannot get device info due to null or empty GATT characteristics.");
                         return;
                     }
-                    if (togglingStream || resetLocked) return;
+                    if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
 
                     // Subscribe to the command channel which we will also write a command to which asks for device info.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, true, DeviceInfo_ValueChanged))
@@ -428,17 +427,19 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for device info. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
-                    if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
+                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
+                    await Task.Delay(800); // Small delay to ensure we fully receive the info.
+                    if (deviceInfoLive?.Length > 0) DeviceInfo = deviceInfoLive; // Update "stable" property.
+
+                    // Unsubscribe.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, DeviceInfo_ValueChanged))
                     {
                         Log.Error($"Cannot get device info due to failure to toggle characteristics for info.");
                         return;
                     }
-                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
-                    if (deviceInfoLive?.Length > 0) DeviceInfo = deviceInfoLive; // Update "stable" property.
+                    if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
 
-                    await Task.Delay(1200); // Small delay so that we don't get device info values coming into the control handlers.
+                    await Task.Delay(500); // Small delay so that we don't get device info values coming into the control handlers.
 
                     // Subscribe to the command channel which we will also write a command to which asks for control status.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, true, ControlStatus_ValueChanged))
@@ -447,15 +448,16 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for control status. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
-                    if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
+                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, deviceControlCharacteristics);
+                    await Task.Delay(800); // Small delay to ensure we fully receive the info.
+                    if (controlStatusLive?.Length > 0) ControlStatus = controlStatusLive; // Update "stable" property.
+
+                    // Unsubscribe.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, ControlStatus_ValueChanged))
                     {
                         Log.Error($"Cannot get control status due to failure to toggle characteristics for info.");
                         return;
                     }
-                    await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, deviceControlCharacteristics);
-                    if(controlStatusLive?.Length > 0 ) ControlStatus = controlStatusLive; // Update "stable" property.
                 }
             }
             catch (Exception ex)

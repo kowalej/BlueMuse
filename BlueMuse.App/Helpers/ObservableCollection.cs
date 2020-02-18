@@ -12,7 +12,11 @@ namespace BlueMuse.Helpers
             await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.High,
             () =>
                 {
-                    base.OnCollectionChanged(e);
+                    try
+                    {
+                        base.OnCollectionChanged(e);
+                    }
+                    catch { }
                 }
             );
         }
@@ -22,7 +26,11 @@ namespace BlueMuse.Helpers
             await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.High,
             () =>
                 {
-                    base.OnPropertyChanged(e);
+                    try
+                    {
+                        base.OnPropertyChanged(e);
+                    }
+                    catch { }
                 }
             ); 
         }
