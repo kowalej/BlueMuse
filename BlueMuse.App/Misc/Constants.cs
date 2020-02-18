@@ -62,8 +62,8 @@ namespace BlueMuse
         public const string MUSE_SMXT_MANUFACTURER = "Smith";
 
         // Scale factors.
-        public const float MUSE_ACCELEROMETER_SCALE_FACTOR = 0.0000610352f;
-        public const float MUSE_GYROSCOPE_SCALE_FACTOR = 0.0074768f;
+        public const double MUSE_ACCELEROMETER_SCALE_FACTOR = 0.0000610352d;
+        public const double MUSE_GYROSCOPE_SCALE_FACTOR = 0.0074768d;
 
         // Sample sizes (chunk size) for LSL.
         public const int MUSE_EEG_SAMPLE_COUNT = 12; // Number of samples for each EEG LSL push.

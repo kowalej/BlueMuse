@@ -1,5 +1,6 @@
 ﻿using BlueMuse.Helpers;
 using System;
+using System.Diagnostics;
 
 namespace BlueMuse.MuseManagement
 {
@@ -13,8 +14,8 @@ namespace BlueMuse.MuseManagement
             {
                 for (int j = 0; j < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; j++)
                 {
-                    samples[i, j] = PacketConversion.ToUInt16(bits, 16 + ((i * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT + j) * 16)); // Initial offset by 16 bits for the timestamp.
-                    samples[i, j] = samples[i, j] * Constants.MUSE_GYROSCOPE_SCALE_FACTOR;
+                    samples[i, j] = PacketConversion.ToInt16(bits, 16 + ( ((i * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT) + j) * 16) ); // Initial offset by 16 bits for the timestamp.
+                    samples[i, j] *= Constants.MUSE_GYROSCOPE_SCALE_FACTOR;
                 }
             }
             return samples;
