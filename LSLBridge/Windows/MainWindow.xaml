@@ -11,7 +11,6 @@
             <Run Text="Number of Open Streams: " /><Run Text="{Binding Path=StreamCount, Mode=OneWay}" />
         </TextBlock>
         <DataGrid Margin="0 0 0 0" ItemsSource="{Binding Path=Streams, Mode=OneWay}" HorizontalAlignment="Left" AutoGenerateColumns="False" ClipboardCopyMode="ExcludeHeader" CanUserResizeColumns="True">
-            
             <DataGrid.ContextMenu>
                 <ContextMenu>
                     <MenuItem Command="Copy" />

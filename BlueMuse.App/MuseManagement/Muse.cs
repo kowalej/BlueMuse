@@ -428,7 +428,7 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for device info. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await Task.Delay(800); // Small delay to ensure we fully receive the info.
+                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
                     if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, DeviceInfo_ValueChanged))
                     {
@@ -436,9 +436,9 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
-                    DeviceInfo = deviceInfoLive; // Update "stable" property.
+                    if (deviceInfoLive?.Length > 0) DeviceInfo = deviceInfoLive; // Update "stable" property.
 
-                    await Task.Delay(1000); // Small delay so that we don't get device info values coming into the control handlers.
+                    await Task.Delay(1200); // Small delay so that we don't get device info values coming into the control handlers.
 
                     // Subscribe to the command channel which we will also write a command to which asks for control status.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, true, ControlStatus_ValueChanged))
@@ -447,7 +447,7 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for control status. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await Task.Delay(800); // Small delay to ensure we fully receive the info.
+                    await Task.Delay(1000); // Small delay to ensure we fully receive the info.
                     if (togglingStream || resetLocked) return; // Prevents Bluetooth errors.
                     if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_COMMAND_UUID }, deviceControlCharacteristics, false, ControlStatus_ValueChanged))
                     {
@@ -455,7 +455,7 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     await WriteCommand(Constants.MUSE_CMD_ASK_CONTROL_STATUS, deviceControlCharacteristics);
-                    ControlStatus = controlStatusLive; // Update "stable" property.
+                    if(controlStatusLive?.Length > 0 ) ControlStatus = controlStatusLive; // Update "stable" property.
                 }
             }
             catch (Exception ex)
@@ -470,7 +470,7 @@ namespace BlueMuse.MuseManagement
             {
                 lock (syncLock)
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     // Each packet contains a 1 byte length value (n) at the beginning followed by characters of length n.
                     int length = args.CharacteristicValue.GetByte(0);
                     char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, length));
@@ -512,7 +512,7 @@ namespace BlueMuse.MuseManagement
             {
                 lock (syncLock)
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     // Each packet contains a 1 byte length value (n) at the beginning followed by characters of length n.
                     int length = args.CharacteristicValue.GetByte(0);
                     char[] chars = Encoding.ASCII.GetChars(args.CharacteristicValue.ToArray(1, length));
@@ -1120,31 +1120,13 @@ namespace BlueMuse.MuseManagement
             await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
         }
 
-        private static string GetBits(IBuffer buffer)
-        {
-            byte[] vals = new byte[buffer.Length];
-            for (uint i = 0; i < buffer.Length; i++)
-            {
-                vals[i] = buffer.GetByte(i);
-            }
-            string hexStr = BitConverter.ToString(vals);
-            string[] hexSplit = hexStr.Split('-');
-            string bits = string.Empty;
-            foreach (var hex in hexSplit)
-            {
-                ushort longValue = Convert.ToUInt16("0x" + hex, 16);
-                bits = bits + Convert.ToString(longValue, 2).PadLeft(8, '0');
-            }
-            return bits;
-        }
-
         private async void EEGChannel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
         {
             if (isStreaming)
             {
                 try
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseEEGSamples samples;
                     lock (eegSampleBuffer)
@@ -1184,7 +1166,7 @@ namespace BlueMuse.MuseManagement
             {
                 try
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MusePPGSamples samples;
                     lock (ppgSampleBuffer)
@@ -1224,7 +1206,7 @@ namespace BlueMuse.MuseManagement
             {
                 try
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseAccelerometerSamples samples = new MuseAccelerometerSamples();
                     samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
@@ -1248,7 +1230,7 @@ namespace BlueMuse.MuseManagement
             {
                 try
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseGyroscopeSamples samples = new MuseGyroscopeSamples();
                     samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
@@ -1272,7 +1254,7 @@ namespace BlueMuse.MuseManagement
             {
                 try
                 {
-                    string bits = GetBits(args.CharacteristicValue);
+                    string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseTelemetrySamples samples = new MuseTelemetrySamples();
                     samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.

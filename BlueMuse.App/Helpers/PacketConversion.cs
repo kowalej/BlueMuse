@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Runtime.InteropServices.WindowsRuntime;
+using Windows.Storage.Streams;
 
 namespace BlueMuse.Helpers
 {
@@ -8,6 +10,24 @@ namespace BlueMuse.Helpers
         const int BITS_UINT16 = 16;
         const int BITS_INT16 = 16;
         const int BITS_UINT24 = 24;
+
+        public static string GetBits(IBuffer buffer)
+        {
+            byte[] vals = new byte[buffer.Length];
+            for (uint i = 0; i < buffer.Length; i++)
+            {
+                vals[i] = buffer.GetByte(i);
+            }
+            string hexStr = BitConverter.ToString(vals);
+            string[] hexSplit = hexStr.Split('-');
+            string bits = string.Empty;
+            foreach (var hex in hexSplit)
+            {
+                ushort longValue = Convert.ToUInt16("0x" + hex, 16);
+                bits = bits + Convert.ToString(longValue, 2).PadLeft(8, '0');
+            }
+            return bits;
+        }
 
         public static UInt16 ToUInt12(string binary, int offset = 0)
         {

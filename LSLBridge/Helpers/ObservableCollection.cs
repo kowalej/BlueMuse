@@ -11,7 +11,11 @@ namespace LSLBridge.Helpers
             await Application.Current.Dispatcher.InvokeAsync(
             () =>
                 {
-                    base.OnCollectionChanged(e);
+                    try
+                    {
+                        base.OnCollectionChanged(e);
+                    } 
+                    catch { }
                 }
             );
         }
@@ -21,7 +25,11 @@ namespace LSLBridge.Helpers
             await Application.Current.Dispatcher.InvokeAsync(
             () =>
                 {
-                    base.OnPropertyChanged(e);
+                    try
+                    {
+                        base.OnPropertyChanged(e);
+                    }
+                    catch { }
                 }
             ); 
         }
