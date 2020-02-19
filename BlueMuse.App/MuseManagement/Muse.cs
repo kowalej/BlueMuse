@@ -260,9 +260,10 @@ namespace BlueMuse.MuseManagement
 
         public async Task ToggleStream(bool start)
         {
+            if (MuseModel == MuseModel.Undetected) DetermineMuseModel();
+
             lock (syncLock)
             {
-                if (MuseModel == MuseModel.Undetected) DetermineMuseModel();
                 if (start == isStreaming || (start && !CanStream)) return;
                 togglingStream = true;
             }

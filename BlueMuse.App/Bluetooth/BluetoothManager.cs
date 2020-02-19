@@ -189,7 +189,7 @@ namespace BlueMuse.Bluetooth
         {
             if (muse.Device.ConnectionStatus == BluetoothConnectionStatus.Connected)
             {
-                if (StreamFirst && Muses.IndexOf(muse) == 0)
+                if (StreamFirst && Muses.Count(x => x.IsStreaming) == 0)
                 {
                     StreamFirst = false;
                     StartStreaming(muse.Id);
