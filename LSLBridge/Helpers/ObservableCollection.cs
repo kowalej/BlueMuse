@@ -8,30 +8,39 @@ namespace LSLBridge.Helpers
     {
         protected async override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
         {
-            await Application.Current.Dispatcher.InvokeAsync(
-            () =>
-                {
-                    try
+            try
+            {
+                await Application.Current.Dispatcher.InvokeAsync(
+                () =>
                     {
-                        base.OnCollectionChanged(e);
-                    } 
-                    catch { }
-                }
-            );
+                        try
+                        {
+                            base.OnCollectionChanged(e);
+                        }
+                        catch { }
+                    }
+                );
+            }
+            catch { }
         }
 
         protected async override void OnPropertyChanged(PropertyChangedEventArgs e)
         {
-            await Application.Current.Dispatcher.InvokeAsync(
-            () =>
-                {
-                    try
+            try
+            {
+                await Application.Current.Dispatcher.InvokeAsync(
+                () =>
                     {
-                        base.OnPropertyChanged(e);
+                        try
+                        {
+                            base.OnPropertyChanged(e);
+                        }
+                        catch { }
                     }
-                    catch { }
-                }
-            ); 
+                );
+            }
+            catch { }
         }
+
     }
 }

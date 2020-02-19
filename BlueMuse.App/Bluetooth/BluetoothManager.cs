@@ -45,7 +45,7 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
-            pollBridge = new Timer(PollBridge, null, 0, 500);
+            pollBridge = new Timer(PollBridge, null, 0, 1000);
         }
 
         public async void PollBridge(object state)

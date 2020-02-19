@@ -30,7 +30,6 @@ namespace BlueMuse
         {
             InitializeComponent();
 
-            Suspending += OnSuspending;
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
             var logPath = Path.Combine(localFolder, "Logs", "BlueMuse-Log-{Date}.log");
             Log.Logger = new LoggerConfiguration()
@@ -40,9 +39,12 @@ namespace BlueMuse
                     logPath,
                     outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff} [{Level}] {Message}{NewLine}{Exception}")
                 .CreateLogger();
+
+            Suspending += OnSuspending;
             UnhandledException += App_UnhandledException;
             AppSettings.Instance.LoadInitialSettings();
         }
+
 
         private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -219,6 +221,7 @@ namespace BlueMuse
         {
             var deferral = e.SuspendingOperation.GetDeferral();
             // TODO: Save application state and stop any background activity.
+            BluetoothManager.Instance.Close();
             deferral.Complete();
         }
 

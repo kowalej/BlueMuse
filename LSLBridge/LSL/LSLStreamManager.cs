@@ -1,5 +1,6 @@
 ﻿using LSLBridge.Helpers;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace LSLBridge.LSL
             };
             lslStreamService.RequestReceived += LSLService_RequestReceived;
             OpenService();
-            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 250); // Check if we're running every 250ms.
+            keepAliveTimer = new Timer(CheckLastMessage, null, 0, 1000); // Check if we're running every 1000ms.
         }
 
         private async void OpenService()
@@ -41,9 +42,10 @@ namespace LSLBridge.LSL
         private void CheckLastMessage(object state)
         {
             // Auto close off bridge if we aren't receiving any data. This fixes LSLBridge not being shut down after closing main app.
-            // The main application should send a "keep alive" message every 500ms.
-            if (lastMessageTime != DateTime.MinValue && (DateTime.UtcNow - lastMessageTime).TotalMilliseconds > 1500)
+            // The main application should send a "keep alive" message every 1000ms.
+            if (lastMessageTime != DateTime.MinValue && (DateTime.UtcNow - lastMessageTime).TotalMilliseconds > 5000)
             {
+                Log.Information("Closing LSL bridge (timeout - no messages from BlueMuse).");
                 CloseBridge();
             }
         }
@@ -64,6 +66,8 @@ namespace LSLBridge.LSL
                 string commandType = (string)value;
                 switch (commandType)
                 {
+                    case Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE:
+                        return;
                     case Constants.LSL_MESSAGE_TYPE_OPEN_STREAM:
                         {
                             LSLBridgeStreamInfo streamInfo = JsonConvert.DeserializeObject<LSLBridgeStreamInfo>((string)message[Constants.LSL_MESSAGE_STREAM_INFO]);
@@ -164,6 +168,7 @@ namespace LSLBridge.LSL
                     // Should not be called until application is closing.
                     case Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE:
                         {
+                            Log.Information("Closing LSL bridge (requested by BlueMuse).");
                             CloseBridge();
                         }
                         break;

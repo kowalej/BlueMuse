@@ -16,7 +16,6 @@ using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
-using Windows.Storage.Streams;
 
 namespace BlueMuse.MuseManagement
 {
@@ -291,10 +290,10 @@ namespace BlueMuse.MuseManagement
                         !isPPGEnabled &&
                         !isTelemetryEnabled) return; // Nothing enabled, can't start under this condition.
 
+                    deviceInfoTimer.Change(Timeout.Infinite, Timeout.Infinite); // "Pause" the timer.
+
                     // Should only need to acquire stream characteristics during start, they will then be reused upon stopping the stream.
                     streamCharacteristics = await GetGattCharacteristics();
-
-                    deviceInfoTimer.Change(Timeout.Infinite, Timeout.Infinite); // "Pause" the timer.
                 }
 
                 if (streamCharacteristics?.Count < 1)
@@ -365,8 +364,8 @@ namespace BlueMuse.MuseManagement
                     FinishOpenStream();
                 else
                 {
-                    deviceInfoTimer.Change(Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
                     FinishCloseOffStream();
+                    deviceInfoTimer.Change(Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
                 }
             }
             catch (Exception ex)
