@@ -3,15 +3,16 @@
 
 # Features
 * Auto detects Muse headsets and provides a visual interface to manage streams.
-* Supports Muse (2016, i.e. "original"), Muse 2, and Smith Lowdown Focus glasses (device models are auto detected).
+* Supports Muse 2016, Muse 2, and Smith Lowdown Focus glasses (device models are auto detected).
 * Supports EEG, PPG, accelerometer, gyroscope, and telemetry data. *Note: PPG is only available on Muse 2*.
 * Can stream from multiple Muses simultaneously (see notes).
-* Choose between timestamp formats - LSL local_clock or Unix Epoch.
+* Choose between timestamp formats - LSL "local clock" or Unix Epoch.
 * LSL streams in 64-bit or 32-bit.
 * Shows latest timestamp received and the current sample rate for each stream.
 
 # Screenshots
 <img src="screenshot.png" width="400">
+<img src="screenshot_lslbridge.png" width="400">
 
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
@@ -27,7 +28,7 @@ start bluemuse://shutdown
 ```
 
 ### Streaming
-Start streaming first Muse found: 
+Start streaming first connected (online) Muse: 
 ```powershell
 start bluemuse://start?streamfirst=true
 ```
@@ -92,7 +93,7 @@ Toggle "always pair":
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
 
 ### First Step
-**Download [latest version](https://github.com/kowalej/BlueMuse/raw/master/Dist/BlueMuse_1.1.1.0.zip) from the /Dist folder** and unzip, then follow one of the methods below.
+**Download [latest version](https://github.com/kowalej/BlueMuse/raw/master/Dist/BlueMuse_2.0.0.0.zip) from the /Dist folder** and unzip, then follow one of the methods below.
 ### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the `.\InstallBlueMuse.ps1` PowerShell command (right click and choose Run with PowerShell or execute from terminal directly): 
 
@@ -114,14 +115,14 @@ Toggle "always pair":
 
 # Versions
 ### Latest
-* 2.0.0.0
+* **2.0.0.0**
     * Stream PPG, accelerometer, gyroscope, and telemetry data.
-    * Muse 2 (and other models) auto detection. Removed "Assume Muse 2" setting.
+    * Muse 2 (and other model) auto detection. Removed "Assume Muse 2" setting.
     * Battery level indicator in the UI.
     * Added support for "tech info" which will show some device and control status information from the Muse. This data includes firmware information, serial number, battery info, and more.
     * Added button to "hard reset" the Muse. *This can sometimes help resolve connectivity issues.*
-    * Cleaned up UI (improved button colours and important text is bolded).
-    * Added a lot more logging for Bluetooth and other processing errors. This will hopefully lead to issues being resolved in the future if users are having streaming issues.
+    * Cleaned up UI (improved button colours and important text is now bolded).
+    * Added a lot more logging for Bluetooth and other processing errors. This will hopefully lead to remaining issues being resolved in the future.
     * Utilizing generated UWP package Install.ps1 Powershell install script (instead of calling Add-AppDevPackage directly).
     
 #### Older
