@@ -42,7 +42,7 @@ namespace BlueMuse.ViewModels
             AppSettings = AppSettings.Instance;
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
             BlueMuseLogFolder = Path.Combine(localFolder, "Logs");
-            LSLBridgeLogFolder = BlueMuseLogFolder.Replace("LocalState", "LocalCache\\Local");
+            LSLBridgeLogFolder = BlueMuseLogFolder.Replace("LocalState", "LocalCache\\Local\\BlueMuse-LSL");
 
             museManager = BluetoothManager.Instance;
             Muses = museManager.Muses;

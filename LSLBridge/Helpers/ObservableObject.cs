@@ -27,12 +27,16 @@ namespace LSLBridge.Helpers
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName]string propertyName = "", Action onChanged = null)
         {
-            if (EqualityComparer<T>.Default.Equals(backingStore, value))
-                return false;
-            backingStore = value;
-            onChanged?.Invoke();
-            OnPropertyChanged(propertyName);
-            return true;
+            try
+            {
+                if (EqualityComparer<T>.Default.Equals(backingStore, value))
+                    return false;
+                backingStore = value;
+                onChanged?.Invoke();
+                OnPropertyChanged(propertyName);
+                return true;
+            }
+            catch { return false; }
         }
 
         /// <summary>
@@ -43,12 +47,20 @@ namespace LSLBridge.Helpers
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
         protected async void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            await Application.Current.Dispatcher.InvokeAsync(
-            () =>
-                {
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-                }
-            );
+            try
+            {
+                await Application.Current.Dispatcher.InvokeAsync(
+                () =>
+                    {
+                        try
+                        {
+                            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+                        }
+                        catch { }
+                    }
+                );
+            }
+            catch { }
         }
     }
 }

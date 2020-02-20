@@ -27,12 +27,16 @@ namespace BlueMuse.Helpers
         /// <typeparam name="T">The 1st type parameter.</typeparam>
         protected bool SetProperty<T>(ref T backingStore, T value, [CallerMemberName]string propertyName = "", Action onChanged = null)
         {
-            if (EqualityComparer<T>.Default.Equals(backingStore, value))
-                return false;
-            backingStore = value;
-            onChanged?.Invoke();
-            OnPropertyChanged(propertyName);
-            return true;
+            try
+            {
+                if (EqualityComparer<T>.Default.Equals(backingStore, value))
+                    return false;
+                backingStore = value;
+                onChanged?.Invoke();
+                OnPropertyChanged(propertyName);
+                return true;
+            }
+            catch { return false; }
         }
 
         /// <summary>

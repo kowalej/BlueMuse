@@ -20,7 +20,7 @@ namespace LSLBridge
         private void App_Startup(object sender, StartupEventArgs e)
         {
             var localFolder = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var logPath = Path.Combine(localFolder, "Logs", "LSLBridge-Log-{Date}.log");
+            var logPath = Path.Combine(localFolder, "BlueMuse-LSL\\Logs", "LSLBridge-Log-{Date}.log");
             Log.Logger = new LoggerConfiguration()
                 .Enrich.WithExceptionDetails()
                 .WriteTo.RollingFile(
