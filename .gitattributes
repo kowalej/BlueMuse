@@ -57,5 +57,6 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
-Dist/*.zip filter=lfs diff=lfs merge=lfs -text
-TestDist/*.zip filter=lfs diff=lfs merge=lfs -text
+#Dist/*.zip filter=lfs diff=lfs merge=lfs -text
+#TestDist/*.zip filter=lfs diff=lfs merge=lfs -text
+
