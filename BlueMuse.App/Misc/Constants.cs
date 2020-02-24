@@ -99,7 +99,7 @@ namespace BlueMuse
         public static readonly Guid MUSE_GATT_DATA_SERVICE_UUID = new Guid("0000fe8d-0000-1000-8000-00805f9b34fb");
 
         // GATT characteristics for device battery level and other general info.
-        public static readonly Guid MUSE_GATT_TELEMETRY_UUID = new Guid("273e000b-4c4d-454d-96be-f03bac821358");
+        public static readonly Guid MUSE_GATT_TELEMETRY_UUID = new Guid("273e000b-4c4d-454d-96be-f03bac821358"); // Handle 25.
 
         // Muse GATT characteristics for the 5 EEG channels, in order: TP9-AF7-AF8-TP10-RIGHTAUX.
         public static readonly Guid[] MUSE_GATT_EGG_CHANNEL_UUIDS = new Guid[MUSE_EEG_CHANNEL_COUNT] {
@@ -119,10 +119,10 @@ namespace BlueMuse
         };
 
         // Accelerometer GATT characteristic.
-        public static Guid MUSE_GATT_ACCELEROMETER_UUID = new Guid("273e000a-4c4d-454d-96be-f03bac821358");
+        public static Guid MUSE_GATT_ACCELEROMETER_UUID = new Guid("273e000a-4c4d-454d-96be-f03bac821358"); // Handle 22.
 
         // Gyroscope GATT characteristic.
-        public static Guid MUSE_GATT_GYROSCOPE_UUID = new Guid("273e0009-4c4d-454d-96be-f03bac821358");
+        public static Guid MUSE_GATT_GYROSCOPE_UUID = new Guid("273e0009-4c4d-454d-96be-f03bac821358"); // Handle 19.
 
         // Muse (2) GATT characteristics for the 3 PPG channels.
         public static readonly Guid[] MUSE_GATT_PPG_CHANNEL_UUIDS = new Guid[MUSE_PPG_CHANNEL_COUNT] {
