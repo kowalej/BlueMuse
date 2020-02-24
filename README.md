@@ -125,7 +125,7 @@ Toggle "always pair":
     * Utilizing generated UWP package Install.ps1 Powershell install script (instead of calling Add-AppDevPackage directly).
     
 #### Older
-*Note: version 2.0.0.0 and older version are available from the [ArchivedDist folder]( https://github.com/kowalej/BlueMuse/tree/master/ArchivedDist). New versions will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
+*Note: version 2.0.0.0 and older version are available from the [ArchivedDist folder]( https://github.com/kowalej/BlueMuse/tree/master/ArchivedDist). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
 
 * 1.1.1.0
     * **Muse 2 support (experimental) - for now, for this to work you have to go to Settings > Assume Muse 2 > Toggle On. Finally, hit Force Refresh (if your Muse was already in the list, otherwise it should work when your device is first found).** It will assume all you devices with "Muse" in the name are Muse 2's and will set the parameters accordingly. *In the future I hope to have Muse vs Muse 2 differentiation be auto detected*.
