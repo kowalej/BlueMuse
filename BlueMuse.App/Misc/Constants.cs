@@ -58,6 +58,9 @@ namespace BlueMuse
 
         public const string MUSE_2_DEVICE_NAME = "Muse 2 EEG Headset";
 
+        public const string MUSE_S_DEVICE_NAME = "Muse S EEG Headset";
+        public static readonly Guid MUSE_S_SPECIAL_CHANNEL = new Guid("00002902-0000-1000-8000-00805f9b34fb");
+
         public const string MUSE_SMXT_DEVICE_NAME = "Smith Lowdown Focus";
         public const string MUSE_SMXT_MANUFACTURER = "Smith";
 

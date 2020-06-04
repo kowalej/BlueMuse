@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10" xmlns:desktop2="http://schemas.microsoft.com/appx/manifest/desktop/windows10/2" IgnorableNamespaces="uap mp uap3 rescap desktop desktop2">
-  <Identity Name="07220b98-ffa5-4000-9f7c-e168a00899a6" Publisher="CN=BlueMuse - Jason Kowaleski, O=NeuroTechX, C=CA" Version="2.0.0.0" />
+  <Identity Name="07220b98-ffa5-4000-9f7c-e168a00899a6" Publisher="CN=BlueMuse - Jason Kowaleski, O=NeuroTechX, C=CA" Version="2.1.0.0" />
   <Properties>
     <DisplayName>BlueMuse</DisplayName>
     <PublisherDisplayName>BlueMuse - Jason Kowaleski</PublisherDisplayName>

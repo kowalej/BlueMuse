@@ -233,6 +233,16 @@ namespace BlueMuse.MuseManagement
                     Log.Error($"Cannot complete determining Muse model due to null or empty GATT characteristics.");
                     MuseModel = MuseModel.Undetected;
                 }
+
+                // Muse S has some special channels that the Muse 2 and Muse 2016 do not have.
+                if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_S_SPECIAL_CHANNEL) != null)
+                {
+                    MuseModel = MuseModel.Muse2;
+                    eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
+                    eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
+                    eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
+                    lslDeviceInfoName = Constants.MUSE_S_DEVICE_NAME;
+                }
                 // Device has PPG, therefore we know it's a Muse 2. Note we will also not use AUX channel.
                 if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
                 {
@@ -281,7 +291,7 @@ namespace BlueMuse.MuseManagement
                     isEEGEnabled = IsEEGEnabled;
                     isAccelerometerEnabled = IsAccelerometerEnabled;
                     isGyroscopeEnabled = IsGyroscopeEnabled;
-                    isPPGEnabled = IsPPGEnabled && MuseModel == MuseModel.Muse2; // Only Muse 2 supports PPG.
+                    isPPGEnabled = IsPPGEnabled && (MuseModel == MuseModel.Muse2 || MuseModel == MuseModel.MuseS); // Only Muse 2 & Muse S support PPG.
                     isTelemetryEnabled = IsTelemetryEnabled;
 
                     if (!isEEGEnabled &&
@@ -371,7 +381,15 @@ namespace BlueMuse.MuseManagement
             catch (Exception ex)
             {
                 Log.Error(ex, $"Exception during toggle stream (start={start}). Exception message: {ex.Message}.");
-                if (!start) FinishCloseOffStream();
+                try
+                {
+                    // Attempt to clean up, but this can fail.
+                    if (!start) FinishCloseOffStream();
+                }
+                catch (Exception ext)
+                {
+                    Log.Error(ext, $"Exception during FinishCloseOffStream() after an exception was already caught while toggling. Exception message: {ext.Message}.");
+                }
             }
             finally
             {
