@@ -92,7 +92,7 @@ Toggle "always pair":
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
 
 ### First Step
-**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.0/BlueMuse_2.0.0.0.zip) from the [releases page](https://github.com/kowalej/BlueMuse/releases)** and unzip, then follow one of the methods below.
+**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.1/BlueMuse_2.1.0.0.zip) from the [releases page](https://github.com/kowalej/BlueMuse/releases)** and unzip, then follow one of the methods below.
 ### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the `.\InstallBlueMuse.ps1` PowerShell command (right click and choose Run with PowerShell or execute from terminal directly): 
 
@@ -114,7 +114,14 @@ Toggle "always pair":
 
 # Versions
 ### Latest
-* **2.0.0.0**
+* **2.1.0.0**
+    Detect Muse S as separate device (previously detected as Muse 2).
+    Muse S - enable PPG.
+    Handle more exceptions during stream shutdown.
+
+#### Older
+*Note: version 2.0.0.0 and older version are available from the [ArchivedDist folder](https://github.com/kowalej/BlueMuse/tree/master/ArchivedDist). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
+* 2.0.0.0
     * Stream PPG, accelerometer, gyroscope, and telemetry data.
     * Muse 2 (and other model) auto detection. Removed "Assume Muse 2" setting.
     * Battery level indicator in the UI.
@@ -123,10 +130,6 @@ Toggle "always pair":
     * Cleaned up UI (improved button colours and important text is now bolded).
     * Added a lot more logging for Bluetooth and other processing errors. This will hopefully lead to remaining issues being resolved in the future.
     * Utilizing generated UWP package Install.ps1 Powershell install script (instead of calling Add-AppDevPackage directly).
-    
-#### Older
-*Note: version 2.0.0.0 and older version are available from the [ArchivedDist folder]( https://github.com/kowalej/BlueMuse/tree/master/ArchivedDist). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
-
 * 1.1.1.0
     * **Muse 2 support (experimental) - for now, for this to work you have to go to Settings > Assume Muse 2 > Toggle On. Finally, hit Force Refresh (if your Muse was already in the list, otherwise it should work when your device is first found).** It will assume all you devices with "Muse" in the name are Muse 2's and will set the parameters accordingly. *In the future I hope to have Muse vs Muse 2 differentiation be auto detected*.
     * Added "always pair" option which may help with some people's Bluetooth issues. It is set as Off by default, you can toggle it On in the settings menu.
