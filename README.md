@@ -3,8 +3,8 @@
 
 # Features
 * Auto detects Muse headsets and provides a visual interface to manage streams.
-* Supports Muse 2016, Muse 2, and Smith Lowdown Focus glasses (device models are auto detected).
-* Supports EEG, PPG, accelerometer, gyroscope, and telemetry data. *Note: PPG is only available on Muse 2*.
+* Supports Muse 2016, Muse 2, Muse S, and Smith Lowdown Focus glasses (device models are auto detected).
+* Supports EEG, PPG, accelerometer, gyroscope, and telemetry data. *Note: PPG is only available on Muse 2 and Muse S*.
 * Can stream from multiple Muses simultaneously (see notes).
 * Choose between timestamp formats - LSL "local clock" or Unix Epoch.
 * LSL streams in 64-bit or 32-bit.
