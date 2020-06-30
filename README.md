@@ -120,7 +120,7 @@ Toggle "always pair":
     * Handle more exceptions during stream shutdown.
 
 #### Older
-*Note: version 2.0.0.0 and older version are available from the [ArchivedDist folder](https://github.com/kowalej/BlueMuse/tree/master/ArchivedDist). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
+*Note: version 2.0.0.0 and older version are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
 * 2.0.0.0
     * Stream PPG, accelerometer, gyroscope, and telemetry data.
     * Muse 2 (and other model) auto detection. Removed "Assume Muse 2" setting.
