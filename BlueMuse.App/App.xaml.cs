@@ -41,12 +41,11 @@ namespace BlueMuse
                 .CreateLogger();
 
             Suspending += OnSuspending;
-            UnhandledException += App_UnhandledException;
+            UnhandledException += App_UnhandledException1; ;
             AppSettings.Instance.LoadInitialSettings();
         }
 
-
-        private void App_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        private void App_UnhandledException1(object sender, Windows.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             Log.Error(e.Exception, "BlueMuse unhandled exception.");
         }

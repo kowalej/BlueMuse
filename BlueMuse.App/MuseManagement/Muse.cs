@@ -234,17 +234,17 @@ namespace BlueMuse.MuseManagement
                     MuseModel = MuseModel.Undetected;
                 }
 
-                // Muse S has some special channels that the Muse 2 and Muse 2016 do not have.
-                if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_S_SPECIAL_CHANNEL) != null)
+                // Muse S should have device name MuseS-****. As another check, it should have a channel that the Muse 2 and Muse 2016 do not have.
+                if (name.Contains("MuseS") || streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_S_SPECIAL_CHANNEL) != null)
                 {
-                    MuseModel = MuseModel.Muse2;
+                    MuseModel = MuseModel.MuseS;
                     eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
                     eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
                     eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
                     lslDeviceInfoName = Constants.MUSE_S_DEVICE_NAME;
                 }
                 // Device has PPG, therefore we know it's a Muse 2. Note we will also not use AUX channel.
-                if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
+                else if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
                 {
                     MuseModel = MuseModel.Muse2;
                     eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
