@@ -54,6 +54,7 @@ namespace BlueMuse.MuseManagement
         private volatile Dictionary<ushort, MusePPGSamples> ppgSampleBuffer;
         private volatile string deviceInfoBuffer = string.Empty;
         private volatile string controlStatusBuffer = string.Empty;
+        private DateTimeOffset auxLastSent;
 
         private volatile bool togglingStream = false;
         private volatile bool resetLocked = false;
@@ -243,13 +244,13 @@ namespace BlueMuse.MuseManagement
                     eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
                     lslDeviceInfoName = Constants.MUSE_S_DEVICE_NAME;
                 }
-                // Device has PPG, therefore we know it's a Muse 2. Note we will also not use AUX channel.
+                // Device has PPG, therefore we know it's a Muse 2.
                 else if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[0]) != null)
                 {
                     MuseModel = MuseModel.Muse2;
-                    eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
-                    eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS;
-                    eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
+                    eegChannelCount = Constants.MUSE_EEG_CHANNEL_COUNT;
+                    eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_CHANNEL_UUIDS;
+                    eegChannelLabels = Constants.MUSE_EEG_CHANNEL_LABELS;
                     lslDeviceInfoName = Constants.MUSE_2_DEVICE_NAME;
                 }
                 else
@@ -291,7 +292,7 @@ namespace BlueMuse.MuseManagement
                     isEEGEnabled = IsEEGEnabled;
                     isAccelerometerEnabled = IsAccelerometerEnabled;
                     isGyroscopeEnabled = IsGyroscopeEnabled;
-                    isPPGEnabled = IsPPGEnabled && (MuseModel == MuseModel.Muse2 || MuseModel == MuseModel.MuseS); // Only Muse 2 & Muse S support PPG.
+                    isPPGEnabled = IsPPGEnabled && (museModel == MuseModel.Muse2 || museModel == MuseModel.MuseS); // Only Muse 2 & Muse S support PPG.
                     isTelemetryEnabled = IsTelemetryEnabled;
 
                     if (!isEEGEnabled &&
@@ -319,8 +320,10 @@ namespace BlueMuse.MuseManagement
                     if (!await ToggleCharacteristics(eegGattChannelUUIDs, streamCharacteristics, start, EEGChannel_ValueChanged))
                     {
                         Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle characteristics for EEG.");
-                        if (start) return;
+                        if (start)
+                            return;
                     }
+                    auxLastSent = DateTimeOffset.MinValue;
                 }
 
                 // Subscribe or unsubscribe accelerometer.
@@ -1146,6 +1149,10 @@ namespace BlueMuse.MuseManagement
             {
                 try
                 {
+                    if (sender.Uuid == Constants.MUSE_GATT_AUX_CHANNEL_UUID)
+                    {
+                        auxLastSent = DateTimeOffset.UtcNow;
+                    }
                     string bits = PacketConversion.GetBits(args.CharacteristicValue);
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseEEGSamples samples;
@@ -1171,6 +1178,35 @@ namespace BlueMuse.MuseManagement
                         await LSLPushEEGChunk(samples);
                         lock (eegSampleBuffer)
                             eegSampleBuffer.Remove(museTimestamp);
+                    }
+                    else if (samples.ChannelData.Count == eegChannelCount - 1 &&
+                      !samples.ChannelData.ContainsKey(Constants.MUSE_GATT_AUX_CHANNEL_UUID) &&
+                      (DateTime.UtcNow - auxLastSent).TotalMilliseconds > Constants.MUSE_EEG_NOAUX_TIMEOUT_THRESHOLD_MILLIS)
+                    {
+                        samples.ChannelData.Add(Constants.MUSE_GATT_AUX_CHANNEL_UUID, Constants.MUSE_EEG_BACKFILL);
+                        await LSLPushEEGChunk(samples);
+                        lock (eegSampleBuffer)
+                            eegSampleBuffer.Remove(museTimestamp);
+                    }
+
+                    // Cleanup broken samples.
+                    var flushSamples = eegSampleBuffer.Where(x =>
+                        (DateTimeOffset.UtcNow - x.Value.CreatedAt).TotalMilliseconds > Constants.MUSE_EEG_FLUSH_THRESHOLD_MILLIS)
+                            .OrderBy(x => x.Value.BaseTimestamp);
+                    foreach (var sample in flushSamples)
+                    {
+                        var channelData = sample.Value.ChannelData;
+                        if (channelData.Count != eegChannelCount)
+                        {
+                            var missingChannels = eegGattChannelUUIDs.Where(x => !channelData.ContainsKey(x));
+                            foreach (var channel in missingChannels)
+                            {
+                                channelData.Add(channel, Constants.MUSE_EEG_BACKFILL);
+                            }
+                        }
+                        await LSLPushEEGChunk(sample.Value);
+                        lock (eegSampleBuffer)
+                            eegSampleBuffer.Remove(sample.Key);
                     }
                 }
                 catch (Exception ex)

@@ -18,6 +18,8 @@ namespace BlueMuse.MuseManagement
             return samples;
         }
 
+        public DateTimeOffset CreatedAt;
+
         private double baseTimestamp = DateTimeOffset.MaxValue.ToUnixTimeMilliseconds() / 1000d;
         public double BaseTimestamp
         {
@@ -85,6 +87,7 @@ namespace BlueMuse.MuseManagement
         public MuseEEGSamples()
         {
             ChannelData = new Dictionary<Guid, double[]>();
+            CreatedAt = DateTimeOffset.UtcNow;
             timestamps = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
             timestamps2 = new double[Constants.MUSE_EEG_SAMPLE_COUNT];
         }
