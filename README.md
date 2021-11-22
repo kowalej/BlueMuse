@@ -21,6 +21,10 @@ Start BlueMuse
 ```powershell
 start bluemuse:
 ```
+Refresh Bluetooth list (used only while running): 
+```powershell
+start bluemuse://refresh
+```
 Close the program: 
 ```powershell
 start bluemuse://shutdown
@@ -173,7 +177,6 @@ Toggle "always pair":
 * Uses 32-bit binaries for LSL. Acquired from: ftp://sccn.ucsd.edu/pub/software/LSL/SDK/liblsl-All-Languages-1.11.zip
 * liblsl32.dll was dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).
 * The full dependencies of liblsl32.dll are: KERNEL32.dll, WINMM.dll, MSVCP90.dll, WS2_32.dll, MSWSOCK.dll, and MSVCR90.dll. Generated with dumpbin utility.
-* Muse 2 has AUX channel disabled - if I try to stream from this channel I get errors. It looks like no data comes from the channel when debugging Bluetooth inside a sniffing tool, so I'm making the assumption that Muse 2 doesn't actually support the AUX (secret electrode) input - it just has a (non functioning) GATT characteristic which is the same UUID as the Muse (2016). 
 
 ### Timestamp Formats:
 

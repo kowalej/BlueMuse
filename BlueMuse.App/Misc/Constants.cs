@@ -26,6 +26,7 @@ namespace BlueMuse
         // BlueMuse commands.
         public const string CMD_START = "start";
         public const string CMD_STOP = "stop";
+        public const string CMD_FORCE_REFRESH = "refresh";
         public const string CMD_CLOSE_PROGRAM = "shutdown";
         public const string CMD_SET_SETTING = "setting";
 

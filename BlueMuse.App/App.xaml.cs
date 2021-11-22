@@ -173,6 +173,11 @@ namespace BlueMuse
                         }
                     }
 
+                    else if (protocolArgs.Uri.Host.Equals(Constants.CMD_FORCE_REFRESH, StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        BluetoothManager.Instance.ForceRefresh();
+                    }
+
                     else if (protocolArgs.Uri.Host.Equals(Constants.CMD_SET_SETTING, StringComparison.CurrentCultureIgnoreCase))
                     {
                         var keyStr = splitArgs.FirstOrDefault(x => x.Contains(Constants.ARGS_SETTING_KEY, StringComparison.OrdinalIgnoreCase));
