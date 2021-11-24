@@ -381,7 +381,7 @@ namespace BlueMuse.MuseManagement
                     {
                         preset = Constants.MUSE_CMD_PRESET_MODE_P50;
                     }
-                    if (!await WriteCommand(Constants.MUSE_CMD_PRESET_MODE_P20, streamCharacteristics))
+                    if (!await WriteCommand(preset, streamCharacteristics))
                     {
                         Log.Error($"Cannot place Muse in proper preset mode: {preset}");
                     }
