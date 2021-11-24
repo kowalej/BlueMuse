@@ -96,11 +96,25 @@ namespace BlueMuse
         // See details on https://goo.gl/FPN1ib
         // For 2016 headband, possible choice are 'p20' and 'p21'.
         // Untested but possible values are 'p22' and 'p23'
-        // Default is 'p21'."""
+        // Default is 'p21 (for Muse 2016)'."""
+
+        // 5-Channel EEG channel streaming.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P20 = new byte[5] { 0x04, 0x70, 0x32, 0x30, 0x0a };
+
+        // 4-Channel EEG channel streaming.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P21 = new byte[5] { 0x04, 0x70, 0x32, 0x31, 0x0a }; // Default mode.
+
+        // 4-Channel EEG channel streaming without accel/gyro.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P22 = new byte[5] { 0x04, 0x70, 0x32, 0x32, 0x0a };
+
+        // Unkown.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P23 = new byte[5] { 0x04, 0x70, 0x32, 0x33, 0x0a };
+
+        // 5-Channel EEG + PPG.
+        public static readonly byte[] MUSE_CMD_PRESET_MODE_P50 = new byte[5] { 0x04, 0x70, 0x35, 0x30, 0x0a };
+
+        // 4-Channel EEG + PPG.
+        public static readonly byte[] MUSE_CMD_PRESET_MODE_P51 = new byte[5] { 0x04, 0x70, 0x35, 0x31, 0x0a };
 
         // Parent service for channel characteristics.
         public static readonly Guid MUSE_GATT_DATA_SERVICE_UUID = new Guid("0000fe8d-0000-1000-8000-00805f9b34fb");

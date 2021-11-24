@@ -364,6 +364,29 @@ namespace BlueMuse.MuseManagement
                     if (start) return;
                 }
 
+                // When starting we need to make sure Muse is in proper preset mode to get all data.
+                // TODO: it may be ideal to introduce an AUX toggle, and see if PPG can be disabled at the Muse level (when not toggled off in settings).
+                if (start)
+                {
+                    byte[] preset = null;
+                    if (MuseModel == MuseModel.Smith)
+                    {
+                        preset = Constants.MUSE_CMD_PRESET_MODE_P21;
+                    }
+                    else if (MuseModel == MuseModel.Muse2016)
+                    {
+                        preset = Constants.MUSE_CMD_PRESET_MODE_P20;
+                    }
+                    else if (MuseModel == MuseModel.Muse2 || MuseModel == MuseModel.MuseS)
+                    {
+                        preset = Constants.MUSE_CMD_PRESET_MODE_P50;
+                    }
+                    if (!await WriteCommand(Constants.MUSE_CMD_PRESET_MODE_P20, streamCharacteristics))
+                    {
+                        Log.Error($"Cannot place Muse in proper preset mode: {preset}");
+                    }
+                }
+
                 // Determine if we are listening to Gatt channels or stopping (notify vs none) and what command to send to the Muse (start or stop data).
                 byte[] toggleCommand = start ? Constants.MUSE_CMD_TOGGLE_STREAM_START : Constants.MUSE_CMD_TOGGLE_STREAM_STOP;
 
