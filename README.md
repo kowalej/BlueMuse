@@ -17,7 +17,7 @@
 **All commands will launch BlueMuse if it isn't already open.**
 
 ### Basic Operations
-Start BlueMuse
+Start BlueMuse:
 ```powershell
 start bluemuse:
 ```
@@ -120,7 +120,7 @@ Toggle "always pair":
 ### Latest
 * 2.3.0.0
     * AUX supported on Muse 2.
-    * Always pair option available via command line.
+    * Refresh option available via command line.
 
 #### Older
 *Note: version 2.0.0.0 and older version are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
