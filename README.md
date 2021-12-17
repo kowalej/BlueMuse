@@ -118,12 +118,15 @@ Toggle "always pair":
 
 # Versions
 ### Latest
-* 2.2.0.0
-    * Bumped Windows platform version up to 10.0.19041.0.
-    * _May have with Bluetooth and stability issues._
+* 2.3.0.0
+    * AUX supported on Muse 2.
+    * Always pair option available via command line.
 
 #### Older
 *Note: version 2.0.0.0 and older version are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
+* 2.2.0.0
+    * Bumped Windows platform version up to 10.0.19041.0.
+    * _May have with Bluetooth and stability issues._
 * 2.1.0.0
     * Detect Muse S as separate device (previously detected as Muse 2).
     * Muse S - enable PPG.
