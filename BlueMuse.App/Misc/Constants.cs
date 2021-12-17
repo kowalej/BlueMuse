@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace BlueMuse
 {
@@ -25,6 +26,7 @@ namespace BlueMuse
         // BlueMuse commands.
         public const string CMD_START = "start";
         public const string CMD_STOP = "stop";
+        public const string CMD_FORCE_REFRESH = "refresh";
         public const string CMD_CLOSE_PROGRAM = "shutdown";
         public const string CMD_SET_SETTING = "setting";
 
@@ -47,6 +49,8 @@ namespace BlueMuse
         // Channel counts.
         public const int MUSE_EEG_CHANNEL_COUNT = 5;
         public const int MUSE_EEG_NOAUX_CHANNEL_COUNT = 4;
+        public const int MUSE_EEG_NOAUX_TIMEOUT_THRESHOLD_MILLIS = 2000;
+        public const int MUSE_EEG_FLUSH_THRESHOLD_MILLIS = 500;
         public const int MUSE_ACCELEROMETER_CHANNEL_COUNT = 3;
         public const int MUSE_GYROSCOPE_CHANNEL_COUNT = 3;
         public const int MUSE_PPG_CHANNEL_COUNT = 3;
@@ -92,11 +96,25 @@ namespace BlueMuse
         // See details on https://goo.gl/FPN1ib
         // For 2016 headband, possible choice are 'p20' and 'p21'.
         // Untested but possible values are 'p22' and 'p23'
-        // Default is 'p21'."""
+        // Default is 'p21 (for Muse 2016)'."""
+
+        // 5-Channel EEG channel streaming.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P20 = new byte[5] { 0x04, 0x70, 0x32, 0x30, 0x0a };
+
+        // 4-Channel EEG channel streaming.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P21 = new byte[5] { 0x04, 0x70, 0x32, 0x31, 0x0a }; // Default mode.
+
+        // 4-Channel EEG channel streaming without accel/gyro.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P22 = new byte[5] { 0x04, 0x70, 0x32, 0x32, 0x0a };
+
+        // Unkown.
         public static readonly byte[] MUSE_CMD_PRESET_MODE_P23 = new byte[5] { 0x04, 0x70, 0x32, 0x33, 0x0a };
+
+        // 5-Channel EEG + PPG.
+        public static readonly byte[] MUSE_CMD_PRESET_MODE_P50 = new byte[5] { 0x04, 0x70, 0x35, 0x30, 0x0a };
+
+        // 4-Channel EEG + PPG.
+        public static readonly byte[] MUSE_CMD_PRESET_MODE_P51 = new byte[5] { 0x04, 0x70, 0x35, 0x31, 0x0a };
 
         // Parent service for channel characteristics.
         public static readonly Guid MUSE_GATT_DATA_SERVICE_UUID = new Guid("0000fe8d-0000-1000-8000-00805f9b34fb");
@@ -112,6 +130,8 @@ namespace BlueMuse
             new Guid("273e0006-4c4d-454d-96be-f03bac821358"), // Handle 40
             new Guid("273e0007-4c4d-454d-96be-f03bac821358") // Handle 43
         };
+
+        public static readonly Guid MUSE_GATT_AUX_CHANNEL_UUID = new Guid("273e0007-4c4d-454d-96be-f03bac821358"); // Handle 43.
 
         // Muse no AUX GATT characteristics for the 4 EEG channels, in order: TP9-AF7-AF8-TP10. Applies to SMXT and Muse 2.
         public static readonly Guid[] MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS = new Guid[MUSE_EEG_NOAUX_CHANNEL_COUNT] {
@@ -182,6 +202,8 @@ namespace BlueMuse
         };
 
         public const int MUSE_DEVICE_INFO_CONTROL_REFRESH_MS = 4000;
+
+        public static readonly double[] MUSE_EEG_BACKFILL = Enumerable.Repeat(double.NaN, MUSE_EEG_SAMPLE_COUNT).ToArray();
 
         public const string TIMESTAMP_FORMAT_BLUEMUSE_UNIX = "BLUEMUSE";
         public const string TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_BLUEMUSE = "LSL_LOCAL_CLOCK_BLUEMUSE";
