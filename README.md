@@ -96,7 +96,8 @@ Toggle "always pair":
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
 
 ### First Step
-**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.3.0.0/BlueMuse_2.3.0.0.zip) from the [releases page](https://github.com/kowalej/BlueMuse/releases)** and unzip, then follow one of the methods below.
+**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip) and unzip, then follow one of the methods below.**
+
 ### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the `.\InstallBlueMuse.ps1` PowerShell command (right click and choose Run with PowerShell or execute from terminal directly): 
 
@@ -117,7 +118,7 @@ Toggle "always pair":
 10. Finally, double click and install BlueMuse_xxx.appxbundle.
 
 # Versions
-### [Latest - 2.4.0.0](https://github.com/kowalej/BlueMuse/releases/download/v2%2C4.0.0/BlueMuse_2.4.0.0.zip)
+### [Latest - 2.4.0.0](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip)
 * Misc package updates.
 * Support Windows 11.
 
