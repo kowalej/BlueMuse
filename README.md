@@ -117,6 +117,10 @@ Toggle "always pair":
 
 10. Finally, double click and install BlueMuse_xxx.appxbundle.
 
+### Troubleshooting
+  If you run into issues with Developer Mode or PowerShell execution policy during installation, see the [PowerShell
+  Installation Guide](BlueMuse_Windows_PowerShell_Install.md) for detailed solutions.
+
 # Versions
 ### [Latest - 2.4.0.0](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip)
 * Misc package updates.
