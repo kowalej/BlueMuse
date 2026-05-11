@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.AppService;
@@ -16,6 +17,7 @@ namespace BlueMuse.AppService
         static AppServiceConnection connection;
         static BackgroundTaskDeferral deferral;
         static ConcurrentQueue<Tuple<string, ValueSet>> messages;
+        static SemaphoreSlim drainLock = new SemaphoreSlim(1, 1);
 
         static AppServiceManager()
         {
@@ -45,13 +47,21 @@ namespace BlueMuse.AppService
 
         static async Task DrainQueueAsync()
         {
-            while ((connection != null) && !messages.IsEmpty)
+            if (!await drainLock.WaitAsync(0)) return; // Already draining, skip.
+            try
             {
-                Tuple<string, ValueSet> message;
-                if (messages.TryDequeue(out message))
+                while ((connection != null) && !messages.IsEmpty)
                 {
-                    await SendMessageInternalAsync(message.Item1, message.Item2);
+                    Tuple<string, ValueSet> message;
+                    if (messages.TryDequeue(out message))
+                    {
+                        await SendMessageInternalAsync(message.Item1, message.Item2);
+                    }
                 }
+            }
+            finally
+            {
+                drainLock.Release();
             }
         }
 
