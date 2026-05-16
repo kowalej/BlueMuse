@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "muse_pipeline"
+version = "0.1.0"
+description = "Offline + cued-protocol analysis pipeline for Muse S Athena via OpenMuse"
+requires-python = ">=3.12"
+dependencies = [
+    "OpenMuse",
+    "PySide6",
+    "mne>=1.5",
+    "mne-lsl",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "scipy",
+]
+
+[tool.setuptools.packages.find]
+include = ["muse_pipeline*", "experiments*"]

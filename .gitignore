@@ -260,3 +260,10 @@ __pycache__/
 *.pyc
 
 BlueMuse/AppPackages/
+
+# macOS Athena pipeline — generated / data files (kept out of git)
+.DS_Store
+*.egg-info/
+out/
+runs/
+athena_test.txt
