@@ -3,8 +3,8 @@
 
 # Features
 * Auto detects Muse headsets and provides a visual interface to manage streams.
-* Supports Muse 2016, Muse 2, Muse S, and Smith Lowdown Focus glasses (device models are auto detected).
-* Supports EEG, PPG, accelerometer, gyroscope, and telemetry data. *Note: PPG is only available on Muse 2 and Muse S*.
+* Supports Muse 2016, Muse 2, Muse S, Muse S Athena, and Smith Lowdown Focus glasses (device models are auto detected).
+* Supports EEG, PPG, accelerometer, gyroscope, and telemetry data. *Note: PPG is only available on Muse 2, Muse S and Muse S Athena*.
 * Can stream from multiple Muses simultaneously (see notes).
 * Choose between timestamp formats - LSL "local clock" or Unix Epoch.
 * LSL streams in 64-bit or 32-bit.
@@ -187,6 +187,21 @@ Toggle "always pair":
 * Uses both 32-bit and 64-bit LSL binaries (liblsl32.dll / liblsl64.dll), selected automatically at runtime based on process architecture. Acquired from: ftp://sccn.ucsd.edu/pub/software/LSL/SDK/liblsl-All-Languages-1.11.zip
 * liblsl32.dll and liblsl64.dll are dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).
 * The full dependencies of liblsl32.dll are: KERNEL32.dll, WINMM.dll, MSVCP90.dll, WS2_32.dll, MSWSOCK.dll, and MSVCR90.dll. Generated with dumpbin utility.
+
+### Muse S Athena:
+The Muse S Athena uses a different protocol from every earlier headband, so it is handled as its own model (`MuseSAthena`). Detection is automatic - it is the only Muse exposing GATT characteristic `273e0013-...`, which is probed before the name based Muse S check since Athena also advertises as `MuseS-****`.
+
+Differences worth knowing if you are reading the data:
+
+* **One data characteristic, not one per channel.** Every sensor is multiplexed into tagged packets on `273e0013-...`, so a single Bluetooth notification can carry EEG, IMU, optics and battery at once. All enabled LSL outlets are therefore opened before streaming starts rather than on first packet.
+* **EEG** is 4 channels x 4 samples per packet (chunk size 4, not 12), 14-bit unsigned LSB-first, scaled over a 1450 uV full range with no midpoint offset.
+* **Accelerometer and gyroscope share one packet** (6 channels x 3 samples) and are split across the two existing LSL streams. The accelerometer scale matches the older headbands; **the gyroscope scale is negated** relative to them.
+* **Optics (fNIRS)** is published on the PPG stream as 16 channels of raw 20-bit detector counts, labelled `OPTICS0`..`OPTICS15`.
+* **Telemetry** is battery percent only - the older four channel battery / fuel / voltage / temperature block does not exist.
+* **Timestamps** come from the 256 kHz device tick in each packet header, anchored to the selected timestamp format on the first packet and re-anchored if the device and host clocks drift more than half a second apart. Sample spacing therefore reflects the device rather than Bluetooth delivery jitter.
+* Starting a stream requires an ASCII command handshake (`v6`, `s`, `h`, `p1041`, `s`, then `dc001`, `dc001`, `L1`, `s`) with specific inter-command delays, rather than a single start command.
+
+The protocol code in `BlueMuse.App/Athena` has no Windows dependencies and has a self-check that runs anywhere .NET 8 is available: `cd Tests/BlueMuse.Athena.Tests && dotnet run`.
 
 ### Timestamp Formats:
 

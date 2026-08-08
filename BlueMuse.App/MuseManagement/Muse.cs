@@ -1,4 +1,5 @@
 ﻿using BlueMuse.LSL;
+using BlueMuse.Athena;
 using BlueMuse.Helpers;
 using BlueMuse.Bluetooth;
 using BlueMuse.Misc;
@@ -57,6 +58,12 @@ namespace BlueMuse.MuseManagement
         private volatile string deviceInfoBuffer = string.Empty;
         private volatile string controlStatusBuffer = string.Empty;
         private DateTimeOffset auxLastSent;
+
+        // Muse S Athena only - command handshake driver and the device tick to host clock
+        // mapping (one per timestamp format, since each has its own time base).
+        private AthenaSession athenaSession;
+        private DeviceTickClock athenaClock;
+        private DeviceTickClock athenaClock2;
 
         private volatile bool togglingStream = false;
         private volatile bool resetLocked = false;
@@ -248,8 +255,18 @@ namespace BlueMuse.MuseManagement
                     MuseModel = MuseModel.Undetected;
                 }
 
+                // Muse S Athena advertises as MuseS-**** too, so it has to be ruled out first.
+                // It is the only model exposing the multiplexed DATA_1 characteristic.
+                if (streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_GATT_ATHENA_DATA1_UUID) != null)
+                {
+                    MuseModel = MuseModel.MuseSAthena;
+                    eegChannelCount = Constants.MUSE_ATHENA_EEG_CHANNEL_COUNT;
+                    eegGattChannelUUIDs = Constants.MUSE_GATT_EGG_NOAUX_CHANNEL_UUIDS; // Unused on this model - EEG arrives on DATA_1.
+                    eegChannelLabels = Constants.MUSE_EEG_NOAUX_CHANNEL_LABELS;
+                    lslDeviceInfoName = Constants.MUSE_S_ATHENA_DEVICE_NAME;
+                }
                 // Muse S should have device name MuseS-****. As another check, it should have a channel that the Muse 2 and Muse 2016 do not have.
-                if (name.Contains("MuseS") || streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_S_SPECIAL_CHANNEL) != null)
+                else if (name.Contains("MuseS") || streamCharacteristics.FirstOrDefault(x => x.Uuid == Constants.MUSE_S_SPECIAL_CHANNEL) != null)
                 {
                     MuseModel = MuseModel.MuseS;
                     eegChannelCount = Constants.MUSE_EEG_NOAUX_CHANNEL_COUNT;
@@ -305,7 +322,7 @@ namespace BlueMuse.MuseManagement
                     isEEGEnabled = IsEEGEnabled;
                     isAccelerometerEnabled = IsAccelerometerEnabled;
                     isGyroscopeEnabled = IsGyroscopeEnabled;
-                    isPPGEnabled = IsPPGEnabled && (museModel == MuseModel.Muse2 || museModel == MuseModel.MuseS); // Only Muse 2 & Muse S support PPG.
+                    isPPGEnabled = IsPPGEnabled && (museModel == MuseModel.Muse2 || museModel == MuseModel.MuseS || museModel == MuseModel.MuseSAthena); // Only Muse 2, Muse S & Muse S Athena support PPG.
                     isTelemetryEnabled = IsTelemetryEnabled;
 
                     if (!isEEGEnabled &&
@@ -325,6 +342,14 @@ namespace BlueMuse.MuseManagement
                     Log.Error($"Cannot complete toggle stream (start={start}) due to null or empty GATT characteristics.");
                     if (start) return;
                     else FinishCloseOffStream();
+                }
+
+                // Muse S Athena multiplexes every sensor onto one characteristic and needs an
+                // ASCII command handshake, so it takes its own path from here.
+                if (MuseModel == MuseModel.MuseSAthena)
+                {
+                    await ToggleAthenaStream(start);
+                    return;
                 }
 
                 // Subscribe or unsubscribe EEG.
@@ -436,6 +461,41 @@ namespace BlueMuse.MuseManagement
             }
         }
 
+        // Muse S Athena start/stop. All data arrives on DATA_1 regardless of which sensors
+        // are enabled, so there is a single subscription and a single handler which fans
+        // packets out by tag.
+        private async Task ToggleAthenaStream(bool start)
+        {
+            if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ATHENA_DATA1_UUID }, streamCharacteristics, start, AthenaData_ValueChanged))
+            {
+                Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle the Muse S Athena data characteristic.");
+                if (start) return;
+            }
+
+            if (start)
+            {
+                athenaClock = new DeviceTickClock();
+                athenaClock2 = new DeviceTickClock();
+                athenaSession = new AthenaSession(command => WriteCommand(command, streamCharacteristics));
+
+                // Outlets must exist before the handshake: any notification can carry any
+                // mix of sensors, so there is no per-stream "first packet" to open on.
+                await LSLOpenAthenaStreams();
+                IsStreaming = true;
+
+                await athenaSession.Start();
+            }
+            else
+            {
+                if (athenaSession != null) await athenaSession.Stop();
+                athenaSession = null;
+                athenaClock = null;
+                athenaClock2 = null;
+                FinishCloseOffStream();
+                deviceInfoTimer.Change(Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
+            }
+        }
+
         public async Task Reset()
         {
             if (!CanReset) return;
@@ -484,7 +544,7 @@ namespace BlueMuse.MuseManagement
                         return;
                     }
                     // Ask for device info. We use the same command handler which waits for multiple packets to deliver a JSON value.
-                    await WriteCommand(Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
+                    await WriteCommand(MuseModel == MuseModel.MuseSAthena ? Constants.MUSE_CMD_ASK_DEVICE_INFO_ATHENA : Constants.MUSE_CMD_ASK_DEVICE_INFO, deviceControlCharacteristics);
                     await Task.Delay(800); // Small delay to ensure we fully receive the info.
                     if (deviceInfoLive?.Length > 0) DeviceInfo = deviceInfoLive; // Update "stable" property.
 
@@ -960,6 +1020,76 @@ namespace BlueMuse.MuseManagement
             return Task.CompletedTask;
         }
 
+        // Muse S Athena stream shapes differ enough from the legacy ones (EEG arrives 4
+        // samples at a time instead of 12, optics is 16 channels instead of PPG's 3,
+        // telemetry is battery only) that they get their own opener rather than another
+        // per-model branch inside each LSLOpenX.
+        private Task LSLOpenAthenaStreams()
+        {
+            if (isEEGEnabled)
+            {
+                LSLOpenAthenaStream(EEGStreamName, Constants.EEG_STREAM_TYPE, Constants.EEG_UNITS,
+                    eegChannelLabels, eegChannelCount,
+                    Constants.MUSE_ATHENA_EEG_SAMPLE_COUNT, Constants.MUSE_EEG_SAMPLE_RATE);
+            }
+            if (isAccelerometerEnabled)
+            {
+                LSLOpenAthenaStream(AccelerometerStreamName, Constants.ACCELEROMETER_STREAM_TYPE, Constants.ACCELEROMETER_UNITS,
+                    Constants.MUSE_ACCELEROMETER_CHANNEL_LABELS, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT,
+                    Constants.MUSE_ATHENA_IMU_SAMPLE_COUNT, Constants.MUSE_ACCELEROMETER_SAMPLE_RATE);
+            }
+            if (isGyroscopeEnabled)
+            {
+                LSLOpenAthenaStream(GyroscopeStreamName, Constants.GYROSCOPE_STREAM_TYPE, Constants.GYROSCOPE_UNITS,
+                    Constants.MUSE_GYROSCOPE_CHANNEL_LABELS, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT,
+                    Constants.MUSE_ATHENA_IMU_SAMPLE_COUNT, Constants.MUSE_GYROSCOPE_SAMPLE_RATE);
+            }
+            if (isPPGEnabled)
+            {
+                LSLOpenAthenaStream(PPGStreamName, Constants.PPG_STREAM_TYPE, Constants.MUSE_ATHENA_OPTICS_UNITS,
+                    Constants.MUSE_ATHENA_OPTICS_CHANNEL_LABELS, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT,
+                    Constants.MUSE_ATHENA_OPTICS_SAMPLE_COUNT, Constants.MUSE_ATHENA_OPTICS_SAMPLE_RATE);
+            }
+            if (isTelemetryEnabled)
+            {
+                LSLOpenAthenaStream(TelemetryStreamName, Constants.TELEMETRY_STREAM_TYPE, Constants.MUSE_ATHENA_TELEMETRY_UNITS,
+                    Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_LABELS, Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT,
+                    Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_RATE);
+            }
+            return Task.CompletedTask;
+        }
+
+        private void LSLOpenAthenaStream(string streamName, string streamType, string units, string[] channelLabels, int channelCount, int chunkSize, double sampleRate)
+        {
+            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            foreach (var c in channelLabels)
+            {
+                channelsInfo.Add(new LSLBridgeChannelInfo
+                {
+                    Label = c,
+                    Type = streamType,
+                    Unit = units
+                });
+            }
+
+            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            {
+                BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
+                Channels = channelsInfo,
+                ChannelCount = channelCount,
+                ChannelDataType = channelDataType.DataType,
+                ChunkSize = chunkSize,
+                DeviceManufacturer = lslDeviceInfoManufacturer,
+                DeviceName = lslDeviceInfoName,
+                NominalSRate = sampleRate,
+                StreamType = streamType,
+                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                StreamName = streamName
+            };
+
+            lslStreamManager.OpenStream(streamInfo);
+        }
+
         private Task LSLCloseStream()
         {
             // It is safe to just iterate the possible stream names and request each one is closed.
@@ -1127,6 +1257,133 @@ namespace BlueMuse.MuseManagement
             else throw new InvalidOperationException("Can't push LSL Telemetry chunk - unsupported stream data type. Must use float32 or double64.");
 
             return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Pushes one decoded Muse S Athena packet. <paramref name="samples"/> is
+        /// [sample, channel]; <paramref name="channelOffset"/> selects a window of it so
+        /// the combined acc/gyro grid can feed two streams without being copied first.
+        /// </summary>
+        private Task LSLPushAthenaChunk(string streamName, double[,] samples, int channelOffset, int channelCount, uint deviceTick, double sampleRate)
+        {
+            int sampleCount = samples.GetLength(0);
+
+            var timestamps = AthenaTimestamps(athenaClock, timestampFormat, deviceTick, sampleCount, sampleRate);
+            var timestamps2 = timestampFormat.GetType() != timestampFormat2.GetType()
+                    ? AthenaTimestamps(athenaClock2, timestampFormat2, deviceTick, sampleCount, sampleRate)
+                    : AthenaTimestamps(athenaClock, timestampFormat, deviceTick, sampleCount, sampleRate);
+
+            // 2D array shape: [sampleIndex, channelIndex].
+            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            {
+                double[,] data = new double[sampleCount, channelCount];
+                for (int i = 0; i < channelCount; i++)
+                {
+                    for (int j = 0; j < sampleCount; j++)
+                    {
+                        data[j, i] = samples[j, channelOffset + i];
+                    }
+                }
+                lslStreamManager.SendChunk(streamName, data, timestamps, timestamps2);
+            }
+
+            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            {
+                float[,] data = new float[sampleCount, channelCount];
+                for (int i = 0; i < channelCount; i++)
+                {
+                    for (int j = 0; j < sampleCount; j++)
+                    {
+                        data[j, i] = (float)samples[j, channelOffset + i];
+                    }
+                }
+                lslStreamManager.SendChunk(streamName, data, timestamps, timestamps2);
+            }
+
+            else throw new InvalidOperationException("Can't push LSL Athena chunk - unsupported stream data type. Must use float32 or double64.");
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Unlike the legacy streams, which back-date samples from the arrival time,
+        /// Athena stamps every packet with a device tick. Sample spacing therefore comes
+        /// from the device rather than from Bluetooth delivery jitter.
+        /// </summary>
+        private double[] AthenaTimestamps(DeviceTickClock clock, ITimestampFormat format, uint deviceTick, int sampleCount, double sampleRate)
+        {
+            double packetTimestamp = clock.PacketTimestamp(deviceTick, format.GetNow());
+            double[] timestamps = new double[sampleCount];
+            for (int i = 0; i < sampleCount; i++)
+            {
+                timestamps[i] = packetTimestamp + (i / sampleRate);
+            }
+            return timestamps;
+        }
+
+        private async void AthenaData_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
+        {
+            if (!isStreaming) return;
+            try
+            {
+                foreach (var packet in AthenaPacketParser.Parse(args.CharacteristicValue.ToArray()))
+                {
+                    switch (packet.Tag)
+                    {
+                        case AthenaPacketParser.TAG_EEG_4CH:
+                            if (!isEEGEnabled) break;
+                            await LSLPushAthenaChunk(EEGStreamName,
+                                AthenaDecoders.DecodeEEG(packet.Payload, Constants.MUSE_ATHENA_EEG_CHANNEL_COUNT, Constants.MUSE_ATHENA_EEG_SAMPLE_COUNT),
+                                0, Constants.MUSE_ATHENA_EEG_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_EEG_SAMPLE_RATE);
+                            break;
+
+                        case AthenaPacketParser.TAG_ACC_GYRO:
+                            // One packet, two streams: channels 0-2 are the accelerometer, 3-5 the gyroscope.
+                            var imu = AthenaDecoders.DecodeAccelerometerGyroscope(packet.Payload);
+                            if (isAccelerometerEnabled)
+                            {
+                                await LSLPushAthenaChunk(AccelerometerStreamName, imu,
+                                    0, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_ACCELEROMETER_SAMPLE_RATE);
+                            }
+                            if (isGyroscopeEnabled)
+                            {
+                                await LSLPushAthenaChunk(GyroscopeStreamName, imu,
+                                    Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_GYROSCOPE_SAMPLE_RATE);
+                            }
+                            break;
+
+                        case AthenaPacketParser.TAG_OPTICS_16CH:
+                            if (!isPPGEnabled) break;
+                            await LSLPushAthenaChunk(PPGStreamName,
+                                AthenaDecoders.DecodeOptics(packet.Payload, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, Constants.MUSE_ATHENA_OPTICS_SAMPLE_COUNT),
+                                0, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_ATHENA_OPTICS_SAMPLE_RATE);
+                            break;
+
+                        case AthenaPacketParser.TAG_BATTERY:
+                        case AthenaPacketParser.TAG_BATTERY_20:
+                            double batteryPercent = AthenaDecoders.DecodeBatteryPercent(packet.Payload);
+                            BatteryLevel = (int)batteryPercent;
+                            if (isTelemetryEnabled)
+                            {
+                                double[,] battery = new double[Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT];
+                                battery[0, 0] = batteryPercent;
+                                await LSLPushAthenaChunk(TelemetryStreamName, battery,
+                                    0, Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_RATE);
+                            }
+                            break;
+
+                        // 0x12 (8 channel EEG), 0x34 / 0x35 (narrower optics layouts) and 0x53
+                        // are walked so framing stays in sync, but the default p1041 preset
+                        // does not emit them and their channel maps are undocumented.
+                        default:
+                            break;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception during handling Muse S Athena Bluetooth channel values.");
+            }
         }
 
         private async void EEGChannel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
