@@ -120,6 +120,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Athena\AthenaDecoders.cs" />
+    <Compile Include="Athena\AthenaPacketParser.cs" />
+    <Compile Include="Athena\AthenaSession.cs" />
     <Compile Include="Helpers\DataContractSerializerExtension.cs" />
     <Compile Include="Helpers\Extensions.cs" />
     <Compile Include="Helpers\PacketConversion.cs" />
