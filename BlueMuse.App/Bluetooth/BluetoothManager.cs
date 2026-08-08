@@ -70,7 +70,7 @@ namespace BlueMuse.Bluetooth
             // Added, Updated and Removed are required to get all nearby devices
             museDeviceWatcher.Added += DeviceWatcher_Added;
             museDeviceWatcher.Updated += DeviceWatcher_Updated;
-            //museDeviceWatcher.Removed += DeviceWatcher_Removed; // Omitted - removing from list causes issues.
+            museDeviceWatcher.Removed += DeviceWatcher_Removed;
 
             // EnumerationCompleted and Stopped are optional to implement.
             museDeviceWatcher.EnumerationCompleted += MuseDeviceWatcher_EnumerationCompleted;
@@ -176,6 +176,22 @@ namespace BlueMuse.Bluetooth
             }
         }
 
+        private void DeviceWatcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            lock (Muses)
+            {
+                var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+                if (muse != null && !muse.IsStreaming)
+                {
+                    if (muse.Device != null)
+                    {
+                        muse.Device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
+                    }
+                    Muses.Remove(muse);
+                }
+            }
+        }
+
         public void ResolveAutoStreamAll()
         {
             foreach(var muse in Muses)
@@ -220,7 +236,7 @@ namespace BlueMuse.Bluetooth
 
         private void MuseDeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
         {
-            pollMuseTimer = new Timer(PollMuses, new AutoResetEvent(false), 0, 5); // Poll every 5 seconds to allow Muses to auto-reconnect if they went offline.
+            pollMuseTimer = new Timer(PollMuses, new AutoResetEvent(false), 0, 5000); // Poll every 5 seconds to allow Muses to auto-reconnect if they went offline.
         }
 
         private void DeviceWatcher_Stopped(DeviceWatcher sender, object args)

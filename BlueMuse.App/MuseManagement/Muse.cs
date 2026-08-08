@@ -141,7 +141,7 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        public bool CanReset { get { return connectionStatus == MuseConnectionStatus.Online && !isStreaming && isSelected; } }
+        public bool CanReset { get { return connectionStatus == MuseConnectionStatus.Online && !isStreaming && isSelected && !resetLocked; } }
 
         public bool CanViewTechInfo
         {
@@ -1212,11 +1212,18 @@ namespace BlueMuse.MuseManagement
                             eegSampleBuffer.Remove(museTimestamp);
                     }
 
-                    // Cleanup broken samples.
-                    var flushSamples = eegSampleBuffer.Where(x =>
-                        (DateTimeOffset.UtcNow - x.Value.CreatedAt).TotalMilliseconds > Constants.MUSE_EEG_FLUSH_THRESHOLD_MILLIS)
-                            .OrderBy(x => x.Value.BaseTimestamp);
-                    foreach (var sample in flushSamples)
+                    // Cleanup broken samples - snapshot under lock to avoid race conditions.
+                    List<KeyValuePair<ushort, MuseEEGSamples>> toFlush;
+                    lock (eegSampleBuffer)
+                    {
+                        toFlush = eegSampleBuffer.Where(x =>
+                            (DateTimeOffset.UtcNow - x.Value.CreatedAt).TotalMilliseconds > Constants.MUSE_EEG_FLUSH_THRESHOLD_MILLIS)
+                                .OrderBy(x => x.Value.BaseTimestamp)
+                                .ToList();
+                        foreach (var kv in toFlush)
+                            eegSampleBuffer.Remove(kv.Key);
+                    }
+                    foreach (var sample in toFlush)
                     {
                         var channelData = sample.Value.ChannelData;
                         if (channelData.Count != eegChannelCount)
@@ -1228,8 +1235,6 @@ namespace BlueMuse.MuseManagement
                             }
                         }
                         await LSLPushEEGChunk(sample.Value);
-                        lock (eegSampleBuffer)
-                            eegSampleBuffer.Remove(sample.Key);
                     }
                 }
                 catch (Exception ex)
