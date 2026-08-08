@@ -1,0 +1,4014 @@
+{
+  "packageGovernance": {
+    "totalDistinctPackages": 61,
+    "totalVersionDriftInstances": 0,
+    "targetFramework": "net10.0",
+    "packages": [
+      {
+        "name": "Costura.Fody",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.2.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Fody",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.9.3",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Microsoft.NETCore.Platforms",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "7.0.4",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Microsoft.NETCore.UniversalWindowsPlatform",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "Needs to be replaced with Replace with new package Microsoft.WindowsAppSDK=2.3.1;Microsoft.Graphics.Win2D=1.1.0;Microsoft.Windows.Compatibility=10.0.10",
+        "versions": [
+          {
+            "version": "6.2.14",
+            "projects": [
+              "BlueMuse.App"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Microsoft.Win32.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "NETStandard.Library",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "2.0.3",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Newtonsoft.Json",
+        "totalProjectCount": 2,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "13.0.4",
+            "projects": [
+              "BlueMuse.App",
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Serilog",
+        "totalProjectCount": 2,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.4.0",
+            "projects": [
+              "BlueMuse.App",
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Serilog.Exceptions",
+        "totalProjectCount": 2,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "8.4.0",
+            "projects": [
+              "BlueMuse.App",
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Serilog.Sinks.File",
+        "totalProjectCount": 2,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "7.0.0",
+            "projects": [
+              "BlueMuse.App",
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "Serilog.Sinks.RollingFile",
+        "totalProjectCount": 2,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": false,
+        "description": "NuGet package is deprecated",
+        "versions": [
+          {
+            "version": "3.3.0",
+            "projects": [
+              "BlueMuse.App",
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.AppContext",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Buffers",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.6.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Collections",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Collections.Concurrent",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Console",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Diagnostics.Debug",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Diagnostics.DiagnosticSource",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.10",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Diagnostics.Tools",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Diagnostics.Tracing",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Globalization",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Globalization.Calendars",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.IO",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.IO.Compression",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.IO.Compression.ZipFile",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.IO.FileSystem",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.IO.FileSystem.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Linq",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Linq.Expressions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Memory",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.6.3",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Net.Http",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.4",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Net.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Net.Sockets",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Numerics.Vectors",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.6.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.ObjectModel",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Reflection",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Reflection.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Reflection.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Resources.ResourceManager",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime.CompilerServices.Unsafe",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "6.1.2",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime.Handles",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime.InteropServices",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime.InteropServices.RuntimeInformation",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Runtime.Numerics",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Security.Cryptography.Algorithms",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Security.Cryptography.Encoding",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Security.Cryptography.Primitives",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Security.Cryptography.X509Certificates",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.2",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Text.Encoding",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Text.Encoding.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Text.RegularExpressions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Threading",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Threading.Channels",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "10.0.10",
+        "isCompatible": true,
+        "description": "NuGet package upgrade is recommended",
+        "versions": [
+          {
+            "version": "8.0.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": "10.0.10"
+        }
+      },
+      {
+        "name": "System.Threading.Tasks",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Threading.Tasks.Extensions",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.5.4",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Threading.Timer",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Xml.ReaderWriter",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.1",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "System.Xml.XDocument",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "NuGet package functionality is included with framework reference",
+        "versions": [
+          {
+            "version": "4.3.0",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      },
+      {
+        "name": "UwpDesktop",
+        "totalProjectCount": 1,
+        "distinctVersionCount": 1,
+        "recommendedVersion": "",
+        "isCompatible": true,
+        "description": "",
+        "versions": [
+          {
+            "version": "10.0.14393.3",
+            "projects": [
+              "LSLBridge"
+            ],
+            "isRecommended": false
+          }
+        ],
+        "upgrade": {
+          "newVersion": ""
+        }
+      }
+    ]
+  },
+  "projects": [
+    {
+      "name": "BlueMuse.App",
+      "path": "BlueMuse.App\\BlueMuse.App.csproj",
+      "isSdk": false,
+      "currentFrameworks": [
+        "net5.0"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "Microsoft.NETCore.UniversalWindowsPlatform",
+            "version": "6.2.14",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "description": "Needs to be replaced with Replace with new package Microsoft.WindowsAppSDK=2.3.1;Microsoft.Graphics.Win2D=1.1.0;Microsoft.Windows.Compatibility=10.0.10",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Newtonsoft.Json",
+            "version": "13.0.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog",
+            "version": "4.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog.Exceptions",
+            "version": "8.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog.Sinks.File",
+            "version": "7.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog.Sinks.RollingFile",
+            "version": "3.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "description": "NuGet package is deprecated",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          }
+        ],
+        "assemblies": [
+          {
+            "name": "Microsoft.CSharp",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\Microsoft.CSharp.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Microsoft.VisualBasic",
+            "version": "10.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\Microsoft.VisualBasic.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Microsoft.Win32.Primitives",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\Microsoft.Win32.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "mscorlib",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\mscorlib.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "netstandard",
+            "version": "2.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\netstandard.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Newtonsoft.Json",
+            "version": "13.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\newtonsoft.json\\13.0.4\\lib\\netstandard2.0\\Newtonsoft.Json.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog",
+            "version": "4.4.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\serilog\\4.4.0\\lib\\netstandard2.0\\Serilog.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog.Exceptions",
+            "version": "8.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\serilog.exceptions\\8.4.0\\lib\\netstandard2.0\\Serilog.Exceptions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog.Sinks.File",
+            "version": "7.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\serilog.sinks.file\\7.0.0\\lib\\netstandard2.0\\Serilog.Sinks.File.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog.Sinks.RollingFile",
+            "version": "2.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\serilog.sinks.rollingfile\\3.3.0\\lib\\netstandard1.3\\Serilog.Sinks.RollingFile.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.AppContext",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.AppContext.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Buffers",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Buffers.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Collections.Concurrent",
+            "version": "4.0.14.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Collections.Concurrent.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Collections",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Collections.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Collections.Immutable",
+            "version": "1.2.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Collections.Immutable.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Collections.NonGeneric",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Collections.NonGeneric.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Collections.Specialized",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Collections.Specialized.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.Annotations",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.Annotations.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.Composition",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.Composition.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.DataAnnotations",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.DataAnnotations.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.EventBasedAsync",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.EventBasedAsync.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.Primitives",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.TypeConverter",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ComponentModel.TypeConverter.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Configuration",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Configuration.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Console",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Console.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Core",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Core.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Data.Common",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Data.Common.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Data",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Data.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Data.SqlClient",
+            "version": "4.3.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Data.SqlClient.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.Contracts",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.Contracts.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.Debug",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.Debug.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.DiagnosticSource",
+            "version": "8.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\system.diagnostics.diagnosticsource\\8.0.1\\lib\\netstandard2.0\\System.Diagnostics.DiagnosticSource.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.FileVersionInfo",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.FileVersionInfo.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.Process",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.Process.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.StackTrace",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.StackTrace.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.TextWriterTraceListener",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.TextWriterTraceListener.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.Tools",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.Tools.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.TraceSource",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.TraceSource.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.Tracing",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Diagnostics.Tracing.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Drawing",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Drawing.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Drawing.Primitives",
+            "version": "4.2.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Drawing.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Dynamic.Runtime",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Dynamic.Runtime.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Globalization.Calendars",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Globalization.Calendars.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Globalization",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Globalization.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Globalization.Extensions",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Globalization.Extensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.Compression.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression.FileSystem",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.Compression.FileSystem.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression.ZipFile",
+            "version": "4.0.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.Compression.ZipFile.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.FileSystem",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.FileSystem.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.FileSystem.DriveInfo",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.FileSystem.DriveInfo.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.FileSystem.Primitives",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.FileSystem.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.FileSystem.Watcher",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.FileSystem.Watcher.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.IsolatedStorage",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.IsolatedStorage.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.MemoryMappedFiles",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.MemoryMappedFiles.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Pipes",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.Pipes.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Ports",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.Ports.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.UnmanagedMemoryStream",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.IO.UnmanagedMemoryStream.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Linq",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Linq.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Linq.Expressions",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Linq.Expressions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Linq.Parallel",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Linq.Parallel.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Linq.Queryable",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Linq.Queryable.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Memory",
+            "version": "4.0.1.2",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\system.memory\\4.5.5\\lib\\netstandard2.0\\System.Memory.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Http",
+            "version": "4.2.1.1",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Http.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Http.Rtc",
+            "version": "4.0.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Http.Rtc.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.HttpListener",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.HttpListener.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Mail",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Mail.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.NameResolution",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.NameResolution.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.NetworkInformation",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.NetworkInformation.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Ping",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Ping.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Primitives",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Requests",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Requests.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Security",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Security.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.ServicePoint",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.ServicePoint.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Sockets",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.Sockets.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.WebClient",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.WebClient.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.WebHeaderCollection",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.WebHeaderCollection.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.WebProxy",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.WebProxy.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.WebSockets.Client",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.WebSockets.Client.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.WebSockets",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Net.WebSockets.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Numerics",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Numerics.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Numerics.Vectors",
+            "version": "4.1.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Numerics.Vectors.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Numerics.Vectors.WindowsRuntime",
+            "version": "4.0.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Numerics.Vectors.WindowsRuntime.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ObjectModel",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ObjectModel.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection.Context",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.Context.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection.DispatchProxy",
+            "version": "4.0.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.DispatchProxy.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection.Extensions",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.Extensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection.Metadata",
+            "version": "1.4.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.Metadata.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection.Primitives",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Reflection.TypeExtensions",
+            "version": "4.1.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Reflection.TypeExtensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Resources.Reader",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Resources.Reader.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Resources.ResourceManager",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Resources.ResourceManager.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Resources.Writer",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Resources.Writer.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.CompilerServices.Unsafe",
+            "version": "6.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\system.runtime.compilerservices.unsafe\\6.0.0\\lib\\netstandard2.0\\System.Runtime.CompilerServices.Unsafe.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.CompilerServices.VisualC",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.CompilerServices.VisualC.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Extensions",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Extensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Handles",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Handles.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.InteropServices",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.InteropServices.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.InteropServices.RuntimeInformation",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.InteropServices.RuntimeInformation.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.InteropServices.WindowsRuntime",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.InteropServices.WindowsRuntime.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Numerics",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Numerics.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Serialization",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Serialization.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Serialization.Formatters",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Serialization.Formatters.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Serialization.Json",
+            "version": "4.0.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Serialization.Json.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Serialization.Primitives",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Serialization.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.Serialization.Xml",
+            "version": "4.1.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.Serialization.Xml.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.WindowsRuntime",
+            "version": "4.0.14.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.WindowsRuntime.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.WindowsRuntime.UI.Xaml",
+            "version": "4.0.4.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Runtime.WindowsRuntime.UI.Xaml.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.AccessControl",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.AccessControl.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Claims",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Claims.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Algorithms",
+            "version": "4.3.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Cryptography.Algorithms.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Cng",
+            "version": "4.3.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Cryptography.Cng.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Csp",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Cryptography.Csp.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Encoding",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Cryptography.Encoding.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Primitives",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Cryptography.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.X509Certificates",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Cryptography.X509Certificates.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Principal",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Principal.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Principal.Windows",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.Principal.Windows.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.SecureString",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Security.SecureString.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Duplex",
+            "version": "4.5.0.4",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.Duplex.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Http",
+            "version": "4.5.0.4",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.Http.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.NetTcp",
+            "version": "4.5.0.4",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.NetTcp.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Primitives",
+            "version": "4.5.0.4",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Security",
+            "version": "4.5.0.4",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.Security.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceModel.Web",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceModel.Web.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ServiceProcess",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ServiceProcess.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Text.Encoding.CodePages",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Text.Encoding.CodePages.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Text.Encoding",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Text.Encoding.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Text.Encoding.Extensions",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Text.Encoding.Extensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Text.RegularExpressions",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Text.RegularExpressions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Channels",
+            "version": "8.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\system.threading.channels\\8.0.0\\lib\\netstandard2.0\\System.Threading.Channels.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Overlapped",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.Overlapped.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Tasks.Dataflow",
+            "version": "4.6.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.Tasks.Dataflow.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Tasks",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.Tasks.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Tasks.Extensions",
+            "version": "4.2.0.1",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\lib\\netstandard2.0\\System.Threading.Tasks.Extensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Tasks.Parallel",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.Tasks.Parallel.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Thread",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.Thread.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.ThreadPool",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.ThreadPool.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Timer",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Threading.Timer.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Transactions",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Transactions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Transactions.Local",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Transactions.Local.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ValueTuple",
+            "version": "4.0.3.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.ValueTuple.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Web.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Web.HttpUtility",
+            "version": "4.0.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Web.HttpUtility.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Windows",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Windows.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.Linq",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.Linq.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.ReaderWriter",
+            "version": "4.2.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.ReaderWriter.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.Serialization",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.Serialization.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.XDocument",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.XDocument.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.XmlDocument",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.XmlDocument.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.XmlSerializer",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.XmlSerializer.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.XPath",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.XPath.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.XPath.XDocument",
+            "version": "4.1.1.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\System.Xml.XPath.XDocument.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "WindowsBase",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Users\\Jason\\.nuget\\packages\\microsoft.netcore.universalwindowsplatform\\6.2.14\\ref\\uap10.0.15138\\WindowsBase.dll",
+            "compatibility": "valid"
+          }
+        ],
+        "projectReferences": [
+          {
+            "name": "NativeHelpers",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse.App\\BlueMuse.App.csproj"
+              }
+            ],
+            "referencedProjectPath": "NativeHelpers\\NativeHelpers.vcxproj",
+            "compatibility": "valid"
+          }
+        ],
+        "frameworkReferences": []
+      }
+    },
+    {
+      "name": "BlueMuse",
+      "path": "BlueMuse\\BlueMuse.wapproj",
+      "isSdk": true,
+      "currentFrameworks": [
+        "net451"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [],
+        "assemblies": [],
+        "projectReferences": [
+          {
+            "name": "BlueMuse.App",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse\\BlueMuse.wapproj"
+              }
+            ],
+            "referencedProjectPath": "BlueMuse.App\\BlueMuse.App.csproj",
+            "compatibility": "valid"
+          },
+          {
+            "name": "LSLBridge",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "BlueMuse\\BlueMuse.wapproj"
+              }
+            ],
+            "referencedProjectPath": "LSLBridge\\LSLBridge.csproj",
+            "compatibility": "valid"
+          }
+        ],
+        "frameworkReferences": []
+      }
+    },
+    {
+      "name": "LSLBridge",
+      "path": "LSLBridge\\LSLBridge.csproj",
+      "isSdk": false,
+      "currentFrameworks": [
+        "net48"
+      ],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [
+          {
+            "name": "Costura.Fody",
+            "version": "6.2.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Fody",
+            "version": "6.9.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.NETCore.Platforms",
+            "version": "7.0.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Microsoft.Win32.Primitives",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "NETStandard.Library",
+            "version": "2.0.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Newtonsoft.Json",
+            "version": "13.0.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog",
+            "version": "4.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog.Exceptions",
+            "version": "8.4.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog.Sinks.File",
+            "version": "7.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "Serilog.Sinks.RollingFile",
+            "version": "3.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package is deprecated",
+            "compatibility": "newVersionNeeded",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.AppContext",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Buffers",
+            "version": "4.6.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Collections",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Collections.Concurrent",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Console",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Diagnostics.Debug",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Diagnostics.DiagnosticSource",
+            "version": "10.0.10",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Diagnostics.Tools",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Diagnostics.Tracing",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Globalization",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Globalization.Calendars",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.IO",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.IO.Compression",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.IO.Compression.ZipFile",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.IO.FileSystem",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.IO.FileSystem.Primitives",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Linq",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Linq.Expressions",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Memory",
+            "version": "4.6.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Net.Http",
+            "version": "4.3.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Net.Primitives",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Net.Sockets",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Numerics.Vectors",
+            "version": "4.6.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.ObjectModel",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Reflection",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Reflection.Extensions",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Reflection.Primitives",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Resources.ResourceManager",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime.CompilerServices.Unsafe",
+            "version": "6.1.2",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime.Extensions",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime.Handles",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime.InteropServices",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime.InteropServices.RuntimeInformation",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Runtime.Numerics",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Security.Cryptography.Algorithms",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Security.Cryptography.Encoding",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Security.Cryptography.Primitives",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Security.Cryptography.X509Certificates",
+            "version": "4.3.2",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Text.Encoding",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Text.Encoding.Extensions",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Text.RegularExpressions",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Threading",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Threading.Channels",
+            "version": "8.0.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package upgrade is recommended",
+            "compatibility": "valid",
+            "recommendedVersion": "10.0.10",
+            "upgrade": {
+              "newVersion": "10.0.10"
+            }
+          },
+          {
+            "name": "System.Threading.Tasks",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Threading.Tasks.Extensions",
+            "version": "4.5.4",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Threading.Timer",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Xml.ReaderWriter",
+            "version": "4.3.1",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "System.Xml.XDocument",
+            "version": "4.3.0",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "NuGet package functionality is included with framework reference",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          },
+          {
+            "name": "UwpDesktop",
+            "version": "10.0.14393.3",
+            "isTransitive": false,
+            "isGlobal": false,
+            "isImplicit": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\packages.config"
+              }
+            ],
+            "description": "",
+            "compatibility": "valid",
+            "recommendedVersion": ""
+          }
+        ],
+        "assemblies": [
+          {
+            "name": "Costura",
+            "version": "6.2.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\Costura.Fody.6.2.0\\lib\\netstandard2.0\\Costura.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Microsoft.Win32.Primitives",
+            "version": "4.0.3.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\Microsoft.Win32.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Newtonsoft.Json",
+            "version": "13.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\Newtonsoft.Json.13.0.4\\lib\\net45\\Newtonsoft.Json.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog",
+            "version": "4.4.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\Serilog.4.4.0\\lib\\net471\\Serilog.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog.Exceptions",
+            "version": "8.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\Serilog.Exceptions.8.4.0\\lib\\net472\\Serilog.Exceptions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog.Sinks.File",
+            "version": "7.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\Serilog.Sinks.File.7.0.0\\lib\\net471\\Serilog.Sinks.File.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Serilog.Sinks.RollingFile",
+            "version": "2.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\Serilog.Sinks.RollingFile.3.3.0\\lib\\net45\\Serilog.Sinks.RollingFile.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.AppContext",
+            "version": "4.1.2.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.AppContext.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Buffers",
+            "version": "4.0.5.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Buffers.4.6.1\\lib\\net462\\System.Buffers.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.ComponentModel.Composition",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.ComponentModel.Composition.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Console",
+            "version": "4.0.2.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Console.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Data",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Data.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Diagnostics.DiagnosticSource",
+            "version": "10.0.0.10",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Diagnostics.DiagnosticSource.10.0.10\\lib\\net462\\System.Diagnostics.DiagnosticSource.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Globalization.Calendars",
+            "version": "4.0.3.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Globalization.Calendars.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression",
+            "version": "4.2.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.IO.Compression.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression.FileSystem",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.IO.Compression.FileSystem.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.Compression.ZipFile",
+            "version": "4.0.3.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.IO.Compression.ZipFile.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.FileSystem",
+            "version": "4.0.3.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.IO.FileSystem.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.IO.FileSystem.Primitives",
+            "version": "4.0.3.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.IO.FileSystem.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Memory",
+            "version": "4.0.5.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Memory.4.6.3\\lib\\net462\\System.Memory.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Http",
+            "version": "4.2.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Net.Http.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Net.Sockets",
+            "version": "4.2.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Net.Sockets.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Numerics",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Numerics.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Numerics.Vectors",
+            "version": "4.1.6.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Numerics.Vectors.4.6.1\\lib\\net462\\System.Numerics.Vectors.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.CompilerServices.Unsafe",
+            "version": "6.0.3.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Runtime.CompilerServices.Unsafe.6.1.2\\lib\\net462\\System.Runtime.CompilerServices.Unsafe.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.InteropServices.RuntimeInformation",
+            "version": "4.0.2.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Runtime.InteropServices.RuntimeInformation.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Algorithms",
+            "version": "4.3.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Security.Cryptography.Algorithms.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Encoding",
+            "version": "4.0.2.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Security.Cryptography.Encoding.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.Primitives",
+            "version": "4.0.2.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Security.Cryptography.Primitives.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Security.Cryptography.X509Certificates",
+            "version": "4.1.2.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Security.Cryptography.X509Certificates.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Channels",
+            "version": "8.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Threading.Channels.8.0.0\\lib\\net462\\System.Threading.Channels.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Threading.Tasks.Extensions",
+            "version": "4.2.0.1",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "packages\\System.Threading.Tasks.Extensions.4.5.4\\lib\\net461\\System.Threading.Tasks.Extensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Xml.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "Microsoft.CSharp",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Microsoft.CSharp.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Core",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Core.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.Linq",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Xml.Linq.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Data.DataSetExtensions",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Data.DataSetExtensions.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xaml",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\System.Xaml.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Xml.ReaderWriter",
+            "version": "4.1.1.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\Facades\\System.Xml.ReaderWriter.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "WindowsBase",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\WindowsBase.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "PresentationCore",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\PresentationCore.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "PresentationFramework",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "LSLBridge\\LSLBridge.csproj"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\PresentationFramework.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.WindowsRuntime",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "packages\\UwpDesktop.10.0.14393.3\\build\\portable-net45\u002Buap\\UwpDesktop.targets"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETCore\\v4.5\\System.Runtime.WindowsRuntime.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "System.Runtime.WindowsRuntime.UI.Xaml",
+            "version": "4.0.0.0",
+            "isTransitive": false,
+            "definedIn": [
+              {
+                "path": "packages\\UwpDesktop.10.0.14393.3\\build\\portable-net45\u002Buap\\UwpDesktop.targets"
+              }
+            ],
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETCore\\v4.5\\System.Runtime.WindowsRuntime.UI.Xaml.dll",
+            "compatibility": "valid"
+          },
+          {
+            "name": "mscorlib",
+            "version": "4.0.0.0",
+            "isTransitive": true,
+            "physicalPath": "C:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework\\.NETFramework\\v4.8\\mscorlib.dll",
+            "compatibility": "valid"
+          }
+        ],
+        "projectReferences": [],
+        "frameworkReferences": []
+      }
+    },
+    {
+      "name": "NativeHelpers",
+      "path": "NativeHelpers\\NativeHelpers.vcxproj",
+      "isSdk": false,
+      "currentFrameworks": [],
+      "targetFramework": "net10.0",
+      "dependencies": {
+        "packages": [],
+        "assemblies": [],
+        "projectReferences": [],
+        "frameworkReferences": []
+      }
+    }
+  ]
+}

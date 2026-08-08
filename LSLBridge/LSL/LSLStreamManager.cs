@@ -17,7 +17,7 @@ namespace LSLBridge.LSL
         private readonly Action<int> streamCountSetter;
         private AppServiceConnection lslStreamService;
         private readonly Timer keepAliveTimer;
-        private DateTime lastMessageTime = DateTime.MinValue;
+        private DateTime lastMessageTime = DateTime.UtcNow;
 
         public LSLStreamManager(ObservableCollection<LSLStream> streams, Action<int> streamCounterSetter)
         {
@@ -54,7 +54,12 @@ namespace LSLBridge.LSL
         {
             lslStreamService.RequestReceived -= LSLService_RequestReceived;
             lslStreamService.Dispose();
-            Process.GetCurrentProcess().Kill();
+            foreach (var stream in streams.ToList())
+            {
+                streams.Remove(stream);
+                stream.Dispose();
+            }
+            System.Windows.Application.Current.Dispatcher.Invoke(() => System.Windows.Application.Current.Shutdown());
         }
 
         private void LSLService_RequestReceived(AppServiceConnection sender, AppServiceRequestReceivedEventArgs args)

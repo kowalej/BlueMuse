@@ -16,14 +16,8 @@ namespace BlueMuse.Helpers
 
         public CommandHandler(Action<object> action, bool canExecute)
         {
-            CanExecuteChanged += CommandHandler_CanExecuteChanged;
             actionWithParam = action;
             this.canExecute = canExecute;
-        }
-
-        private void CommandHandler_CanExecuteChanged(object sender, EventArgs e)
-        {
-            throw new NotImplementedException();
         }
 
         public CommandHandler(Action action, bool canExecute)

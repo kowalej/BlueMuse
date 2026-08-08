@@ -118,12 +118,15 @@ Toggle "always pair":
 
 # Versions
 ### Latest
-* 2.3.0.0
-    * AUX supported on Muse 2.
-    * Refresh option available via command line.
+* 2.4.0.0
+    * Misc package updates.
+		* Support Windows 11.
 
 #### Older
 *Note: version 2.0.0.0 and older version are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
+* 2.3.0.0
+    * AUX supported on Muse 2.
+    * Refresh option available via command line.
 * 2.2.0.0
     * Bumped Windows platform version up to 10.0.19041.0.
     * _May have with Bluetooth and stability issues._
