@@ -107,9 +107,6 @@
 
                                         <TextBlock Text="BlueMuse"></TextBlock>
                                         <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.BlueMuseLogFolder, Mode=OneTime}" />
-
-                                        <TextBlock Text="LSLBridge" Margin="0 8 0 0"></TextBlock>
-                                        <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
                                     </StackPanel>
 
                                     <Button VerticalAlignment="Bottom" Margin="0 24 30 0" FontSize="18" Background="LightBlue" HorizontalAlignment="Right" Content="Done" Click="SettingsDone_Click"></Button>

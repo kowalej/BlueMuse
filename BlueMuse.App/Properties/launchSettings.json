@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "BlueMuse.App (Package)": {
+      "commandName": "MsixPackage"
+    }
+  }
+}

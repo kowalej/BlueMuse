@@ -1,18 +1,18 @@
-﻿using BlueMuse.App.LSL;
-using BlueMuse.App.Helpers;
+﻿using BlueMuse.LSL;
+using BlueMuse.Helpers;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows;
+using System.Reflection;
 
-namespace BlueMuse.App.LSL
+namespace BlueMuse.LSL
 {
     public class LSLStream : ObservableObject, IDisposable
     {
         private liblsl.StreamOutlet lslStream;
 
-        private BlueMuse.App.LSL.LSLStreamInfo streamInfo;
-        public BlueMuse.App.LSL.LSLStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
+        private LSLBridgeStreamInfo streamInfo;
+        public LSLBridgeStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
 
         public string StreamDisplayInfo { get { return string.Format("Name: {0} - Nominal Rate: {1} - Channels ({2}): {3}", streamInfo.StreamName, streamInfo.NominalSRate, streamInfo.ChannelCount, string.Join(",", streamInfo.Channels.Select(x => x.Label).ToList())); } }
 
@@ -52,7 +52,7 @@ namespace BlueMuse.App.LSL
                 throw new InvalidOperationException("Unsupported channel data type.");
             }
 
-            var lslStreamInfo = new liblsl.StreamInfo(streamInfo.StreamName, streamInfo.StreamType, streamInfo.ChannelCount, streamInfo.NominalSRate, channelFormat, Application.ResourceAssembly.GetName().Name);
+            var lslStreamInfo = new liblsl.StreamInfo(streamInfo.StreamName, streamInfo.StreamType, streamInfo.ChannelCount, streamInfo.NominalSRate, channelFormat, Assembly.GetExecutingAssembly().GetName().Name);
             lslStreamInfo.desc().append_child_value("manufacturer", streamInfo.DeviceManufacturer);
             lslStreamInfo.desc().append_child_value("device", streamInfo.DeviceName);
             lslStreamInfo.desc().append_child_value("type", streamInfo.StreamType);

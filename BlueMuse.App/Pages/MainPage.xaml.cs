@@ -1,4 +1,4 @@
-﻿using Windows.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml.Controls;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -17,12 +17,12 @@ namespace BlueMuse
             ViewModel = new ViewModels.MainPageVM();
         }
 
-        private void SettingsDone_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void SettingsDone_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             SettingsFlyout.Hide();
         }
 
-        private void BlueMuseSettings_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void BlueMuseSettings_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             CommandBar.IsOpen = false;
         }

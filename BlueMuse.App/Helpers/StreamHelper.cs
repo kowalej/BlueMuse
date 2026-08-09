@@ -1,7 +1,6 @@
-﻿using LSL;
-using LSLBridge.LSL;
+﻿using BlueMuse.LSL;
 
-namespace BlueMuse.App.Helpers
+namespace BlueMuse.Helpers
 {
     public static class StreamHelper
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlueMuse.App.Helpers
+namespace BlueMuse.Helpers
 {
     public static class ArrayConversion
     {
