@@ -1,7 +1,7 @@
 ﻿using BlueMuse.Helpers;
+using BlueMuse.LSL;
 using System;
 using System.Collections.Generic;
-using NativeHelpers;
 
 namespace BlueMuse.Misc
 {
@@ -64,7 +64,7 @@ namespace BlueMuse.Misc
             Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_BLUEMUSE;
         }
         public sealed override double GetNow() {
-            return LSLLocalClock.GetNow();
+            return liblsl.local_clock();
         }
     }
 
@@ -72,12 +72,12 @@ namespace BlueMuse.Misc
     {
         public LSLLocalClockNativeTimestampFormat()
         {
-            DisplayName = "Native LSL Local Clock - Via Bridge (System Uptime Seconds)";
+            DisplayName = "Native LSL Local Clock (System Uptime Seconds)";
             Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_NATIVE;
         }
         public sealed override double GetNow()
         {
-            return double.NegativeInfinity; // Spoofed value for now so LSL bridge knows to generate timestamps since I do not currently have a solution to call local_clock from UWP reliably.
+            return liblsl.local_clock(); // Now called directly in-process; no longer requires the LSLBridge workaround.
         }
     }
 

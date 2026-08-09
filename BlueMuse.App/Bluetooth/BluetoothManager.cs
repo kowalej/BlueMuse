@@ -1,4 +1,5 @@
-﻿using BlueMuse.Helpers;
+﻿using BlueMuse.LSL;
+using BlueMuse.Helpers;
 using BlueMuse.MuseManagement;
 using Serilog;
 using System;
@@ -7,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
@@ -21,10 +21,13 @@ namespace BlueMuse.Bluetooth
         public HashSet<string> MusesToAutoStream = new HashSet<string>();
         public bool StreamFirst = false;
         private bool museDeviceWatcherReset = false;
-        private volatile bool LSLBridgeLaunched = false;
         private static readonly object syncLock = new object();
         Timer pollMuseTimer;
-        Timer pollBridge;
+
+        public ObservableCollection<LSLStream> LSLStreams { get; } = new ObservableCollection<LSLStream>();
+        public LSLStreamManager LSLStreamManager { get; }
+        private int lslStreamCount;
+        public int LSLStreamCount { get { return lslStreamCount; } private set { lslStreamCount = value; } }
 
         private static volatile BluetoothManager instance;
         public static BluetoothManager Instance
@@ -45,20 +48,14 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
-            pollBridge = new Timer(PollBridge, null, 0, 1000);
-        }
-
-        public async void PollBridge(object state)
-        {
-            if(LSLBridgeLaunched)
-                await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE, new Windows.Foundation.Collections.ValueSet());
+            LSLStreamManager = new LSLStreamManager(LSLStreams, count => LSLStreamCount = count);
         }
 
         public async void Close()
         {
             await StopStreamingAll();
-            await DeactivateLSLBridge();
-            await Task.Delay(2000); // This delay ensures LSL bridge gets shutdown in time.
+            LSLStreamManager.CloseAllStreams();
+            await Task.Delay(200);
         }
 
         public void FindMuses()
@@ -159,7 +156,7 @@ namespace BlueMuse.Bluetooth
                         }
                         else
                         {
-                            muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline);
+                            muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline, LSLStreamManager);
                             Muses.Add(muse);
                         }
                         ResolveAutoStream(muse);
@@ -260,33 +257,11 @@ namespace BlueMuse.Bluetooth
             }
         }
 
-        public async Task ActivateLSLBridge()
-        {
-            lock (syncLock)
-            {
-                if (LSLBridgeLaunched)
-                    return;
-                LSLBridgeLaunched = true;
-            }
-            await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
-        }
-
-        public async Task DeactivateLSLBridge()
-        {
-            if (LSLBridgeLaunched && Muses.Where(x => x.IsStreaming).Count() < 1)
-            {
-                await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE, new Windows.Foundation.Collections.ValueSet());
-                lock (syncLock)
-                    LSLBridgeLaunched = false;
-            }
-        }
-
         public async void StartStreaming(object museId)
         {
             var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);
             if (muse != null)
             {
-                await ActivateLSLBridge();
                 await muse.ToggleStream(true);
             }        
         }
@@ -332,7 +307,6 @@ namespace BlueMuse.Bluetooth
             var muses = this.Muses.Where(x => !x.IsStreaming);
             if (muses.Count() > 0)
             {
-                await ActivateLSLBridge();
                 foreach (var muse in muses)
                 {
                     await muse.ToggleStream(true);

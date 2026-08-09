@@ -1,4 +1,4 @@
-﻿using LSLBridge.LSL;
+﻿using BlueMuse.LSL;
 using System.Collections.Generic;
 
 namespace BlueMuse.Misc

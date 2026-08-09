@@ -15,7 +15,7 @@ using System.Runtime.InteropServices;
 *   (for recording, viewing or experiment control).
 *
 */
-namespace BlueMuse.App.LSL
+namespace BlueMuse.LSL
 {
 
     public class liblsl
