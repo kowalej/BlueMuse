@@ -938,16 +938,16 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLPushEEGChunk(MuseEEGSamples sample)
         {
-            // Inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
+            // 2D array shape: [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_EEG_SAMPLE_COUNT * eegChannelCount];
+                double[,] data = new double[Constants.MUSE_EEG_SAMPLE_COUNT, eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
                 {
                     var channelData = sample.ChannelData[eegGattChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_EEG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_EEG_SAMPLE_COUNT) + j] = channelData[j];
+                        data[j, i] = channelData[j];
                     }
                 }
                 lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -955,13 +955,13 @@ namespace BlueMuse.MuseManagement
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_EEG_SAMPLE_COUNT * eegChannelCount];
+                float[,] data = new float[Constants.MUSE_EEG_SAMPLE_COUNT, eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
                 {
                     var channelData = sample.ChannelData[eegGattChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_EEG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_EEG_SAMPLE_COUNT) + j] = (float)channelData[j];
+                        data[j, i] = (float)channelData[j];
                     }
                 }
                 lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -974,16 +974,16 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLPushPPGChunk(MusePPGSamples sample)
         {
-            // Inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
+            // 2D array shape: [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_PPG_SAMPLE_COUNT * Constants.MUSE_PPG_CHANNEL_COUNT];
+                double[,] data = new double[Constants.MUSE_PPG_SAMPLE_COUNT, Constants.MUSE_PPG_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
                 {
                     var channelData = sample.ChannelData[Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_PPG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_PPG_SAMPLE_COUNT) + j] = channelData[j];
+                        data[j, i] = channelData[j];
                     }
                 }
                 lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -991,13 +991,13 @@ namespace BlueMuse.MuseManagement
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_PPG_SAMPLE_COUNT * Constants.MUSE_PPG_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_PPG_SAMPLE_COUNT, Constants.MUSE_PPG_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
                 {
                     var channelData = sample.ChannelData[Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_PPG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_PPG_SAMPLE_COUNT) + j] = (float)channelData[j];
+                        data[j, i] = (float)channelData[j];
                     }
                 }
                 lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -1010,28 +1010,20 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLPushAccelerometerChunk(MuseAccelerometerSamples sample)
         {
-            // Inlined as xsample1,xsample2...zsample1,zsample2...
+            // XYZSamples is already shaped [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT * Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
-                for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
-                {
-                    for (int j = 0; j < Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT; j++)
-                    {
-                        data[(i * Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT) + j] = sample.XYZSamples[j, i];
-                    }
-                }
-                lslStreamManager.SendChunk(AccelerometerStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(AccelerometerStreamName, sample.XYZSamples, sample.Timestamps, sample.Timestamps2);
             }
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT * Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT) + j] = (float)sample.XYZSamples[j, i];
+                        data[j, i] = (float)sample.XYZSamples[j, i];
                     }
                 }
                 lslStreamManager.SendChunk(AccelerometerStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -1044,28 +1036,20 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLPushGyroscopeChunk(MuseGyroscopeSamples sample)
         {
-            // Inlined as xsample1,xsample2...zsample1,zsample2...
+            // XYZSamples is already shaped [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
-                for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
-                {
-                    for (int j = 0; j < Constants.MUSE_GYROSCOPE_SAMPLE_COUNT; j++)
-                    {
-                        data[(i * Constants.MUSE_GYROSCOPE_SAMPLE_COUNT) + j] = sample.XYZSamples[j, i];
-                    }
-                }
-                lslStreamManager.SendChunk(GyroscopeStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(GyroscopeStreamName, sample.XYZSamples, sample.Timestamps, sample.Timestamps2);
             }
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_GYROSCOPE_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_GYROSCOPE_SAMPLE_COUNT) + j] = (float)sample.XYZSamples[j, i];
+                        data[j, i] = (float)sample.XYZSamples[j, i];
                     }
                 }
                 lslStreamManager.SendChunk(GyroscopeStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -1078,15 +1062,15 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLPushTelemetryChunk(MuseTelemetrySamples sample)
         {
-            // Inlined as batterysample1,batterysample2...temperaturesample1,temperaturesample2...
+            // 2D array shape: [sampleIndex, channelIndex]. Telemetry samples are constant across the chunk per channel.
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT * Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+                double[,] data = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_TELEMETRY_SAMPLE_COUNT) + j] = sample.TelemetryData[i];
+                        data[j, i] = sample.TelemetryData[i];
                     }
                 }
                 lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sample.Timestamps2);
@@ -1094,12 +1078,12 @@ namespace BlueMuse.MuseManagement
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_TELEMETRY_SAMPLE_COUNT * Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_TELEMETRY_SAMPLE_COUNT) + j] = (float)sample.TelemetryData[i];
+                        data[j, i] = (float)sample.TelemetryData[i];
                     }
                 }
                 lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sample.Timestamps2);
