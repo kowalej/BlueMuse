@@ -1,5 +1,4 @@
-﻿using BlueMuse.Helpers;
-using System;
+﻿using System;
 using System.Linq;
 
 namespace BlueMuse.LSL
@@ -54,7 +53,7 @@ namespace BlueMuse.LSL
             }
         }
 
-        public void SendChunk(string streamName, float[] data1D, double[] timestamps, double[] timestamps2 = null)
+        public void SendChunk(string streamName, float[,] data2D, double[] timestamps, double[] timestamps2 = null)
         {
             var stream = streams.FirstOrDefault(x => x.StreamInfo.StreamName == streamName);
             if (stream == null) return;
@@ -63,12 +62,11 @@ namespace BlueMuse.LSL
             timestamps = ResolveTimestamps(streamInfo, timestamps);
             timestamps2 = ResolveTimestamps(streamInfo, timestamps2, streamInfo.SendSecondaryTimestamp);
 
-            float[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount - (streamInfo.SendSecondaryTimestamp ? 2 : 0)); // Two extra channels for float timestamp, so subtract 2 from length to get actual data part.
             stream.PushChunkLSL(data2D, timestamps, timestamps2);
             stream.UpdateSampleRate(timestamps.Length);
         }
 
-        public void SendChunk(string streamName, double[] data1D, double[] timestamps, double[] timestamps2 = null)
+        public void SendChunk(string streamName, double[,] data2D, double[] timestamps, double[] timestamps2 = null)
         {
             var stream = streams.FirstOrDefault(x => x.StreamInfo.StreamName == streamName);
             if (stream == null) return;
@@ -77,12 +75,11 @@ namespace BlueMuse.LSL
             timestamps = ResolveTimestamps(streamInfo, timestamps);
             timestamps2 = ResolveTimestamps(streamInfo, timestamps2, streamInfo.SendSecondaryTimestamp);
 
-            double[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount - (streamInfo.SendSecondaryTimestamp ? 1 : 0));
             stream.PushChunkLSL(data2D, timestamps, timestamps2);
             stream.UpdateSampleRate(timestamps.Length);
         }
 
-        public void SendChunk(string streamName, int[] data1D, double[] timestamps)
+        public void SendChunk(string streamName, int[,] data2D, double[] timestamps)
         {
             var stream = streams.FirstOrDefault(x => x.StreamInfo.StreamName == streamName);
             if (stream == null) return;
@@ -90,12 +87,11 @@ namespace BlueMuse.LSL
 
             timestamps = ResolveTimestamps(streamInfo, timestamps);
 
-            int[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);
             stream.PushChunkLSL(data2D, timestamps);
             stream.UpdateSampleRate(timestamps.Length);
         }
 
-        public void SendChunk(string streamName, string[] data1D, double[] timestamps)
+        public void SendChunk(string streamName, string[,] data2D, double[] timestamps)
         {
             var stream = streams.FirstOrDefault(x => x.StreamInfo.StreamName == streamName);
             if (stream == null) return;
@@ -103,7 +99,6 @@ namespace BlueMuse.LSL
 
             timestamps = ResolveTimestamps(streamInfo, timestamps);
 
-            string[,] data2D = data1D.To2DArray(streamInfo.ChunkSize, streamInfo.ChannelCount);
             stream.PushChunkLSL(data2D, timestamps);
             stream.UpdateSampleRate(timestamps.Length);
         }
