@@ -190,7 +190,7 @@
                                         Command="{Binding ViewModel.StopStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}"
                                             Background="Maroon" Style="{StaticResource AccentButtonStyle}" />
                                     <TextBlock Visibility="{x:Bind IsStreaming, Mode=OneWay}" Text="{x:Bind ActiveStreamsInfo, Mode=OneWay}"
-                                        TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Margin="0,6,0,0" MaxWidth="260" Foreground="DarkSlateGray" />
+                                        TextWrapping="Wrap" FontSize="12" FontFamily="Consolas" Margin="0,6,0,0" MaxWidth="360" Foreground="DarkSlateGray" />
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>

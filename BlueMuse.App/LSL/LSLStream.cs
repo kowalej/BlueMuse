@@ -14,7 +14,19 @@ namespace BlueMuse.LSL
         private LSLBridgeStreamInfo streamInfo;
         public LSLBridgeStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
 
-        public string StreamDisplayInfo { get { return string.Format("Name: {0} - Nominal Rate: {1} - Rate (Hz): {2:0.00} - Channels ({3}): {4}", streamInfo.StreamName, streamInfo.NominalSRate, rate, streamInfo.ChannelCount, string.Join(",", streamInfo.Channels.Select(x => x.Label).ToList())); } }
+        public string StreamDisplayInfo
+        {
+            get
+            {
+                return string.Format(
+                    "{0} ({1} ch): {2,3:0} Hz nominal, {3,6:0.00} Hz live" + Environment.NewLine + "    {4}",
+                    streamInfo.StreamType,
+                    streamInfo.ChannelCount,
+                    streamInfo.NominalSRate,
+                    rate,
+                    string.Join(", ", streamInfo.Channels.Select(x => x.Label).ToList()));
+            }
+        }
 
         private double latestTimestamp;
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }

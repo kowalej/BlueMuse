@@ -178,7 +178,7 @@ namespace BlueMuse.MuseManagement
         {
             get
             {
-                return string.Join(Environment.NewLine, GetOwnLSLStreams().Select(x => x.StreamDisplayInfo));
+                return string.Join(Environment.NewLine + Environment.NewLine, GetOwnLSLStreams().Select(x => x.StreamDisplayInfo));
             }
         }
 
@@ -245,6 +245,12 @@ namespace BlueMuse.MuseManagement
 
             // Cannot determine any further (Muse Original vs Muse 2 until connected).
             if (ConnectionStatus == MuseConnectionStatus.Offline) return;
+
+            // Serialize against other GATT operations on this device (stream toggle, device info refresh,
+            // warmup). This method used to run uncoordinated - it's invoked fire-and-forget from the
+            // ConnectionStatus setter and from ToggleStream, and could race with GATT calls elsewhere,
+            // producing null characteristics and COMException (0x80004004) failures.
+            await gattLock.WaitAsync();
             try
             {
                 streamCharacteristics = await GetGattCharacteristics();
@@ -284,6 +290,10 @@ namespace BlueMuse.MuseManagement
             catch (Exception ex)
             {
                 Log.Error(ex, $"Exception during determining Muse model. Exception message: {ex.Message}.");
+            }
+            finally
+            {
+                gattLock.Release();
             }
         }
 
