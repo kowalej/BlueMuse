@@ -1,11 +1,13 @@
 ﻿using BlueMuse.LSL;
 using BlueMuse.Helpers;
+using BlueMuse.Bluetooth;
 using BlueMuse.Misc;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
@@ -164,6 +166,15 @@ namespace BlueMuse.MuseManagement
         public string GyroscopeStreamName { get { return $"{LongName} {Constants.GYROSCOPE_STREAM_TYPE}"; } }
         public string PPGStreamName { get { return $"{LongName} {Constants.PPG_STREAM_TYPE}"; } }
         public string TelemetryStreamName { get { return $"{LongName} {Constants.TELEMETRY_STREAM_TYPE}"; } }
+
+        // Aggregated display info for this Muse's currently active LSL streams (name, nominal rate, live rate, channels).
+        public string ActiveStreamsInfo
+        {
+            get
+            {
+                return string.Join(Environment.NewLine, GetOwnLSLStreams().Select(x => x.StreamDisplayInfo));
+            }
+        }
 
         private int batteryLevel = -1;
         public int BatteryLevel { get { return batteryLevel; } set { lock (syncLock) { SetProperty(ref batteryLevel, value); OnPropertyChanged(nameof(BatteryLevel)); OnPropertyChanged(nameof(BatteryLevelOpacity)); } } }
@@ -730,15 +741,39 @@ namespace BlueMuse.MuseManagement
         {
             await LSLOpenStreams();
             IsStreaming = true;
+            foreach (var stream in GetOwnLSLStreams())
+            {
+                stream.PropertyChanged += LSLStream_PropertyChanged;
+            }
+            OnPropertyChanged(nameof(ActiveStreamsInfo));
         }
 
         // Handles LSL stream closing.
         private async void FinishCloseOffStream()
         {
+            foreach (var stream in GetOwnLSLStreams())
+            {
+                stream.PropertyChanged -= LSLStream_PropertyChanged;
+            }
             eegSampleBuffer.Clear();
             ppgSampleBuffer.Clear();
             await LSLCloseStream();
             IsStreaming = false;
+            OnPropertyChanged(nameof(ActiveStreamsInfo));
+        }
+
+        private void LSLStream_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(LSLStream.StreamDisplayInfo))
+            {
+                OnPropertyChanged(nameof(ActiveStreamsInfo));
+            }
+        }
+
+        private IEnumerable<LSLStream> GetOwnLSLStreams()
+        {
+            var streamNames = new[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName, TelemetryStreamName };
+            return BluetoothManager.Instance.LSLStreams.Where(x => streamNames.Contains(x.StreamInfo.StreamName));
         }
 
         private async Task LSLOpenStreams()

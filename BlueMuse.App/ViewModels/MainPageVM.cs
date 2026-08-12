@@ -29,7 +29,6 @@ namespace BlueMuse.ViewModels
         public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2; // Use copy in case we want view level filtering.
         public List<ChannelDataType> ChannelDataTypes = ChannelDataTypesContainer.ChannelDataTypes; // Use copy in case we want view level filtering.
         public string BlueMuseLogFolder;
-        public string LSLBridgeLogFolder;
 
         public string AppVersion { get {
                 var pv = Package.Current.Id.Version;

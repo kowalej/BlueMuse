@@ -49,8 +49,7 @@ namespace BlueMuse.Helpers
         {
             try
             {
-                var dispatcherQueue = DispatcherQueue.GetForCurrentThread();
-                dispatcherQueue?.TryEnqueue(DispatcherQueuePriority.High, () =>
+                UIDispatcher.Queue?.TryEnqueue(DispatcherQueuePriority.High, () =>
                     {
                         try
                         {

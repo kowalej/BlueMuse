@@ -222,6 +222,8 @@ namespace BlueMuse
         public const string SETTINGS_KEY_GYROSCOPE_ENABLED = "gyroscope_enabled";
         public const string SETTINGS_KEY_PPG_ENABLED = "ppg_enabled";
         public const string SETTINGS_KEY_TELEMETRY_ENABLED = "telemetry_enabled";
+        public const string SETTINGS_KEY_WINDOW_WIDTH = "window_width";
+        public const string SETTINGS_KEY_WINDOW_HEIGHT = "window_height";
 
         public const string EEG_STREAM_TYPE = "EEG";
         public const string EEG_UNITS = "microvolts";

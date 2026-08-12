@@ -992,8 +992,26 @@ namespace BlueMuse.LSL
         // === Internal: C library function definitions. ===
         class SafeNativeMethods
         {
-            /// Name of the binary to include -- replace this if you are on a non-Windows platform (e.g., liblsl64.so)
-            const string libname = "liblsl32.dll";
+            /// Logical name resolved at runtime to the correct architecture-specific binary
+            /// (liblsl32.dll for x86 processes, liblsl64.dll for x64 processes) via the
+            /// DllImportResolver registered in the static constructor below.
+            const string libname = "liblsl";
+
+            static SafeNativeMethods()
+            {
+                NativeLibrary.SetDllImportResolver(typeof(SafeNativeMethods).Assembly, ResolveLiblsl);
+            }
+
+            private static IntPtr ResolveLiblsl(string name, System.Reflection.Assembly assembly, DllImportSearchPath? searchPath)
+            {
+                if (name != libname)
+                    return IntPtr.Zero;
+
+                string fileName = Environment.Is64BitProcess ? "liblsl64.dll" : "liblsl32.dll";
+                string fullPath = System.IO.Path.Combine(AppContext.BaseDirectory, fileName);
+
+                return NativeLibrary.TryLoad(fullPath, out IntPtr handle) ? handle : IntPtr.Zero;
+            }
 
             [DllImport(libname, CallingConvention = CallingConvention.Cdecl, CharSet = CharSet.Ansi, ThrowOnUnmappableChar = true, BestFitMapping = false, ExactSpelling = true)]
             public static extern int lsl_protocol_version();
