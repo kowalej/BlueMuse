@@ -28,6 +28,8 @@ namespace BlueMuse
         {
             InitializeComponent();
 
+            BlueMuse.Helpers.UIDispatcher.Initialize();
+
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
             var logPath = Path.Combine(localFolder, "Logs", "BlueMuse-Log-.log");
             Log.Logger = new LoggerConfiguration()
@@ -91,8 +93,64 @@ namespace BlueMuse
                 rootFrame.Navigate(typeof(MainPage));
             }
 
+            RestoreWindowSize(window, 500, 820);
+            window.Closed += Window_Closed;
+
             window.Activate();
         }
+
+        private void Window_Closed(object sender, WindowEventArgs args)
+        {
+            SaveWindowSize(window);
+        }
+
+        private static Microsoft.UI.Windowing.AppWindow GetAppWindow(Window window)
+        {
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            var windowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(hWnd);
+            return Microsoft.UI.Windowing.AppWindow.GetFromWindowId(windowId);
+        }
+
+        private static void RestoreWindowSize(Window window, int defaultWidth, int defaultHeight)
+        {
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            var savedWidth = localSettings.Values[Constants.SETTINGS_KEY_WINDOW_WIDTH] as int?;
+            var savedHeight = localSettings.Values[Constants.SETTINGS_KEY_WINDOW_HEIGHT] as int?;
+
+            int width = savedWidth ?? defaultWidth;
+            int height = savedHeight ?? defaultHeight;
+
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+            double scale = 1.0;
+            try
+            {
+                uint dpi = GetDpiForWindow(hWnd);
+                scale = dpi / 96.0;
+            }
+            catch
+            {
+                // Fall back to no scaling if unable to query DPI.
+            }
+
+            var appWindow = GetAppWindow(window);
+            appWindow.Resize(new Windows.Graphics.SizeInt32(
+                (int)(width * scale),
+                (int)(height * scale)));
+        }
+
+        private static void SaveWindowSize(Window window)
+        {
+            var appWindow = GetAppWindow(window);
+            if (appWindow == null)
+                return;
+
+            var localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+            localSettings.Values[Constants.SETTINGS_KEY_WINDOW_WIDTH] = appWindow.Size.Width;
+            localSettings.Values[Constants.SETTINGS_KEY_WINDOW_HEIGHT] = appWindow.Size.Height;
+        }
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern uint GetDpiForWindow(IntPtr hWnd);
 
         private async void HandleProtocolActivation(Microsoft.Windows.AppLifecycle.AppActivationArguments activatedEventArgs)
         {
