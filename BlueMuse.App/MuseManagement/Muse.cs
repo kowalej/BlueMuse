@@ -1,9 +1,8 @@
-﻿using BlueMuse.LSL;
+﻿using BlueMuse.Bluetooth;
 using BlueMuse.Helpers;
-using BlueMuse.Bluetooth;
+using BlueMuse.LSL;
 using BlueMuse.Misc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -17,7 +16,6 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 
 namespace BlueMuse.MuseManagement
 {
