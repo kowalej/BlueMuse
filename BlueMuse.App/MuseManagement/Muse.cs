@@ -4,6 +4,7 @@ using BlueMuse.LSL;
 using BlueMuse.Misc;
 using Newtonsoft.Json;
 using Serilog;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -58,6 +59,13 @@ namespace BlueMuse.MuseManagement
 
         private volatile bool togglingStream = false;
         private volatile bool resetLocked = false;
+        private volatile bool refreshingDeviceInfoAndControlStatus = false;
+
+        // Serializes all GATT operations against this Muse's BluetoothLEDevice (device info/control status
+        // refresh, stream start/stop, warmup polling from BluetoothManager, reset). Overlapping GATT calls
+        // on the same device from different threads/timers can cause spurious communication errors that
+        // surface as the device rapidly toggling Connected/Disconnected.
+        private readonly SemaphoreSlim gattLock = new SemaphoreSlim(1, 1);
 
         private MuseModel museModel;
         public MuseModel MuseModel { get { return museModel; } set { lock (syncLock) { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } } }
@@ -288,6 +296,7 @@ namespace BlueMuse.MuseManagement
                 if (start == isStreaming || (start && !CanStream)) return;
                 togglingStream = true;
             }
+            await gattLock.WaitAsync();
             try
             {
                 if (start)
@@ -431,6 +440,7 @@ namespace BlueMuse.MuseManagement
             finally
             {
                 togglingStream = false;
+                gattLock.Release();
             }
         }
 
@@ -460,6 +470,21 @@ namespace BlueMuse.MuseManagement
 
         public async void RefreshDeviceInfoAndControlStatus(object state = null)
         {
+            // Guard against reentrancy: this method can be triggered both by a repeating timer and
+            // by a manual user-initiated refresh. If two invocations overlap, their GATT responses
+            // both get appended into the same shared deviceInfoBuffer/controlStatusBuffer fields,
+            // interleaving/corrupting the JSON from two independent request/response cycles.
+            if (refreshingDeviceInfoAndControlStatus) return;
+            refreshingDeviceInfoAndControlStatus = true;
+
+            // Don't block the timer thread waiting on other GATT work (e.g. an in-progress stream
+            // toggle); just skip this cycle since it will run again on the next timer tick.
+            if (!await gattLock.WaitAsync(0))
+            {
+                refreshingDeviceInfoAndControlStatus = false;
+                return;
+            }
+
             try
             {
                 deviceInfoBuffer = string.Empty;
@@ -519,6 +544,70 @@ namespace BlueMuse.MuseManagement
             {
                 Log.Error(ex, $"Unexpected error while getting device info / control status.");
             }
+            finally
+            {
+                gattLock.Release();
+                refreshingDeviceInfoAndControlStatus = false;
+            }
+        }
+
+        /// <summary>
+        /// Performs a lightweight GATT round-trip (retrieving an arbitrary service) so the OS will
+        /// auto-connect this device if it's currently disconnected. Serialized behind gattLock so it
+        /// cannot collide with an in-progress stream toggle or device info/control status refresh.
+        /// </summary>
+        public async Task WarmupConnectionAsync()
+        {
+            if (Device == null || togglingStream) return;
+            if (!await gattLock.WaitAsync(0)) return;
+            try
+            {
+                await Device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Unexpected error during connection warmup for device ID={Id}.");
+            }
+            finally
+            {
+                gattLock.Release();
+            }
+        }
+
+        // Attempts to find a valid, parseable top-level JSON object within the buffer.
+        // BLE notification reassembly can occasionally interleave, truncate, or duplicate fragments
+        // (e.g. a stray '{' appears mid-object, or an earlier object gets cut off before a later,
+        // complete copy of the same object arrives), so we can't assume the first '{' pairs with
+        // any particular '}'. Instead, we try every '{' as a possible start, and for each, every
+        // subsequent '}' as a possible end, until we find a substring that actually deserializes.
+        private static bool TryExtractFirstValidJson(string buffer, out string json)
+        {
+            json = null;
+            int start = buffer.IndexOf('{');
+            while (start >= 0)
+            {
+                int searchFrom = start;
+                while (true)
+                {
+                    int end = buffer.IndexOf('}', searchFrom);
+                    if (end < 0) break;
+
+                    string candidate = buffer.Substring(start, end - start + 1);
+                    try
+                    {
+                        JsonConvert.DeserializeObject(candidate);
+                        json = candidate;
+                        return true;
+                    }
+                    catch (JsonReaderException)
+                    {
+                        searchFrom = end + 1;
+                    }
+                }
+
+                start = buffer.IndexOf('{', start + 1);
+            }
+            return false;
         }
 
         private void DeviceInfo_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
@@ -542,13 +631,21 @@ namespace BlueMuse.MuseManagement
                     // If our message contains a '{' and ends with '}' we know somewhere, we have complete JSON data that we can use.
                     if (deviceInfoBuffer.Contains("{") && deviceInfoBuffer.LastOrDefault() == '}')
                     {
-                        deviceInfoBuffer = deviceInfoBuffer.Substring(deviceInfoBuffer.LastIndexOf('{'));
                         try
                         {
-                            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(deviceInfoBuffer), Formatting.Indented);
-                            if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
+                            if (TryExtractFirstValidJson(deviceInfoBuffer, out string extractedJson))
+                            {
+                                var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(extractedJson), Formatting.Indented);
+                                if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
+                            }
+                            else
+                            {
+                                Log.Error($"Could not extract valid JSON while handling device info Bluetooth channel values. Data: {deviceInfoBuffer}");
+                            }
                         }
-                        catch (JsonReaderException) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        catch (JsonReaderException ex) {
+                            Log.Error(ex, $"JSON parsing error while handling device info Bluetooth channel values. Data: {deviceInfoBuffer}");
+                        } // Don't care, probably throws a JSON error since the data is messed up.
                         finally
                         {
                             deviceInfoBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
@@ -584,23 +681,31 @@ namespace BlueMuse.MuseManagement
                     // If our message contains a '{' and ends with '}' we know somewhere, we have complete JSON data that we can use.
                     if (controlStatusBuffer.Contains("{") && controlStatusBuffer.LastOrDefault() == '}')
                     {
-                        controlStatusBuffer = controlStatusBuffer.Substring(controlStatusBuffer.LastIndexOf('{'));
-
-                        // Pull our battery info, we can do this before parsing the JSON.
-                        var batteryPer = Regex.Match(controlStatusBuffer, "\"bp\":\\W*([0-9]+)");
-                        if (batteryPer.Success)
-                        {
-                            if (int.TryParse(batteryPer.Groups[1].Value, out int batteryInt))
-                            {
-                                BatteryLevel = batteryInt;
-                            }
-                        }
                         try
                         {
-                            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
-                            if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
+                            if (TryExtractFirstValidJson(controlStatusBuffer, out string extractedJson))
+                            {
+                                // Pull our battery info, we can do this before parsing the JSON.
+                                var batteryPer = Regex.Match(extractedJson, "\"bp\":\\W*([0-9]+)");
+                                if (batteryPer.Success)
+                                {
+                                    if (int.TryParse(batteryPer.Groups[1].Value, out int batteryInt))
+                                    {
+                                        BatteryLevel = batteryInt;
+                                    }
+                                }
+
+                                var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(extractedJson), Formatting.Indented);
+                                if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
+                            }
+                            else
+                            {
+                                Log.Error($"Could not extract valid JSON while handling control status Bluetooth channel values. Data: {controlStatusBuffer}");
+                            }
                         }
-                        catch (JsonReaderException) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        catch (JsonReaderException ex) {
+                            Log.Error(ex, $"JSON parsing error while handling control status Bluetooth channel values. Data: {controlStatusBuffer}");
+                        } // Don't care, probably throws a JSON error since the data is messed up.
                         finally
                         {
                             controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.

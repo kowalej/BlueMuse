@@ -130,7 +130,7 @@ namespace BlueMuse.Bluetooth
                     if (muse == null || (muse != null && !muse.IsStreaming))
                     {
                         var di = await DeviceInformation.CreateFromIdAsync(args.Id);
-                        
+
                         // Always re-pair device via BlueMuse if AlwaysPair is "on".
                         if (AlwaysPair && di.Pairing != null && di.Pairing.IsPaired && di.Pairing.CanPair)
                         {
@@ -143,7 +143,13 @@ namespace BlueMuse.Bluetooth
                     }
 
                     // Retreive an arbitrary service. This will allow the device to auto connect.
-                    await device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+                    // Skip this if we already know about this Muse and it's actively streaming or already
+                    // connected - an extra GATT round-trip here can collide with in-progress GATT operations
+                    // (stream toggling, device info refresh) on the same device and cause spurious disconnects.
+                    if (muse == null || (!muse.IsStreaming && device.ConnectionStatus != BluetoothConnectionStatus.Connected))
+                    {
+                        await device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+                    }
 
                     lock (Muses)
                     {
@@ -178,7 +184,11 @@ namespace BlueMuse.Bluetooth
             lock (Muses)
             {
                 var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
-                if (muse != null && !muse.IsStreaming)
+                // AQS can raise a Removed event for a device that's still actually connected (e.g. transient
+                // enumeration churn). Only drop it from the list if it's truly not streaming AND not connected,
+                // otherwise we cause the device to visibly disappear from the UI while still functional.
+                if (muse != null && !muse.IsStreaming &&
+                    (muse.Device == null || muse.Device.ConnectionStatus != BluetoothConnectionStatus.Connected))
                 {
                     if (muse.Device != null)
                     {
@@ -191,7 +201,13 @@ namespace BlueMuse.Bluetooth
 
         public void ResolveAutoStreamAll()
         {
-            foreach(var muse in Muses)
+            Muse[] muses;
+            lock (Muses)
+            {
+                muses = Muses.ToArray();
+            }
+
+            foreach (var muse in muses)
             {
                 if (muse.ConnectionStatus == MuseConnectionStatus.Online)
                     ResolveAutoStream(muse);
@@ -304,8 +320,12 @@ namespace BlueMuse.Bluetooth
 
         public async Task StartStreamingAll()
         {
-            var muses = this.Muses.Where(x => !x.IsStreaming);
-            if (muses.Count() > 0)
+            Muse[] muses;
+            lock (Muses)
+            {
+                muses = Muses.Where(x => !x.IsStreaming).ToArray();
+            }
+            if (muses.Length > 0)
             {
                 foreach (var muse in muses)
                 {
@@ -316,8 +336,12 @@ namespace BlueMuse.Bluetooth
 
         public async Task StopStreamingAll()
         {
-            var muses = this.Muses.Where(x => x.IsStreaming);
-            if (muses.Count() > 0)
+            Muse[] muses;
+            lock (Muses)
+            {
+                muses = Muses.Where(x => x.IsStreaming).ToArray();
+            }
+            if (muses.Length > 0)
             {
                 foreach (var muse in muses)
                 {
@@ -334,12 +358,22 @@ namespace BlueMuse.Bluetooth
         {
             try
             {
-                foreach (var muse in Muses)
+                // Snapshot under the same lock used elsewhere when mutating Muses, so we don't
+                // enumerate a collection that's concurrently being modified by the device watcher
+                // (which runs on a different thread). Locks can't safely span an await, so we copy
+                // first and then do the async work against the snapshot.
+                Muse[] muses;
+                lock (Muses)
+                {
+                    muses = Muses.ToArray();
+                }
+
+                foreach (var muse in muses)
                 {
                     if (muse.Device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
                     {
                         // Retreive an arbitrary service. This will allow the device to auto connect.
-                        await muse.Device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+                        await muse.WarmupConnectionAsync();
                     }
                 }
             }
