@@ -19,12 +19,13 @@ namespace BlueMuse.LSL
             get
             {
                 return string.Format(
-                    "{0} ({1} ch): {2,3:0} Hz nominal, {3,6:0.00} Hz live" + Environment.NewLine + "    {4}",
+                    "{0} ({1} ch) @ {2,3:0} Hz nominal / {3,6:0.00} Hz live" + Environment.NewLine + "  Channels: {4}" + Environment.NewLine + "  LSL Stream Name: {5}",
                     streamInfo.StreamType,
                     streamInfo.ChannelCount,
                     streamInfo.NominalSRate,
                     rate,
-                    string.Join(", ", streamInfo.Channels.Select(x => x.Label).ToList()));
+                    string.Join(", ", streamInfo.Channels.Select(x => x.Label).ToList()),
+                    streamInfo.StreamName);
             }
         }
 

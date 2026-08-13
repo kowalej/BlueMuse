@@ -11,7 +11,8 @@
 * Shows latest timestamp received and the current sample rate for each stream.
 
 # Screenshots
-<img src="screenshot.PNG" width="400" />
+<img src="screenshot-main.PNG" width="400" />
+<img src="screenshot-streaming.PNG" width="400" />
 
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
