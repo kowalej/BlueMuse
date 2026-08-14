@@ -11,7 +11,8 @@
 * Shows latest timestamp received and the current sample rate for each stream.
 
 # Screenshots
-<img src="screenshot.PNG" width="400" />
+<img src="screenshot-main.PNG" width="400" />
+<img src="screenshot-streaming.PNG" width="400" />
 
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
@@ -93,17 +94,43 @@ Toggle "always pair":
 ```
 
 # Installation
+> **NOTE:** As of version 2.5.0.0 (the .NET 10 / WinUI 3 modernization), BlueMuse is now a single self-contained
+> MSIX-packaged application (the separate "LSL Bridge" Win32 process used in 2.4.0.0 and earlier has been merged
+> directly into the main app - see the [Architecture](#architecture) note below). The distribution method
+> (Microsoft Store vs. sideload) is **still being finalized** - this section will be updated once that is
+> confirmed. In the meantime, sideloading as described below will continue to work.
+
+***Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11.***
+
+### Sideload Install (Current Method)
+1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases)** and unzip it.
+2. Double-click the `.cer` certificate file included in the release and install it to the **Local Machine** ->
+   **Trusted Root Certification Authorities** store (you'll need administrator rights for this step).
+3. Double-click the `.msix` / `.msixbundle` package to install BlueMuse.
+4. If Windows blocks the install because "Developer Mode" or sideloading isn't enabled, turn on
+   **Settings -> Update & Security -> For Developers -> Developer Mode** (or **Sideload apps**) and retry.
+
+### Microsoft Store (Planned)
+A Microsoft Store listing is being evaluated for a future release, which would remove the need for manual
+certificate/sideload steps entirely. This section will be updated with a store link once available.
+
+<details>
+<summary><strong>Legacy Install Instructions (2.4.0.0 and earlier, UWP + separate LSL Bridge)</strong></summary>
+
+*The instructions below apply to older releases (2.4.0.0 and earlier), which shipped as a UWP app paired with
+a separate "LSL Bridge" Win32 process and .NET Native runtime dependencies. Kept here for reference in case
+you need to install an older version.*
+
 ***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
 
-### First Step
-**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip) and unzip, then follow one of the methods below.**
-
-### Auto Install (Recommended)
+#### First Step
+**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip) from the [releases page](https://github.com/kowalej/BlueMuse/releases)** and unzip, then follow one of the methods below.
+#### Auto Install (Recommended)
 1. Navigate to the unzipped app folder and run the `.\InstallBlueMuse.ps1` PowerShell command (right click and choose Run with PowerShell or execute from terminal directly): 
 
 2. Follow the prompts - the script should automatically install the security certificate, all dependencies, and the BlueMuse app.
 
-### Manual Install
+#### Manual Install
 1. Double click BlueMuse_xxx.cer then click "Install Certificate".
 2. Select current user or local machine depending on preference and click "Next".
 3. Select "Place all certificates in the following store".
@@ -116,19 +143,29 @@ Toggle "always pair":
 9. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
 
 10. Finally, double click and install BlueMuse_xxx.appxbundle.
+</details>
+<br>
 
 ### Troubleshooting
   If you run into issues with Developer Mode or PowerShell execution policy during installation, see the [PowerShell
   Installation Guide](BlueMuse_Windows_PowerShell_Install.md) for detailed solutions.
 
 # Versions
-### [Latest - 2.4.0.0](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip)
-* Misc package updates.
-* Support Windows 11.
+### Latest
+* 2.5.0.0 (beta)
+	* Modernized to .NET 10 / WinUI 3, converted to SDK-style project.
+	* Merged the separate "LSL Bridge" Win32 process directly into the main app (single-process architecture,
+	  see [Architecture](#architecture)).
+	* UI refresh: settings moved to a slide-out side panel, improved main list layout.
+	* Added Muse S Athena support (see [Muse S Athena](#muse-s-athena)).
+* 2.4.0.0 (stable)
+	* Misc package updates.
+		* Support Windows 11.
+		* Last release built on UWP before the .NET 10 / WinUI 3 modernization (see 2.5.0.0 above).
 
 #### Older
-*Note: version 2.0.0.0 and older version are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
-* [2.3.0.0](https://github.com/kowalej/BlueMuse/releases/download/v2.3.0.0/BlueMuse_2.3.0.0.zip)
+*Note: version 2.0.0.0 and older versions are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
+* 2.3.0.0
     * AUX supported on Muse 2.
     * Refresh option available via command line.
 * 2.2.0.0
@@ -181,14 +218,13 @@ Toggle "always pair":
 
 
 # Notes
-* **Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).**
+* **Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11.**
 * **Streaming multiple Muses simultaneously -** maintaining consistent data rates for multiple devices may be difficult on some machines, depending on Bluetooth and compute hardware.
-* Application requires side loading a Win32 application which does the LSL streaming. This is because UWP apps run in a restricted environment with network isolation. This restricts LSL streams from being seen across the local network if launched from the  UWP app. To get around this issue, the data is shuffled through to the "LSL Bridge", a Win32 application which can run in a normal environment. Note: when you first start a stream, you may need to add a firewall exception for LSLBridge.exe.
 * Uses both 32-bit and 64-bit LSL binaries (liblsl32.dll / liblsl64.dll), selected automatically at runtime based on process architecture. Acquired from: ftp://sccn.ucsd.edu/pub/software/LSL/SDK/liblsl-All-Languages-1.11.zip
 * liblsl32.dll and liblsl64.dll are dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).
 * The full dependencies of liblsl32.dll are: KERNEL32.dll, WINMM.dll, MSVCP90.dll, WS2_32.dll, MSWSOCK.dll, and MSVCR90.dll. Generated with dumpbin utility.
 
-### Muse S Athena:
+### Muse S Athena
 The Muse S Athena uses a different protocol from every earlier headband, so it is handled as its own model (`MuseSAthena`). Detection is automatic - it is the only Muse exposing GATT characteristic `273e0013-...`, which is probed before the name based Muse S check since Athena also advertises as `MuseS-****`.
 
 Differences worth knowing if you are reading the data:
@@ -202,6 +238,13 @@ Differences worth knowing if you are reading the data:
 * Starting a stream requires an ASCII command handshake (`v6`, `s`, `h`, `p1041`, `s`, then `dc001`, `dc001`, `L1`, `s`) with specific inter-command delays, rather than a single start command.
 
 The protocol code in `BlueMuse.App/Athena` has no Windows dependencies and has a self-check that runs anywhere .NET 8 is available: `cd Tests/BlueMuse.Athena.Tests && dotnet run`.
+
+### Architecture
+BlueMuse previously ran the LSL streaming logic in a separate "LSL Bridge" Win32 process, because UWP apps ran
+in a network-isolated sandbox that prevented LSL streams from being visible on the local network. As of the
+.NET 10 / WinUI 3 modernization, BlueMuse runs as a single unpackaged-network-capable desktop app, and the LSL
+streaming logic (`LSLStreamManager`) now runs in-process - there is no longer a separate bridge executable, and
+no firewall exception is required for a second process.
 
 ### Timestamp Formats:
 
@@ -231,15 +274,8 @@ The protocol code in `BlueMuse.App/Athena` has no Windows dependencies and has a
   3. Make sure Muse is within reasonable range of your computer. Some built in Bluetooth antennas are not very powerful.
   
 ### Logs:
-The main app (BlueMuse) and LSL Bridge both write log files for various events and exceptions. These may help in troubleshooting issues. The files can be found within AppData:
+BlueMuse writes a log file for various events and exceptions, which may help in troubleshooting issues. The file can be found within AppData:
 
-BlueMuse:
+*C:\Users\\{Username}\AppData\Local\Packages\\{PackageFamilyName}\LocalState\Logs\BlueMuse-Log-{Timestamp}.log*
 
-*C:\Users\\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalState\Logs\BlueMuse-Log-{Timestamp}.log*
-
-LSLBridge:
-
-*C:\Users\\{Username}\AppData\Local\Packages\07220b98-ffa5-4000-9f7c-e168a00899a6...\LocalCache\Local\Logs\LSLBridge-Log-{Timestamp}.log*
-
-### If working on VS Solution - missing references in LSLBridge project:
-See https://docs.microsoft.com/en-us/windows/uwp/porting/desktop-to-uwp-enhance
+You can also open the log folder directly from the app via **Settings -> Open Log Folder**.

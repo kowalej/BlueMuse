@@ -1,6 +1,7 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using System;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
 using Windows.System;
 
@@ -36,6 +37,19 @@ namespace BlueMuse
         {
             var folder = await StorageFolder.GetFolderFromPathAsync(ViewModel.BlueMuseLogFolder);
             await Launcher.LaunchFolderAsync(folder);
+        }
+
+        // The streaming info text box's content updates continuously (live rate), which resets any
+        // in-progress text selection - making it hard to select/copy manually. Provide a one-click
+        // way to grab the current, complete text instead.
+        private void CopyStreamsInfo_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.DataContext is MuseManagement.Muse muse)
+            {
+                var package = new DataPackage();
+                package.SetText(muse.ActiveStreamsInfo ?? string.Empty);
+                Clipboard.SetContent(package);
+            }
         }
     }
 }

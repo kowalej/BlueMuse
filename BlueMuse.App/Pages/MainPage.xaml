@@ -127,7 +127,7 @@
         <Grid Grid.Row="0" BorderBrush="DarkSlateGray" BorderThickness="1,1,1,0" Background="#ffd1f1" Margin="10 10 10 0">
                 <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" 
                     ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" 
-                    HorizontalAlignment="Stretch"  VerticalAlignment="Stretch">
+                    HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                     <ListView.Header>
                         <StackPanel Visibility="{x:Bind ViewModel.Muses.Count, Converter={StaticResource VisibleWhenZeroConverter}, Mode=OneWay}" Orientation="Horizontal" Margin="10,10,0,0">
                             <TextBlock Text="{x:Bind ViewModel.SearchText, Mode=OneWay}" />
@@ -135,7 +135,7 @@
                     </ListView.Header>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="MuseDO:Muse">
-                            <StackPanel Orientation="Vertical" Margin="6">
+                            <StackPanel Orientation="Vertical" Margin="6" HorizontalAlignment="Stretch">
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="0,0,12,0" MaxWidth="60" MinWidth="60" HorizontalAlignment="Left" Orientation="Vertical">
                                         <SymbolIcon Symbol="People" Margin="-20 10 0 0" />
@@ -182,15 +182,24 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
-                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 0, 0">
+                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 12, 0" HorizontalAlignment="Stretch">
                                     <Button IsEnabled="{x:Bind CanStream, Mode=OneWay}" Visibility="{x:Bind IsStreaming, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}" Content="Start Streaming"
                                         Command="{Binding ViewModel.StartStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" 
                                             Background="ForestGreen" Style="{StaticResource AccentButtonStyle}" />
                                     <Button Visibility="{x:Bind IsStreaming, Mode=OneWay}" Content="Stop Streaming"
                                         Command="{Binding ViewModel.StopStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}"
                                             Background="Maroon" Style="{StaticResource AccentButtonStyle}" />
-                                    <TextBlock Visibility="{x:Bind IsStreaming, Mode=OneWay}" Text="{x:Bind ActiveStreamsInfo, Mode=OneWay}"
-                                        TextWrapping="Wrap" FontSize="11" FontFamily="Consolas" Margin="0,6,0,0" MaxWidth="260" Foreground="DarkSlateGray" />
+                                    <Grid Visibility="{x:Bind IsStreaming, Mode=OneWay}" Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{x:Bind ActiveStreamsInfo, Mode=OneWay}"
+                                            IsReadOnly="True" TextWrapping="Wrap" FontSize="12" FontFamily="Consolas"
+                                            HorizontalAlignment="Stretch" Background="White" BorderThickness="1" BorderBrush="DarkSlateGray" />
+                                        <Button Grid.Column="1" Content="Copy" ToolTipService.ToolTip="Copy stream info to clipboard (the box above refreshes live, which can interrupt manual text selection)"
+                                            Margin="6,0,0,0" VerticalAlignment="Top" Click="CopyStreamsInfo_Click" />
+                                    </Grid>
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>
