@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using System;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage;
@@ -49,6 +50,18 @@ namespace BlueMuse
                 var package = new DataPackage();
                 package.SetText(muse.ActiveStreamsInfo ?? string.Empty);
                 Clipboard.SetContent(package);
+            }
+        }
+
+        // Allows collapsing the expanded Muse's stream/controls panel via Esc, without needing to
+        // click elsewhere or select another device.
+        private void Page_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.Escape)
+            {
+                ViewModel.ClearSelectedMuse();
+                MuseList.SelectedItem = null;
+                e.Handled = true;
             }
         }
     }

@@ -1,5 +1,5 @@
 # BlueMuse
-* Windows 10 app to stream data from Muse EEG headsets via LSL (Lab Streaming Layer).
+* Windows app to stream data from Muse EEG headsets via LSL (Lab Streaming Layer).
 
 # Features
 * Auto detects Muse headsets and provides a visual interface to manage streams.
@@ -9,10 +9,11 @@
 * Choose between timestamp formats - LSL "local clock" or Unix Epoch.
 * LSL streams in 64-bit or 32-bit.
 * Shows latest timestamp received and the current sample rate for each stream.
+* Protocol control from Command Line / PowerShell.
 
 # Screenshots
-<img src="screenshot-main.PNG" width="400" />
-<img src="screenshot-streaming.PNG" width="400" />
+![Screenshots of BlueMuse Desktop App, Main Page and List Items](./screenshots.png "Screenshots")
+
 
 # Command Line Interface
 **All commands will launch BlueMuse if it isn't already open.**
@@ -53,7 +54,9 @@ Stop streaming all Muses:
 start bluemuse://stop?stopall
 ```
 
-**"startall" and "stopall" are not meant for launch, they are used when BlueMuse is already running.**
+**"startall" can be used at launch (e.g. `start bluemuse://start?startall`) or while BlueMuse is already running -
+it will automatically apply to any Muse discovered/connected after the command is received. "stopall" is intended
+for use only while BlueMuse is already running.**
 
 ### Settings
 Change primary timestamp format: 
@@ -100,7 +103,7 @@ Toggle "always pair":
 > (Microsoft Store vs. sideload) is **still being finalized** - this section will be updated once that is
 > confirmed. In the meantime, sideloading as described below will continue to work.
 
-***Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11.***
+***Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11. Built/targeted against the Windows 11 24H2 SDK (10.0.26100.0).***
 
 ### Sideload Install (Current Method)
 1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases)** and unzip it.
@@ -110,9 +113,9 @@ Toggle "always pair":
 4. If Windows blocks the install because "Developer Mode" or sideloading isn't enabled, turn on
    **Settings -> Update & Security -> For Developers -> Developer Mode** (or **Sideload apps**) and retry.
 
-### Microsoft Store (Planned)
+### Microsoft Store (Possible In Future)
 A Microsoft Store listing is being evaluated for a future release, which would remove the need for manual
-certificate/sideload steps entirely. This section will be updated with a store link once available.
+certificate/sideload steps entirely. This section will be updated if a store link becomes available.
 
 <details>
 <summary><strong>Legacy Install Instructions (2.4.0.0 and earlier, UWP + separate LSL Bridge)</strong></summary>
@@ -148,72 +151,29 @@ you need to install an older version.*
 
 # Versions
 ### Latest
-* 2.5.0.0 (beta)
+* 2.5.0.0 (stable)
 	* Modernized to .NET 10 / WinUI 3, converted to SDK-style project.
 	* Merged the separate "LSL Bridge" Win32 process directly into the main app (single-process architecture,
 	  see [Architecture](#architecture)).
-	* UI refresh: settings moved to a slide-out side panel, improved main list layout.
+	* UI refresh: settings moved to a slide-out side panel, improved main list layout, compact per-stream
+	  info display with latest sample values and a one-click copy button.
+	* Single-instance app: the `bluemuse://` command line interface now redirects into the already-running
+	  instance instead of launching a duplicate window, and `startall` correctly applies to Muses discovered
+	  after the command is sent.
+	* Added Esc key support to collapse/deselect the currently selected Muse in the list.
+	* Fixed intermittent Bluetooth/GATT communication issues (JSON parsing errors, spurious device removal,
+	  and connection churn) via reentrancy guards and per-device GATT serialization.
+	* Window size is now persisted between launches, and the window/taskbar title correctly shows "BlueMuse".
 * 2.4.0.0 (stable)
 	* Misc package updates.
 		* Support Windows 11.
 		* Last release built on UWP before the .NET 10 / WinUI 3 modernization (see 2.5.0.0 above).
 
-#### Older
-*Note: version 2.0.0.0 and older versions are available from the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). New versions (including 2.0.0.0) will be published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
-* 2.3.0.0
-    * AUX supported on Muse 2.
-    * Refresh option available via command line.
-* 2.2.0.0
-    * Bumped Windows platform version up to 10.0.19041.0.
-    * _May have with Bluetooth and stability issues._
-* 2.1.0.0
-    * Detect Muse S as separate device (previously detected as Muse 2).
-    * Muse S - enable PPG.
-    * Handle more exceptions during stream shutdown.
-
-* 2.0.0.0
-    * Stream PPG, accelerometer, gyroscope, and telemetry data.
-    * Muse 2 (and other model) auto detection. Removed "Assume Muse 2" setting.
-    * Battery level indicator in the UI.
-    * Added support for "tech info" which will show some device and control status information from the Muse. This data includes firmware information, serial number, battery info, and more.
-    * Added button to "hard reset" the Muse. *This can sometimes help resolve connectivity issues.*
-    * Cleaned up UI (improved button colours and important text is now bolded).
-    * Added a lot more logging for Bluetooth and other processing errors. This will hopefully lead to remaining issues being resolved in the future.
-    * Utilizing generated UWP package Install.ps1 Powershell install script (instead of calling Add-AppDevPackage directly).
-* 1.1.1.0
-    * **Muse 2 support (experimental) - for now, for this to work you have to go to Settings > Assume Muse 2 > Toggle On. Finally, hit Force Refresh (if your Muse was already in the list, otherwise it should work when your device is first found).** It will assume all you devices with "Muse" in the name are Muse 2's and will set the parameters accordingly. *In the future I hope to have Muse vs Muse 2 differentiation be auto detected*.
-    * Added "always pair" option which may help with some people's Bluetooth issues. It is set as Off by default, you can toggle it On in the settings menu.
-* 1.1.0.0
-    * Choose between 32-bit (float32) or 64-bit (double64) LSL stream data formats.
-* 1.0.9.0 (Note - forces streams to use double64 data format.)
-    * Offering choice of timestamp format(s) (Unix Epoch or LSL local_clock).*
-    * Optionally send secondary timestamp (for comparison to primary timestamp) - sent as additional LSL channel.
-    * Improved UI to include settings menu. Settings menu allows user to choose timestamp formats and displays log file locations.
-    * Should automatically add firewall rules when LSLBridge launches for the first time.
-    
-* 1.0.8.0
-    * Increased timestamp accuracy by using a more precise API on Windows.
-    * Added logging. See Troubleshooting -> Logs section for details.
-    * LSLBridge won't falsely show stream if GATT problems occurred.
-* 1.0.7.0
-    * Added new install script `InstallBlueMuse.ps1`.
-    * Refreshed the install certificate which was about to expire.
-* 1.0.6.0 - stable. 
-    * Changed timestamp format to Unix epoch **seconds** format.
-    * Improved UI - it is now re-sizable and more compact (better for low resolution screens).
-    * Added version number to main screen.
-* 1.0.5.0 - stable. 
-    * Corrected timestamps timezone issue (timestamps were meant to be GMT based, but were actually in EST). Timestamps formatted as Unix epoch **milliseconds**.
-* 1.0.4.0 - stable. 
-    * LSLBridge is auto hidden if no streams active. BlueMuse also polls to keep LSL bridge open if not currently streaming, therefore LSLBridge has proper auto closing mechanism that won't prematurely trigger. This process may seem strange and convoluted but it appears to be the only good method to manage this trusted process with the current Windows UWP API.
-    * Bad timestamps.
-* 1.0.3.0 - unstable. 
-    * Issues with LSLBridge closing.
-    * Bad timestamps.
+See [CHANGELOG.md](./CHANGELOG.md) for the full version history.
 
 
 # Notes
-* **Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11.**
+* **Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11. Built/targeted against the Windows 11 24H2 SDK (10.0.26100.0).**
 * **Streaming multiple Muses simultaneously -** maintaining consistent data rates for multiple devices may be difficult on some machines, depending on Bluetooth and compute hardware.
 * Uses both 32-bit and 64-bit LSL binaries (liblsl32.dll / liblsl64.dll), selected automatically at runtime based on process architecture. Acquired from: ftp://sccn.ucsd.edu/pub/software/LSL/SDK/liblsl-All-Languages-1.11.zip
 * liblsl32.dll and liblsl64.dll are dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).

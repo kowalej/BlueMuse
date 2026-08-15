@@ -129,5 +129,17 @@ namespace BlueMuse.ViewModels
             }
             muse.IsSelected = true;
         }
+
+        // Clears the current selection (e.g. collapses the expanded stream/controls panel for a Muse).
+        public void ClearSelectedMuse()
+        {
+            var selectedMuses = Muses.Where(x => x.IsSelected).ToList();
+            foreach (var muse in selectedMuses)
+            {
+                muse.IsSelected = false;
+            }
+            selectedMuse = null;
+            OnPropertyChanged(nameof(SelectedMuse));
+        }
     }
 }
