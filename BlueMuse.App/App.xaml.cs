@@ -141,7 +141,7 @@ namespace BlueMuse
                 rootFrame.Navigate(typeof(MainPage));
             }
 
-            RestoreWindowSize(window, 500, 820);
+            RestoreWindowSize(window, 560, 720);
             window.Closed += Window_Closed;
 
             window.Activate();
