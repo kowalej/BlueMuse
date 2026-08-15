@@ -116,7 +116,7 @@ containing the `.msix`, the signing `.cer`, a `Dependencies` folder (with the re
 `Microsoft.WindowsAppRuntime.2.msix` per CPU architecture), and PowerShell installer scripts.
 
 #### Auto Install (Recommended)
-1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases](https://github.com/kowalej/BlueMuse/releases/tag/v2.5.0.0)** matching your architecture and unzip it.
+1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases/tag/v2.5.0.0)** matching your architecture and unzip it.
 2. Right-click `InstallBlueMuse.ps1` and choose **Run with PowerShell** (this removes any previously installed
    BlueMuse package first, then runs `Install.ps1`). Alternatively, run `Install.ps1` or `Add-AppDevPackage.ps1`
    directly if you don't need the old version removed automatically.
