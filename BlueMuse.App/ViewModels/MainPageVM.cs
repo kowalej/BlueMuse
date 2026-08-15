@@ -29,7 +29,6 @@ namespace BlueMuse.ViewModels
         public List<BaseTimestampFormat> TimestampFormats2 = TimestampFormatsContainer.TimestampFormats2; // Use copy in case we want view level filtering.
         public List<ChannelDataType> ChannelDataTypes = ChannelDataTypesContainer.ChannelDataTypes; // Use copy in case we want view level filtering.
         public string BlueMuseLogFolder;
-        public string LSLBridgeLogFolder;
 
         public string AppVersion { get {
                 var pv = Package.Current.Id.Version;
@@ -42,7 +41,6 @@ namespace BlueMuse.ViewModels
             AppSettings = AppSettings.Instance;
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
             BlueMuseLogFolder = Path.Combine(localFolder, "Logs");
-            LSLBridgeLogFolder = BlueMuseLogFolder.Replace("LocalState", "LocalCache\\Local\\BlueMuse-LSL");
 
             museManager = BluetoothManager.Instance;
             Muses = museManager.Muses;
@@ -130,6 +128,18 @@ namespace BlueMuse.ViewModels
                 selectedMuse.IsSelected = false;
             }
             muse.IsSelected = true;
+        }
+
+        // Clears the current selection (e.g. collapses the expanded stream/controls panel for a Muse).
+        public void ClearSelectedMuse()
+        {
+            var selectedMuses = Muses.Where(x => x.IsSelected).ToList();
+            foreach (var muse in selectedMuses)
+            {
+                muse.IsSelected = false;
+            }
+            selectedMuse = null;
+            OnPropertyChanged(nameof(SelectedMuse));
         }
     }
 }

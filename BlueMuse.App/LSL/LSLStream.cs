@@ -1,11 +1,11 @@
-﻿using LSL;
-using LSLBridge.Helpers;
+﻿using BlueMuse.LSL;
+using BlueMuse.Helpers;
 using System;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows;
+using System.Reflection;
 
-namespace LSLBridge.LSL
+namespace BlueMuse.LSL
 {
     public class LSLStream : ObservableObject, IDisposable
     {
@@ -14,14 +14,32 @@ namespace LSLBridge.LSL
         private LSLBridgeStreamInfo streamInfo;
         public LSLBridgeStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
 
-        public string StreamDisplayInfo { get { return string.Format("Name: {0} - Nominal Rate: {1} - Channels ({2}): {3}", streamInfo.StreamName, streamInfo.NominalSRate, streamInfo.ChannelCount, string.Join(",", streamInfo.Channels.Select(x => x.Label).ToList())); } }
+        public string StreamDisplayInfo
+        {
+            get
+            {
+                return string.Format(
+                    "{0} ({1} ch) @ {2,3:0} Hz nominal / {3,6:0.00} Hz live" + Environment.NewLine + "  Channels: {4}" + Environment.NewLine + "  Latest Values: {5}" + Environment.NewLine + "  LSL Stream Name: {6}",
+                    streamInfo.StreamType,
+                    streamInfo.ChannelCount,
+                    streamInfo.NominalSRate,
+                    rate,
+                    string.Join(", ", streamInfo.Channels.Select(x => x.Label).ToList()),
+                    latestValues ?? "n/a",
+                    streamInfo.StreamName);
+            }
+        }
 
         private double latestTimestamp;
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }
 
+        // Most recent sample's per-channel values, formatted for display (e.g. "1.23, 4.56, 7.89").
+        private string latestValues;
+        public string LatestValues { get { return latestValues; } set { SetProperty(ref latestValues, value); OnPropertyChanged(nameof(StreamDisplayInfo)); } }
+
         // Live rate update.
         private double rate = 0;
-        public double Rate { get { return rate; } set { SetProperty(ref rate, value); } }
+        public double Rate { get { return rate; } set { SetProperty(ref rate, value); OnPropertyChanged(nameof(StreamDisplayInfo)); } }
 
         private Stopwatch stopWatch;
         int sampleCountSec = 0;
@@ -52,7 +70,7 @@ namespace LSLBridge.LSL
                 throw new InvalidOperationException("Unsupported channel data type.");
             }
 
-            var lslStreamInfo = new liblsl.StreamInfo(streamInfo.StreamName, streamInfo.StreamType, streamInfo.ChannelCount, streamInfo.NominalSRate, channelFormat, Application.ResourceAssembly.GetName().Name);
+            var lslStreamInfo = new liblsl.StreamInfo(streamInfo.StreamName, streamInfo.StreamType, streamInfo.ChannelCount, streamInfo.NominalSRate, channelFormat, Assembly.GetExecutingAssembly().GetName().Name);
             lslStreamInfo.desc().append_child_value("manufacturer", streamInfo.DeviceManufacturer);
             lslStreamInfo.desc().append_child_value("device", streamInfo.DeviceName);
             lslStreamInfo.desc().append_child_value("type", streamInfo.StreamType);
@@ -117,6 +135,7 @@ namespace LSLBridge.LSL
         public void PushChunkLSL(float[,] data, double[] timestamps, double[] timestamps2 = null)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             if (timestamps2 != null) // Append timestamp data to final column.
             {
                 float[,] dataRevised = new float[data.GetLength(0), data.GetLength(1) + 2]; // Add extra 2 columns for timestamp.
@@ -141,6 +160,7 @@ namespace LSLBridge.LSL
         public void PushChunkLSL(double[,] data, double[] timestamps, double[] timestamps2 = null)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             if (timestamps2 != null) // Append timestamp data to final column.
             {
                 double[,] dataRevised = new double[data.GetLength(0), data.GetLength(1) + 1]; // Add extra column for timestamp.
@@ -161,13 +181,52 @@ namespace LSLBridge.LSL
         public void PushChunkLSL(int[,] data, double[] timestamps)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             lslStream.push_chunk(data, timestamps);
         }
-        
+
         public void PushChunkLSL(string[,] data, double[] timestamps)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             lslStream.push_chunk(data, timestamps);
+        }
+
+        // Extracts and formats the last row (most recent sample) of a 2D chunk array for display purposes.
+        private static string FormatLatestValues(float[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col].ToString("0.00");
+            return string.Join(", ", values);
+        }
+
+        private static string FormatLatestValues(double[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col].ToString("0.00");
+            return string.Join(", ", values);
+        }
+
+        private static string FormatLatestValues(int[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col].ToString();
+            return string.Join(", ", values);
+        }
+
+        private static string FormatLatestValues(string[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col];
+            return string.Join(", ", values);
         }
     }
 }

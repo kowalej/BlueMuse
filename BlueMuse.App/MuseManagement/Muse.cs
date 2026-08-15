@@ -1,11 +1,13 @@
-﻿using BlueMuse.AppService;
+﻿using BlueMuse.Bluetooth;
 using BlueMuse.Helpers;
+using BlueMuse.LSL;
 using BlueMuse.Misc;
-using LSLBridge.LSL;
 using Newtonsoft.Json;
 using Serilog;
+using Serilog.Core;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
@@ -15,7 +17,6 @@ using System.Threading.Tasks;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Bluetooth.GenericAttributeProfile;
 using Windows.Foundation;
-using Windows.Foundation.Collections;
 
 namespace BlueMuse.MuseManagement
 {
@@ -58,6 +59,13 @@ namespace BlueMuse.MuseManagement
 
         private volatile bool togglingStream = false;
         private volatile bool resetLocked = false;
+        private volatile bool refreshingDeviceInfoAndControlStatus = false;
+
+        // Serializes all GATT operations against this Muse's BluetoothLEDevice (device info/control status
+        // refresh, stream start/stop, warmup polling from BluetoothManager, reset). Overlapping GATT calls
+        // on the same device from different threads/timers can cause spurious communication errors that
+        // surface as the device rapidly toggling Connected/Disconnected.
+        private readonly SemaphoreSlim gattLock = new SemaphoreSlim(1, 1);
 
         private MuseModel museModel;
         public MuseModel MuseModel { get { return museModel; } set { lock (syncLock) { SetProperty(ref museModel, value); OnPropertyChanged(nameof(MuseModel)); } } }
@@ -141,7 +149,7 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        public bool CanReset { get { return connectionStatus == MuseConnectionStatus.Online && !isStreaming && isSelected; } }
+        public bool CanReset { get { return connectionStatus == MuseConnectionStatus.Online && !isStreaming && isSelected && !resetLocked; } }
 
         public bool CanViewTechInfo
         {
@@ -164,6 +172,15 @@ namespace BlueMuse.MuseManagement
         public string GyroscopeStreamName { get { return $"{LongName} {Constants.GYROSCOPE_STREAM_TYPE}"; } }
         public string PPGStreamName { get { return $"{LongName} {Constants.PPG_STREAM_TYPE}"; } }
         public string TelemetryStreamName { get { return $"{LongName} {Constants.TELEMETRY_STREAM_TYPE}"; } }
+
+        // Aggregated display info for this Muse's currently active LSL streams (name, nominal rate, live rate, channels).
+        public string ActiveStreamsInfo
+        {
+            get
+            {
+                return string.Join(Environment.NewLine + Environment.NewLine, GetOwnLSLStreams().Select(x => x.StreamDisplayInfo));
+            }
+        }
 
         private int batteryLevel = -1;
         public int BatteryLevel { get { return batteryLevel; } set { lock (syncLock) { SetProperty(ref batteryLevel, value); OnPropertyChanged(nameof(BatteryLevel)); OnPropertyChanged(nameof(BatteryLevelOpacity)); } } }
@@ -191,13 +208,15 @@ namespace BlueMuse.MuseManagement
         }
 
         Timer deviceInfoTimer;
+        private readonly LSLStreamManager lslStreamManager;
 
-        public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status)
+        public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status, LSLStreamManager lslStreamManager)
         {
             Device = device;
             Name = name;
             Id = id;
             ConnectionStatus = status;
+            this.lslStreamManager = lslStreamManager;
             DetermineMuseModel();
             deviceInfoTimer = new Timer(RefreshDeviceInfoAndControlStatus, null, 250, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS);
         }
@@ -226,6 +245,12 @@ namespace BlueMuse.MuseManagement
 
             // Cannot determine any further (Muse Original vs Muse 2 until connected).
             if (ConnectionStatus == MuseConnectionStatus.Offline) return;
+
+            // Serialize against other GATT operations on this device (stream toggle, device info refresh,
+            // warmup). This method used to run uncoordinated - it's invoked fire-and-forget from the
+            // ConnectionStatus setter and from ToggleStream, and could race with GATT calls elsewhere,
+            // producing null characteristics and COMException (0x80004004) failures.
+            await gattLock.WaitAsync();
             try
             {
                 streamCharacteristics = await GetGattCharacteristics();
@@ -266,6 +291,10 @@ namespace BlueMuse.MuseManagement
             {
                 Log.Error(ex, $"Exception during determining Muse model. Exception message: {ex.Message}.");
             }
+            finally
+            {
+                gattLock.Release();
+            }
         }
 
         public async Task ToggleStream(bool start)
@@ -277,6 +306,7 @@ namespace BlueMuse.MuseManagement
                 if (start == isStreaming || (start && !CanStream)) return;
                 togglingStream = true;
             }
+            await gattLock.WaitAsync();
             try
             {
                 if (start)
@@ -420,6 +450,7 @@ namespace BlueMuse.MuseManagement
             finally
             {
                 togglingStream = false;
+                gattLock.Release();
             }
         }
 
@@ -449,6 +480,21 @@ namespace BlueMuse.MuseManagement
 
         public async void RefreshDeviceInfoAndControlStatus(object state = null)
         {
+            // Guard against reentrancy: this method can be triggered both by a repeating timer and
+            // by a manual user-initiated refresh. If two invocations overlap, their GATT responses
+            // both get appended into the same shared deviceInfoBuffer/controlStatusBuffer fields,
+            // interleaving/corrupting the JSON from two independent request/response cycles.
+            if (refreshingDeviceInfoAndControlStatus) return;
+            refreshingDeviceInfoAndControlStatus = true;
+
+            // Don't block the timer thread waiting on other GATT work (e.g. an in-progress stream
+            // toggle); just skip this cycle since it will run again on the next timer tick.
+            if (!await gattLock.WaitAsync(0))
+            {
+                refreshingDeviceInfoAndControlStatus = false;
+                return;
+            }
+
             try
             {
                 deviceInfoBuffer = string.Empty;
@@ -508,6 +554,70 @@ namespace BlueMuse.MuseManagement
             {
                 Log.Error(ex, $"Unexpected error while getting device info / control status.");
             }
+            finally
+            {
+                gattLock.Release();
+                refreshingDeviceInfoAndControlStatus = false;
+            }
+        }
+
+        /// <summary>
+        /// Performs a lightweight GATT round-trip (retrieving an arbitrary service) so the OS will
+        /// auto-connect this device if it's currently disconnected. Serialized behind gattLock so it
+        /// cannot collide with an in-progress stream toggle or device info/control status refresh.
+        /// </summary>
+        public async Task WarmupConnectionAsync()
+        {
+            if (Device == null || togglingStream) return;
+            if (!await gattLock.WaitAsync(0)) return;
+            try
+            {
+                await Device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Unexpected error during connection warmup for device ID={Id}.");
+            }
+            finally
+            {
+                gattLock.Release();
+            }
+        }
+
+        // Attempts to find a valid, parseable top-level JSON object within the buffer.
+        // BLE notification reassembly can occasionally interleave, truncate, or duplicate fragments
+        // (e.g. a stray '{' appears mid-object, or an earlier object gets cut off before a later,
+        // complete copy of the same object arrives), so we can't assume the first '{' pairs with
+        // any particular '}'. Instead, we try every '{' as a possible start, and for each, every
+        // subsequent '}' as a possible end, until we find a substring that actually deserializes.
+        private static bool TryExtractFirstValidJson(string buffer, out string json)
+        {
+            json = null;
+            int start = buffer.IndexOf('{');
+            while (start >= 0)
+            {
+                int searchFrom = start;
+                while (true)
+                {
+                    int end = buffer.IndexOf('}', searchFrom);
+                    if (end < 0) break;
+
+                    string candidate = buffer.Substring(start, end - start + 1);
+                    try
+                    {
+                        JsonConvert.DeserializeObject(candidate);
+                        json = candidate;
+                        return true;
+                    }
+                    catch (JsonReaderException)
+                    {
+                        searchFrom = end + 1;
+                    }
+                }
+
+                start = buffer.IndexOf('{', start + 1);
+            }
+            return false;
         }
 
         private void DeviceInfo_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
@@ -531,13 +641,21 @@ namespace BlueMuse.MuseManagement
                     // If our message contains a '{' and ends with '}' we know somewhere, we have complete JSON data that we can use.
                     if (deviceInfoBuffer.Contains("{") && deviceInfoBuffer.LastOrDefault() == '}')
                     {
-                        deviceInfoBuffer = deviceInfoBuffer.Substring(deviceInfoBuffer.LastIndexOf('{'));
                         try
                         {
-                            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(deviceInfoBuffer), Formatting.Indented);
-                            if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
+                            if (TryExtractFirstValidJson(deviceInfoBuffer, out string extractedJson))
+                            {
+                                var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(extractedJson), Formatting.Indented);
+                                if (json != controlStatus) deviceInfoLive = json; // Weird check, but somehow these can collide.
+                            }
+                            else
+                            {
+                                Log.Error($"Could not extract valid JSON while handling device info Bluetooth channel values. Data: {deviceInfoBuffer}");
+                            }
                         }
-                        catch (JsonReaderException) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        catch (JsonReaderException ex) {
+                            Log.Error(ex, $"JSON parsing error while handling device info Bluetooth channel values. Data: {deviceInfoBuffer}");
+                        } // Don't care, probably throws a JSON error since the data is messed up.
                         finally
                         {
                             deviceInfoBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
@@ -573,23 +691,31 @@ namespace BlueMuse.MuseManagement
                     // If our message contains a '{' and ends with '}' we know somewhere, we have complete JSON data that we can use.
                     if (controlStatusBuffer.Contains("{") && controlStatusBuffer.LastOrDefault() == '}')
                     {
-                        controlStatusBuffer = controlStatusBuffer.Substring(controlStatusBuffer.LastIndexOf('{'));
-
-                        // Pull our battery info, we can do this before parsing the JSON.
-                        var batteryPer = Regex.Match(controlStatusBuffer, "\"bp\":\\W*([0-9]+)");
-                        if (batteryPer.Success)
-                        {
-                            if (int.TryParse(batteryPer.Groups[1].Value, out int batteryInt))
-                            {
-                                BatteryLevel = batteryInt;
-                            }
-                        }
                         try
                         {
-                            var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(controlStatusBuffer), Formatting.Indented);
-                            if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
+                            if (TryExtractFirstValidJson(controlStatusBuffer, out string extractedJson))
+                            {
+                                // Pull our battery info, we can do this before parsing the JSON.
+                                var batteryPer = Regex.Match(extractedJson, "\"bp\":\\W*([0-9]+)");
+                                if (batteryPer.Success)
+                                {
+                                    if (int.TryParse(batteryPer.Groups[1].Value, out int batteryInt))
+                                    {
+                                        BatteryLevel = batteryInt;
+                                    }
+                                }
+
+                                var json = JsonConvert.SerializeObject(JsonConvert.DeserializeObject(extractedJson), Formatting.Indented);
+                                if (json != deviceInfo) controlStatusLive = json; // Weird check, but somehow these can collide.
+                            }
+                            else
+                            {
+                                Log.Error($"Could not extract valid JSON while handling control status Bluetooth channel values. Data: {controlStatusBuffer}");
+                            }
                         }
-                        catch (JsonReaderException) { } // Don't care, probably throws a JSON error since the data is messed up.
+                        catch (JsonReaderException ex) {
+                            Log.Error(ex, $"JSON parsing error while handling control status Bluetooth channel values. Data: {controlStatusBuffer}");
+                        } // Don't care, probably throws a JSON error since the data is messed up.
                         finally
                         {
                             controlStatusBuffer = string.Empty; // Clear the buffer as we are starting from fresh.
@@ -621,7 +747,7 @@ namespace BlueMuse.MuseManagement
                     return false;
                 }
 
-                var writeResult = await commandCharacteristic.WriteValueWithResultAsync(WindowsRuntimeBuffer.Create(command, 0, command.Length, command.Length));
+                var writeResult = await commandCharacteristic.WriteValueWithResultAsync(command.AsBuffer());
                 if (writeResult.Status != GattCommunicationStatus.Success)
                 {
                     Log.Error($"Cannot perform command {command} due to unexpected communication error with GATT characteristic (UUID={Constants.MUSE_GATT_COMMAND_UUID}). Status: {writeResult.Status}. Protocol Error {writeResult.ProtocolError}.");
@@ -728,15 +854,39 @@ namespace BlueMuse.MuseManagement
         {
             await LSLOpenStreams();
             IsStreaming = true;
+            foreach (var stream in GetOwnLSLStreams())
+            {
+                stream.PropertyChanged += LSLStream_PropertyChanged;
+            }
+            OnPropertyChanged(nameof(ActiveStreamsInfo));
         }
 
         // Handles LSL stream closing.
         private async void FinishCloseOffStream()
         {
+            foreach (var stream in GetOwnLSLStreams())
+            {
+                stream.PropertyChanged -= LSLStream_PropertyChanged;
+            }
             eegSampleBuffer.Clear();
             ppgSampleBuffer.Clear();
             await LSLCloseStream();
             IsStreaming = false;
+            OnPropertyChanged(nameof(ActiveStreamsInfo));
+        }
+
+        private void LSLStream_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(LSLStream.StreamDisplayInfo))
+            {
+                OnPropertyChanged(nameof(ActiveStreamsInfo));
+            }
+        }
+
+        private IEnumerable<LSLStream> GetOwnLSLStreams()
+        {
+            var streamNames = new[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName, TelemetryStreamName };
+            return BluetoothManager.Instance.LSLStreams.Where(x => streamNames.Contains(x.StreamInfo.StreamName));
         }
 
         private async Task LSLOpenStreams()
@@ -763,7 +913,7 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        private async Task LSLOpenEEG()
+        private Task LSLOpenEEG()
         {
             var channelsInfo = new List<LSLBridgeChannelInfo>();
             foreach (var c in eegChannelLabels)
@@ -791,14 +941,11 @@ namespace BlueMuse.MuseManagement
                 StreamName = EEGStreamName
             };
 
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
-            };
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+            lslStreamManager.OpenStream(streamInfo);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLOpenAccelerometer()
+        private Task LSLOpenAccelerometer()
         {
             var channelsInfo = new List<LSLBridgeChannelInfo>();
             foreach (var c in Constants.MUSE_ACCELEROMETER_CHANNEL_LABELS)
@@ -826,14 +973,11 @@ namespace BlueMuse.MuseManagement
                 StreamName = AccelerometerStreamName
             };
 
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
-            };
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+            lslStreamManager.OpenStream(streamInfo);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLOpenGyroscope()
+        private Task LSLOpenGyroscope()
         {
             var channelsInfo = new List<LSLBridgeChannelInfo>();
             foreach (var c in Constants.MUSE_GYROSCOPE_CHANNEL_LABELS)
@@ -861,14 +1005,11 @@ namespace BlueMuse.MuseManagement
                 StreamName = GyroscopeStreamName
             };
 
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
-            };
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+            lslStreamManager.OpenStream(streamInfo);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLOpenPPG()
+        private Task LSLOpenPPG()
         {
             var channelsInfo = new List<LSLBridgeChannelInfo>();
             foreach (var c in Constants.MUSE_PPG_CHANNEL_LABELS)
@@ -896,14 +1037,11 @@ namespace BlueMuse.MuseManagement
                 StreamName = PPGStreamName
             };
 
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
-            };
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+            lslStreamManager.OpenStream(streamInfo);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLOpenTelemetry()
+        private Task LSLOpenTelemetry()
         {
             var channelsInfo = new List<LSLBridgeChannelInfo>();
             foreach (var c in Constants.MUSE_TELEMETRY_CHANNEL_LABELS)
@@ -931,239 +1069,177 @@ namespace BlueMuse.MuseManagement
                 StreamName = TelemetryStreamName
             };
 
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_INFO, JsonConvert.SerializeObject(streamInfo) }
-            };
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_OPEN_STREAM, message);
+            lslStreamManager.OpenStream(streamInfo);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLCloseStream()
+        private Task LSLCloseStream()
         {
-            // It is safe to just iterate the possible stream names and request that the bridge closes them.
+            // It is safe to just iterate the possible stream names and request each one is closed.
             foreach (var streamName in
                  new string[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName, TelemetryStreamName })
             {
-                ValueSet message = new ValueSet
-                {
-                    { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, streamName }
-                };
-                await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_CLOSE_STREAM, message);
+                lslStreamManager.CloseStream(streamName);
             }
+            return Task.CompletedTask;
         }
 
-        private async Task LSLPushEEGChunk(MuseEEGSamples sample)
+        private Task LSLPushEEGChunk(MuseEEGSamples sample)
         {
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, EEGStreamName }
-            };
-
-            // Can only send 1D array with garbage AppService :S - inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
+            // 2D array shape: [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_EEG_SAMPLE_COUNT * eegChannelCount];
+                double[,] data = new double[Constants.MUSE_EEG_SAMPLE_COUNT, eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
                 {
                     var channelData = sample.ChannelData[eegGattChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_EEG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_EEG_SAMPLE_COUNT) + j] = channelData[j];
+                        data[j, i] = channelData[j];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_EEG_SAMPLE_COUNT * eegChannelCount];
+                float[,] data = new float[Constants.MUSE_EEG_SAMPLE_COUNT, eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
                 {
                     var channelData = sample.ChannelData[eegGattChannelUUIDs[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_EEG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_EEG_SAMPLE_COUNT) + j] = (float)channelData[j];
+                        data[j, i] = (float)channelData[j];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else throw new InvalidOperationException("Can't push LSL EEG chunk - unsupported stream data type. Must use float32 or double64.");
 
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
-
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLPushPPGChunk(MusePPGSamples sample)
+        private Task LSLPushPPGChunk(MusePPGSamples sample)
         {
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, PPGStreamName }
-            };
-
-            // Can only send 1D array with garbage AppService :S - inlined as channel1sample1,channel1sample2,channel1sample3...channel2sample1,channel2sample2...
+            // 2D array shape: [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_PPG_SAMPLE_COUNT * Constants.MUSE_PPG_CHANNEL_COUNT];
+                double[,] data = new double[Constants.MUSE_PPG_SAMPLE_COUNT, Constants.MUSE_PPG_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
                 {
                     var channelData = sample.ChannelData[Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_PPG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_PPG_SAMPLE_COUNT) + j] = channelData[j];
+                        data[j, i] = channelData[j];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_PPG_SAMPLE_COUNT * Constants.MUSE_PPG_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_PPG_SAMPLE_COUNT, Constants.MUSE_PPG_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
                 {
                     var channelData = sample.ChannelData[Constants.MUSE_GATT_PPG_CHANNEL_UUIDS[i]]; // Maintains muse-lsl.py ordering.
                     for (int j = 0; j < Constants.MUSE_PPG_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_PPG_SAMPLE_COUNT) + j] = (float)channelData[j];
+                        data[j, i] = (float)channelData[j];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else throw new InvalidOperationException("Can't push LSL PPG chunk - unsupported stream data type. Must use float32 or double64.");
 
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
-
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLPushAccelerometerChunk(MuseAccelerometerSamples sample)
+        private Task LSLPushAccelerometerChunk(MuseAccelerometerSamples sample)
         {
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, AccelerometerStreamName }
-            };
-
-            // Can only send 1D array with garbage AppService :S - inlined as xsample1,xsample2...zsample1,zsample2...
+            // XYZSamples is already shaped [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT * Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
+                lslStreamManager.SendChunk(AccelerometerStreamName, sample.XYZSamples, sample.Timestamps, sample.Timestamps2);
+            }
+
+            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            {
+                float[,] data = new float[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT) + j] = sample.XYZSamples[j, i];
+                        data[j, i] = (float)sample.XYZSamples[j, i];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
-            }
-
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
-            {
-                float[] data = new float[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT * Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
-                for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
-                {
-                    for (int j = 0; j < Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT; j++)
-                    {
-                        data[(i * Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT) + j] = (float)sample.XYZSamples[j, i];
-                    }
-                }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(AccelerometerStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else throw new InvalidOperationException("Can't push LSL Accelerometer chunk - unsupported stream data type. Must use float32 or double64.");
 
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
-
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLPushGyroscopeChunk(MuseGyroscopeSamples sample)
+        private Task LSLPushGyroscopeChunk(MuseGyroscopeSamples sample)
         {
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, GyroscopeStreamName }
-            };
-
-            // Can only send 1D array with garbage AppService :S - inlined as xsample1,xsample2...zsample1,zsample2...
+            // XYZSamples is already shaped [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
-                for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
-                {
-                    for (int j = 0; j < Constants.MUSE_GYROSCOPE_SAMPLE_COUNT; j++)
-                    {
-                        data[(i * Constants.MUSE_GYROSCOPE_SAMPLE_COUNT) + j] = sample.XYZSamples[j, i];
-                    }
-                }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(GyroscopeStreamName, sample.XYZSamples, sample.Timestamps, sample.Timestamps2);
             }
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT * Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_GYROSCOPE_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_GYROSCOPE_SAMPLE_COUNT) + j] = (float)sample.XYZSamples[j, i];
+                        data[j, i] = (float)sample.XYZSamples[j, i];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(GyroscopeStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else throw new InvalidOperationException("Can't push LSL Accelerometer chunk - unsupported stream data type. Must use float32 or double64.");
 
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
-
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+            return Task.CompletedTask;
         }
 
-        private async Task LSLPushTelemetryChunk(MuseTelemetrySamples sample)
+        private Task LSLPushTelemetryChunk(MuseTelemetrySamples sample)
         {
-            ValueSet message = new ValueSet
-            {
-                { LSLBridge.Constants.LSL_MESSAGE_STREAM_NAME, TelemetryStreamName }
-            };
-
-            // Can only send 1D array with garbage AppService :S - inlined as batterysample1,batterysample2...temperaturesample1,temperaturesample2...
+            // 2D array shape: [sampleIndex, channelIndex]. Telemetry samples are constant across the chunk per channel.
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
             {
-                double[] data = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT * Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+                double[,] data = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_TELEMETRY_SAMPLE_COUNT) + j] = sample.TelemetryData[i];
+                        data[j, i] = sample.TelemetryData[i];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
             {
-                float[] data = new float[Constants.MUSE_TELEMETRY_SAMPLE_COUNT * Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
+                float[,] data = new float[Constants.MUSE_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
                 {
                     for (int j = 0; j < Constants.MUSE_TELEMETRY_SAMPLE_COUNT; j++)
                     {
-                        data[(i * Constants.MUSE_TELEMETRY_SAMPLE_COUNT) + j] = (float)sample.TelemetryData[i];
+                        data[j, i] = (float)sample.TelemetryData[i];
                     }
                 }
-                message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_DATA, data);
+                lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sample.Timestamps2);
             }
 
             else throw new InvalidOperationException("Can't push LSL Telemetry chunk - unsupported stream data type. Must use float32 or double64.");
 
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS, sample.Timestamps);
-            message.Add(LSLBridge.Constants.LSL_MESSAGE_CHUNK_TIMESTAMPS2, sample.Timestamps2);
-
-            await AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_SEND_CHUNK, message);
+            return Task.CompletedTask;
         }
 
         private async void EEGChannel_ValueChanged(GattCharacteristic sender, GattValueChangedEventArgs args)
@@ -1212,11 +1288,18 @@ namespace BlueMuse.MuseManagement
                             eegSampleBuffer.Remove(museTimestamp);
                     }
 
-                    // Cleanup broken samples.
-                    var flushSamples = eegSampleBuffer.Where(x =>
-                        (DateTimeOffset.UtcNow - x.Value.CreatedAt).TotalMilliseconds > Constants.MUSE_EEG_FLUSH_THRESHOLD_MILLIS)
-                            .OrderBy(x => x.Value.BaseTimestamp);
-                    foreach (var sample in flushSamples)
+                    // Cleanup broken samples - snapshot under lock to avoid race conditions.
+                    List<KeyValuePair<ushort, MuseEEGSamples>> toFlush;
+                    lock (eegSampleBuffer)
+                    {
+                        toFlush = eegSampleBuffer.Where(x =>
+                            (DateTimeOffset.UtcNow - x.Value.CreatedAt).TotalMilliseconds > Constants.MUSE_EEG_FLUSH_THRESHOLD_MILLIS)
+                                .OrderBy(x => x.Value.BaseTimestamp)
+                                .ToList();
+                        foreach (var kv in toFlush)
+                            eegSampleBuffer.Remove(kv.Key);
+                    }
+                    foreach (var sample in toFlush)
                     {
                         var channelData = sample.Value.ChannelData;
                         if (channelData.Count != eegChannelCount)
@@ -1228,8 +1311,6 @@ namespace BlueMuse.MuseManagement
                             }
                         }
                         await LSLPushEEGChunk(sample.Value);
-                        lock (eegSampleBuffer)
-                            eegSampleBuffer.Remove(sample.Key);
                     }
                 }
                 catch (Exception ex)

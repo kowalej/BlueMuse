@@ -1,21 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29411.108
+# Visual Studio Version 18
+VisualStudioVersion = 18.8.12023.21 stable
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlueMuse.App", "BlueMuse.App\BlueMuse.App.csproj", "{98546C95-E24E-436C-96F6-EEEEAF605029}"
-	ProjectSection(ProjectDependencies) = postProject
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB} = {6C526F27-76CB-4890-8D24-C1164EFA1FFB}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LSLBridge", "LSLBridge\LSLBridge.csproj", "{6C526F27-76CB-4890-8D24-C1164EFA1FFB}"
-EndProject
-Project("{C7167F0D-BC9F-4E6E-AFE1-012C56B48DB5}") = "BlueMuse", "BlueMuse\BlueMuse.wapproj", "{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FDB35546-5204-49A0-B249-F823FD548333} = {FDB35546-5204-49A0-B249-F823FD548333}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NativeHelpers", "NativeHelpers\NativeHelpers.vcxproj", "{FDB35546-5204-49A0-B249-F823FD548333}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +19,7 @@ Global
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Debug|ARM.Build.0 = Debug|ARM
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Debug|x64.ActiveCfg = Debug|x64
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Debug|x64.Build.0 = Debug|x64
+		{98546C95-E24E-436C-96F6-EEEEAF605029}.Debug|x64.Deploy.0 = Debug|x64
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Debug|x86.ActiveCfg = Debug|x86
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Debug|x86.Build.0 = Debug|x86
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Release|ARM.ActiveCfg = Release|ARM
@@ -39,48 +28,6 @@ Global
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Release|x64.Build.0 = Release|x64
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Release|x86.ActiveCfg = Release|x86
 		{98546C95-E24E-436C-96F6-EEEEAF605029}.Release|x86.Build.0 = Release|x86
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Debug|ARM.Build.0 = Debug|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Debug|x64.Build.0 = Debug|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Debug|x86.Build.0 = Debug|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Release|ARM.ActiveCfg = Release|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Release|ARM.Build.0 = Release|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Release|x64.ActiveCfg = Release|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Release|x64.Build.0 = Release|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Release|x86.ActiveCfg = Release|Any CPU
-		{6C526F27-76CB-4890-8D24-C1164EFA1FFB}.Release|x86.Build.0 = Release|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|ARM.ActiveCfg = Debug|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|ARM.Build.0 = Debug|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|ARM.Deploy.0 = Debug|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|x64.ActiveCfg = Debug|x64
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|x64.Build.0 = Debug|x64
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|x64.Deploy.0 = Debug|x64
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|x86.ActiveCfg = Debug|x86
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|x86.Build.0 = Debug|x86
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Debug|x86.Deploy.0 = Debug|x86
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|ARM.ActiveCfg = Release|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|ARM.Build.0 = Release|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|ARM.Deploy.0 = Release|Any CPU
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|x64.ActiveCfg = Release|x64
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|x64.Build.0 = Release|x64
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|x64.Deploy.0 = Release|x64
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|x86.ActiveCfg = Release|x86
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|x86.Build.0 = Release|x86
-		{BB897D7B-D7E2-4C91-9CC3-8B4BDF1C4F44}.Release|x86.Deploy.0 = Release|x86
-		{FDB35546-5204-49A0-B249-F823FD548333}.Debug|ARM.ActiveCfg = Debug|ARM
-		{FDB35546-5204-49A0-B249-F823FD548333}.Debug|ARM.Build.0 = Debug|ARM
-		{FDB35546-5204-49A0-B249-F823FD548333}.Debug|x64.ActiveCfg = Debug|x64
-		{FDB35546-5204-49A0-B249-F823FD548333}.Debug|x64.Build.0 = Debug|x64
-		{FDB35546-5204-49A0-B249-F823FD548333}.Debug|x86.ActiveCfg = Debug|Win32
-		{FDB35546-5204-49A0-B249-F823FD548333}.Debug|x86.Build.0 = Debug|Win32
-		{FDB35546-5204-49A0-B249-F823FD548333}.Release|ARM.ActiveCfg = Release|ARM
-		{FDB35546-5204-49A0-B249-F823FD548333}.Release|ARM.Build.0 = Release|ARM
-		{FDB35546-5204-49A0-B249-F823FD548333}.Release|x64.ActiveCfg = Release|x64
-		{FDB35546-5204-49A0-B249-F823FD548333}.Release|x64.Build.0 = Release|x64
-		{FDB35546-5204-49A0-B249-F823FD548333}.Release|x86.ActiveCfg = Release|Win32
-		{FDB35546-5204-49A0-B249-F823FD548333}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

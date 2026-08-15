@@ -9,7 +9,8 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:Windows10FallCreatorsUpdate="http://schemas.microsoft.com/winfx/2006/xaml/presentation?IsApiContractPresent(Windows.Foundation.UniversalApiContract, 5)"
-    mc:Ignorable="d">
+    mc:Ignorable="d"
+    KeyDown="Page_KeyDown">
 
     <Page.Resources>
         <h:GenericStringFormatter x:Key="GenericStringFormatter" />
@@ -19,116 +20,115 @@
     </Page.Resources>
 
     <Page.TopAppBar>
-        <CommandBar Name="CommandBar" ClosedDisplayMode="Compact" Foreground="White" Background="#a63d87" Padding="10 0 10 0">
+        <CommandBar Name="CommandBar" ClosedDisplayMode="Compact" OverflowButtonVisibility="Collapsed" Foreground="White" Background="#a63d87" Padding="10 0 10 0">
             <CommandBar.Content>
-                <TextBlock Padding="8 8 5 5" HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White" Text="Muses Available" VerticalAlignment="Top" FontSize="24" FontWeight="SemiBold" IsColorFontEnabled="True" />
+                <TextBlock Padding="8 8 5 5" HorizontalAlignment="Left" TextWrapping="Wrap" Foreground="White"
+                    Text="{x:Bind ViewModel.Muses.Count, ConverterParameter='Muses Available: \{0\}', Converter={StaticResource GenericStringFormatter}, Mode=OneWay}"
+                    VerticalAlignment="Top" FontSize="24" FontWeight="SemiBold" IsColorFontEnabled="True" />
             </CommandBar.Content>
             <CommandBar.PrimaryCommands>
                 <AppBarButton Foreground="White" Name="ForceRefresh" Icon="Refresh" Label="Force Refresh" Command="{x:Bind ViewModel.ForceRefresh}" />
-                <AppBarButton AllowFocusOnInteraction="True" Click="BlueMuseSettings_Click" Foreground="White" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings">
-                    <AppBarButton.Flyout>
-                        <Flyout x:Name="SettingsFlyout" Placement="Full">
-                            <StackPanel Margin="8">
-                                <StackPanel Margin="8 0 8 12">
-                                    <StackPanel>
-                                        <TextBlock FontWeight="Bold" Text="Primary Timestamp Format" Margin="0,0,0,0" />
-                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Main LSL Stream Timestamp" Margin="0,4,0,12" />
-                                        <ComboBox Background="White" Width="350"
-                                            ItemsSource="{x:Bind ViewModel.TimestampFormats, Mode=TwoWay}"
-                                            SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat, Mode=TwoWay}"
-                                            HorizontalAlignment="Left" VerticalAlignment="Top">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
-                                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                        <TextBlock FontWeight="Bold" Text="Secondary Timestamp Format (Optional)" Margin="0,12,0,0" />
-                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as Data in Extra LSL Channel(s)" Margin="0,4,0,12" />
-                                        <ComboBox Background="White" Width="350"
-                                            ItemsSource="{x:Bind ViewModel.TimestampFormats2, Mode=OneWay}"
-                                            SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat2, Mode=TwoWay}"  
-                                            HorizontalAlignment="Left" VerticalAlignment="Top">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
-                                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                    </StackPanel>
-
-                                    <StackPanel Margin="0 24 0 0">
-                                        <TextBlock FontWeight="Bold" Text="LSL Channel Data Type" Margin="0,0,0,0" />
-                                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Single Precision Recommended for LSL Compatibility" Margin="0,4,0,12" />
-                                        <ComboBox Background="White" Width="350"
-                                            ItemsSource="{x:Bind ViewModel.ChannelDataTypes, Mode=OneWay}"
-                                            SelectedItem="{x:Bind ViewModel.AppSettings.ChannelDataType, Mode=TwoWay}"  
-                                            HorizontalAlignment="Left" VerticalAlignment="Top">
-                                            <ComboBox.ItemTemplate>
-                                                <DataTemplate x:DataType="MiscDO:ChannelDataType">
-                                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
-                                                </DataTemplate>
-                                            </ComboBox.ItemTemplate>
-                                        </ComboBox>
-                                    </StackPanel>
-
-                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
-                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="EEG Enabled?" VerticalAlignment="Center" />
-                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsEEGEnabled, Mode=TwoWay}" />
-                                        </StackPanel>
-                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="Accelerometer Enabled?" VerticalAlignment="Center" />
-                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsAccelerometerEnabled, Mode=TwoWay}" />
-                                        </StackPanel>
-                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="Gyroscope Enabled?" VerticalAlignment="Center" />
-                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsGyroscopeEnabled, Mode=TwoWay}" />
-                                        </StackPanel>
-                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="PPG Enabled?" VerticalAlignment="Center" />
-                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsPPGEnabled, Mode=TwoWay}" />
-                                        </StackPanel>
-                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="Telemetry Enabled?" VerticalAlignment="Center" />
-                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsTelemetryEnabled, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </StackPanel>
-
-                                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
-                                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
-                                            <TextBlock FontWeight="Bold" Text="Always Pair Device (Experimental)?" VerticalAlignment="Center" />
-                                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" />
-                                        </StackPanel>
-                                    </StackPanel>
-
-                                    <StackPanel Margin="0 24 0 0">
-                                        <TextBlock FontWeight="Bold" Text="Log File Locations (For Reference)" Margin="0,0,0,8" />
-
-                                        <TextBlock Text="BlueMuse"></TextBlock>
-                                        <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.BlueMuseLogFolder, Mode=OneTime}" />
-
-                                        <TextBlock Text="LSLBridge" Margin="0 8 0 0"></TextBlock>
-                                        <TextBox Background="White" HorizontalAlignment="Left" Width="350" IsReadOnly="True" Text="{x:Bind ViewModel.LSLBridgeLogFolder, Mode=OneTime}" />
-                                    </StackPanel>
-
-                                    <Button VerticalAlignment="Bottom" Margin="0 24 30 0" FontSize="18" Background="LightBlue" HorizontalAlignment="Right" Content="Done" Click="SettingsDone_Click"></Button>
-                                </StackPanel>
-                            </StackPanel>
-                        </Flyout>
-                    </AppBarButton.Flyout>
-                </AppBarButton>
+                <AppBarButton Foreground="White" Click="BlueMuseSettings_Click" Name="BlueMuseSettings" Icon="Setting" Label="BlueMuse Settings" />
                 <AppBarSeparator Foreground="White" />
             </CommandBar.PrimaryCommands>
         </CommandBar>
     </Page.TopAppBar>
 
-    <ScrollViewer>
-        <StackPanel Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Width="auto" Padding="10 0 10 10">
-            <StackPanel BorderBrush="DarkSlateGray" BorderThickness="1" Background="#ffd1f1" MinHeight="460">
+    <SplitView x:Name="SettingsSplitView" PanePlacement="Right" DisplayMode="Overlay" OpenPaneLength="420">
+        <SplitView.Pane>
+            <ScrollViewer Padding="0 0 16 0" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" VerticalScrollBarVisibility="Auto" VerticalScrollMode="Enabled">
+                <StackPanel Margin="16">
+                    <StackPanel>
+                        <TextBlock FontWeight="Bold" Text="Primary Timestamp Format" Margin="0,0,0,0" />
+                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Main LSL Stream Timestamp" Margin="0,4,0,12" />
+                        <ComboBox Background="White" Width="350"
+                            ItemsSource="{x:Bind ViewModel.TimestampFormats, Mode=TwoWay}"
+                            SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat, Mode=TwoWay}"
+                            HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
+                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock FontWeight="Bold" Text="Secondary Timestamp Format (Optional)" Margin="0,12,0,0" />
+                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Sent as Data in Extra LSL Channel(s)" Margin="0,4,0,12" />
+                        <ComboBox Background="White" Width="350"
+                            ItemsSource="{x:Bind ViewModel.TimestampFormats2, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.AppSettings.TimestampFormat2, Mode=TwoWay}"  
+                            HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="MiscDO:BaseTimestampFormat">
+                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Margin="0 24 0 0">
+                        <TextBlock FontWeight="Bold" Text="LSL Channel Data Type" Margin="0,0,0,0" />
+                        <TextBlock FontSize="12" FontWeight="SemiBold" Text="- Single Precision Recommended for LSL Compatibility" Margin="0,4,0,12" />
+                        <ComboBox Background="White" Width="350"
+                            ItemsSource="{x:Bind ViewModel.ChannelDataTypes, Mode=OneWay}"
+                            SelectedItem="{x:Bind ViewModel.AppSettings.ChannelDataType, Mode=TwoWay}"  
+                            HorizontalAlignment="Left" VerticalAlignment="Top">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate x:DataType="MiscDO:ChannelDataType">
+                                    <TextBlock Text="{x:Bind DisplayName, Mode=OneWay}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                    </StackPanel>
+
+                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
+                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <TextBlock FontWeight="Bold" Text="EEG Enabled?" VerticalAlignment="Center" />
+                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsEEGEnabled, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <TextBlock FontWeight="Bold" Text="Accelerometer Enabled?" VerticalAlignment="Center" />
+                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsAccelerometerEnabled, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <TextBlock FontWeight="Bold" Text="Gyroscope Enabled?" VerticalAlignment="Center" />
+                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsGyroscopeEnabled, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <TextBlock FontWeight="Bold" Text="PPG Enabled?" VerticalAlignment="Center" />
+                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsPPGEnabled, Mode=TwoWay}" />
+                        </StackPanel>
+                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <TextBlock FontWeight="Bold" Text="Telemetry Enabled?" VerticalAlignment="Center" />
+                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.IsTelemetryEnabled, Mode=TwoWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Windows10FallCreatorsUpdate:Spacing="8" Margin="0 24 0 0">
+                        <StackPanel Windows10FallCreatorsUpdate:Spacing="10" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+                            <TextBlock FontWeight="Bold" Text="Always Pair Device (Experimental)?" VerticalAlignment="Center" />
+                            <CheckBox IsChecked="{x:Bind ViewModel.AppSettings.AlwaysPair, Mode=TwoWay}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <StackPanel Margin="0 24 0 0">
+                        <TextBlock FontWeight="Bold" Text="Log Files" Margin="0,0,0,8" />
+                        <Button Content="Open Log Folder" HorizontalAlignment="Left" Click="OpenLogFolder_Click" />
+                    </StackPanel>
+
+                    <Button VerticalAlignment="Bottom" Margin="0 24 30 0" FontSize="18" Background="LightBlue" HorizontalAlignment="Right" Content="Done" Click="SettingsDone_Click"></Button>
+                </StackPanel>
+            </ScrollViewer>
+        </SplitView.Pane>
+        <SplitView.Content>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" BorderBrush="DarkSlateGray" BorderThickness="1,1,1,0" Background="#ffd1f1" Margin="10 10 10 0">
                 <ListView x:Name="MuseList" SelectedItem="{x:Bind ViewModel.SelectedMuse, Mode=TwoWay}" 
                     ItemsSource="{x:Bind ViewModel.Muses, Mode=OneWay}" 
-                    HorizontalAlignment="Stretch"  VerticalAlignment="Top">
+                    HorizontalAlignment="Stretch"  VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch">
                     <ListView.Header>
                         <StackPanel Visibility="{x:Bind ViewModel.Muses.Count, Converter={StaticResource VisibleWhenZeroConverter}, Mode=OneWay}" Orientation="Horizontal" Margin="10,10,0,0">
                             <TextBlock Text="{x:Bind ViewModel.SearchText, Mode=OneWay}" />
@@ -136,7 +136,7 @@
                     </ListView.Header>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="MuseDO:Muse">
-                            <StackPanel Orientation="Vertical" Margin="6">
+                            <StackPanel Orientation="Vertical" Margin="6" HorizontalAlignment="Stretch">
                                 <StackPanel Orientation="Horizontal">
                                     <StackPanel Margin="0,0,12,0" MaxWidth="60" MinWidth="60" HorizontalAlignment="Left" Orientation="Vertical">
                                         <SymbolIcon Symbol="People" Margin="-20 10 0 0" />
@@ -183,20 +183,31 @@
                                         </StackPanel>
                                     </StackPanel>
                                 </StackPanel>
-                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 0, 0">
+                                <StackPanel Visibility="{x:Bind IsSelected, Mode=OneWay}" Margin="75, 4, 12, 0" HorizontalAlignment="Stretch">
                                     <Button IsEnabled="{x:Bind CanStream, Mode=OneWay}" Visibility="{x:Bind IsStreaming, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}" Content="Start Streaming"
                                         Command="{Binding ViewModel.StartStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}" 
                                             Background="ForestGreen" Style="{StaticResource AccentButtonStyle}" />
                                     <Button Visibility="{x:Bind IsStreaming, Mode=OneWay}" Content="Stop Streaming"
                                         Command="{Binding ViewModel.StopStreaming, ElementName=PageRoot}" CommandParameter="{x:Bind Id}"
                                             Background="Maroon" Style="{StaticResource AccentButtonStyle}" />
+                                    <Grid Visibility="{x:Bind IsStreaming, Mode=OneWay}" Margin="0,6,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox Grid.Column="0" Text="{x:Bind ActiveStreamsInfo, Mode=OneWay}"
+                                            IsReadOnly="True" TextWrapping="Wrap" FontSize="12" FontFamily="Consolas"
+                                            HorizontalAlignment="Stretch" Background="White" BorderThickness="1" BorderBrush="DarkSlateGray" />
+                                        <Button Grid.Column="1" Content="Copy" ToolTipService.ToolTip="Copy stream info to clipboard (the box above refreshes live, which can interrupt manual text selection)"
+                                            Margin="6,0,0,0" VerticalAlignment="Top" Click="CopyStreamsInfo_Click" />
+                                    </Grid>
                                 </StackPanel>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            </StackPanel>
-            <Frame Background="WhiteSmoke" Margin="0, 0, 0, 0" FontSize="13" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
+        </Grid>
+            <Frame Grid.Row="1" Background="WhiteSmoke" Margin="10, 0, 10, 10" FontSize="13" BorderBrush="DarkSlateGray" BorderThickness="1,0,1,1">
                 <TextBlock TextWrapping="Wrap" Padding="10">
                     <Run FontWeight="Bold" Text="Connection Tips: " /><Run Text="Your Muse should be powered on and unpaired from other devices. It will show incremental flashing lights when it's ready to pair followed by solid lights once connected." FontFamily="Segoe UI" />
                     <Run FontWeight="SemiBold" Text="Note: " /><Run Text="You may need to remove the device from your PC's Bluetooth device list or press 'Reset Muse' to eliminate connectivity issues." />
@@ -204,6 +215,7 @@
                     <Run FontSize="10" FontWeight="SemiBold" FontStyle="Italic" Text="{Binding ViewModel.AppVersion, ElementName=PageRoot, Mode=OneTime}" />
                 </TextBlock>
             </Frame>
-        </StackPanel>
-    </ScrollViewer>
+    </Grid>
+        </SplitView.Content>
+    </SplitView>
 </Page>

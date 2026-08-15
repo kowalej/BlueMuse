@@ -1,4 +1,5 @@
-﻿using BlueMuse.Helpers;
+﻿using BlueMuse.LSL;
+using BlueMuse.Helpers;
 using BlueMuse.MuseManagement;
 using Serilog;
 using System;
@@ -7,7 +8,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel;
 using Windows.Devices.Bluetooth;
 using Windows.Devices.Enumeration;
 
@@ -20,11 +20,20 @@ namespace BlueMuse.Bluetooth
         private DeviceWatcher museDeviceWatcher;
         public HashSet<string> MusesToAutoStream = new HashSet<string>();
         public bool StreamFirst = false;
+
+        // When set, every Muse that comes online (now or discovered later) should be auto-streamed.
+        // This is needed because "startall" can be sent before any devices have been discovered by
+        // the DeviceWatcher (e.g. at app launch), so we can't rely on only streaming what's already
+        // in the Muses collection at the moment the command is received.
+        public bool AutoStreamAll = false;
         private bool museDeviceWatcherReset = false;
-        private volatile bool LSLBridgeLaunched = false;
         private static readonly object syncLock = new object();
         Timer pollMuseTimer;
-        Timer pollBridge;
+
+        public ObservableCollection<LSLStream> LSLStreams { get; } = new ObservableCollection<LSLStream>();
+        public LSLStreamManager LSLStreamManager { get; }
+        private int lslStreamCount;
+        public int LSLStreamCount { get { return lslStreamCount; } private set { lslStreamCount = value; } }
 
         private static volatile BluetoothManager instance;
         public static BluetoothManager Instance
@@ -45,20 +54,14 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
-            pollBridge = new Timer(PollBridge, null, 0, 1000);
-        }
-
-        public async void PollBridge(object state)
-        {
-            if(LSLBridgeLaunched)
-                await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_KEEP_ACTIVE, new Windows.Foundation.Collections.ValueSet());
+            LSLStreamManager = new LSLStreamManager(LSLStreams, count => LSLStreamCount = count);
         }
 
         public async void Close()
         {
             await StopStreamingAll();
-            await DeactivateLSLBridge();
-            await Task.Delay(2000); // This delay ensures LSL bridge gets shutdown in time.
+            LSLStreamManager.CloseAllStreams();
+            await Task.Delay(200);
         }
 
         public void FindMuses()
@@ -70,7 +73,7 @@ namespace BlueMuse.Bluetooth
             // Added, Updated and Removed are required to get all nearby devices
             museDeviceWatcher.Added += DeviceWatcher_Added;
             museDeviceWatcher.Updated += DeviceWatcher_Updated;
-            //museDeviceWatcher.Removed += DeviceWatcher_Removed; // Omitted - removing from list causes issues.
+            museDeviceWatcher.Removed += DeviceWatcher_Removed;
 
             // EnumerationCompleted and Stopped are optional to implement.
             museDeviceWatcher.EnumerationCompleted += MuseDeviceWatcher_EnumerationCompleted;
@@ -133,7 +136,7 @@ namespace BlueMuse.Bluetooth
                     if (muse == null || (muse != null && !muse.IsStreaming))
                     {
                         var di = await DeviceInformation.CreateFromIdAsync(args.Id);
-                        
+
                         // Always re-pair device via BlueMuse if AlwaysPair is "on".
                         if (AlwaysPair && di.Pairing != null && di.Pairing.IsPaired && di.Pairing.CanPair)
                         {
@@ -146,7 +149,13 @@ namespace BlueMuse.Bluetooth
                     }
 
                     // Retreive an arbitrary service. This will allow the device to auto connect.
-                    await device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+                    // Skip this if we already know about this Muse and it's actively streaming or already
+                    // connected - an extra GATT round-trip here can collide with in-progress GATT operations
+                    // (stream toggling, device info refresh) on the same device and cause spurious disconnects.
+                    if (muse == null || (!muse.IsStreaming && device.ConnectionStatus != BluetoothConnectionStatus.Connected))
+                    {
+                        await device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+                    }
 
                     lock (Muses)
                     {
@@ -159,7 +168,7 @@ namespace BlueMuse.Bluetooth
                         }
                         else
                         {
-                            muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline);
+                            muse = new Muse(device, device.Name, device.DeviceId, device.ConnectionStatus == BluetoothConnectionStatus.Connected ? MuseConnectionStatus.Online : MuseConnectionStatus.Offline, LSLStreamManager);
                             Muses.Add(muse);
                         }
                         ResolveAutoStream(muse);
@@ -176,9 +185,35 @@ namespace BlueMuse.Bluetooth
             }
         }
 
+        private void DeviceWatcher_Removed(DeviceWatcher sender, DeviceInformationUpdate args)
+        {
+            lock (Muses)
+            {
+                var muse = Muses.FirstOrDefault(x => x.Id == args.Id);
+                // AQS can raise a Removed event for a device that's still actually connected (e.g. transient
+                // enumeration churn). Only drop it from the list if it's truly not streaming AND not connected,
+                // otherwise we cause the device to visibly disappear from the UI while still functional.
+                if (muse != null && !muse.IsStreaming &&
+                    (muse.Device == null || muse.Device.ConnectionStatus != BluetoothConnectionStatus.Connected))
+                {
+                    if (muse.Device != null)
+                    {
+                        muse.Device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
+                    }
+                    Muses.Remove(muse);
+                }
+            }
+        }
+
         public void ResolveAutoStreamAll()
         {
-            foreach(var muse in Muses)
+            Muse[] muses;
+            lock (Muses)
+            {
+                muses = Muses.ToArray();
+            }
+
+            foreach (var muse in muses)
             {
                 if (muse.ConnectionStatus == MuseConnectionStatus.Online)
                     ResolveAutoStream(muse);
@@ -194,11 +229,15 @@ namespace BlueMuse.Bluetooth
                     StreamFirst = false;
                     StartStreaming(muse.Id);
                 }
+                else if (AutoStreamAll)
+                {
+                    if (!muse.IsStreaming) StartStreaming(muse.Id);
+                }
                 else
                 {
                     string find = MusesToAutoStream.FirstOrDefault(x => x == muse.MacAddress || x == muse.Name);
                     if(!string.IsNullOrEmpty(find)) {
-                        MusesToAutoStream.Remove(muse.MacAddress);
+                        MusesToAutoStream.Remove(find);
                         StartStreaming(muse.Id);
                     }
                 }
@@ -220,7 +259,7 @@ namespace BlueMuse.Bluetooth
 
         private void MuseDeviceWatcher_EnumerationCompleted(DeviceWatcher sender, object args)
         {
-            pollMuseTimer = new Timer(PollMuses, new AutoResetEvent(false), 0, 5); // Poll every 5 seconds to allow Muses to auto-reconnect if they went offline.
+            pollMuseTimer = new Timer(PollMuses, new AutoResetEvent(false), 0, 5000); // Poll every 5 seconds to allow Muses to auto-reconnect if they went offline.
         }
 
         private void DeviceWatcher_Stopped(DeviceWatcher sender, object args)
@@ -244,33 +283,11 @@ namespace BlueMuse.Bluetooth
             }
         }
 
-        public async Task ActivateLSLBridge()
-        {
-            lock (syncLock)
-            {
-                if (LSLBridgeLaunched)
-                    return;
-                LSLBridgeLaunched = true;
-            }
-            await FullTrustProcessLauncher.LaunchFullTrustProcessForCurrentAppAsync();
-        }
-
-        public async Task DeactivateLSLBridge()
-        {
-            if (LSLBridgeLaunched && Muses.Where(x => x.IsStreaming).Count() < 1)
-            {
-                await AppService.AppServiceManager.SendMessageAsync(LSLBridge.Constants.LSL_MESSAGE_TYPE_CLOSE_BRIDGE, new Windows.Foundation.Collections.ValueSet());
-                lock (syncLock)
-                    LSLBridgeLaunched = false;
-            }
-        }
-
         public async void StartStreaming(object museId)
         {
             var muse = Muses.SingleOrDefault(x => x.Id == (string)museId);
             if (muse != null)
             {
-                await ActivateLSLBridge();
                 await muse.ToggleStream(true);
             }        
         }
@@ -313,10 +330,17 @@ namespace BlueMuse.Bluetooth
 
         public async Task StartStreamingAll()
         {
-            var muses = this.Muses.Where(x => !x.IsStreaming);
-            if (muses.Count() > 0)
+            // Also flag so that any Muse discovered/connected after this point (e.g. because
+            // discovery hasn't found it yet when "startall" was sent) gets streamed automatically.
+            AutoStreamAll = true;
+
+            Muse[] muses;
+            lock (Muses)
             {
-                await ActivateLSLBridge();
+                muses = Muses.Where(x => !x.IsStreaming).ToArray();
+            }
+            if (muses.Length > 0)
+            {
                 foreach (var muse in muses)
                 {
                     await muse.ToggleStream(true);
@@ -326,8 +350,14 @@ namespace BlueMuse.Bluetooth
 
         public async Task StopStreamingAll()
         {
-            var muses = this.Muses.Where(x => x.IsStreaming);
-            if (muses.Count() > 0)
+            AutoStreamAll = false;
+
+            Muse[] muses;
+            lock (Muses)
+            {
+                muses = Muses.Where(x => x.IsStreaming).ToArray();
+            }
+            if (muses.Length > 0)
             {
                 foreach (var muse in muses)
                 {
@@ -344,12 +374,22 @@ namespace BlueMuse.Bluetooth
         {
             try
             {
-                foreach (var muse in Muses)
+                // Snapshot under the same lock used elsewhere when mutating Muses, so we don't
+                // enumerate a collection that's concurrently being modified by the device watcher
+                // (which runs on a different thread). Locks can't safely span an await, so we copy
+                // first and then do the async work against the snapshot.
+                Muse[] muses;
+                lock (Muses)
+                {
+                    muses = Muses.ToArray();
+                }
+
+                foreach (var muse in muses)
                 {
                     if (muse.Device.ConnectionStatus == BluetoothConnectionStatus.Disconnected)
                     {
                         // Retreive an arbitrary service. This will allow the device to auto connect.
-                        await muse.Device.GetGattServicesForUuidAsync(Constants.MUSE_GATT_COMMAND_UUID);
+                        await muse.WarmupConnectionAsync();
                     }
                 }
             }

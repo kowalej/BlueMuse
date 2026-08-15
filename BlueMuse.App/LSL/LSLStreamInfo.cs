@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LSLBridge.LSL
+namespace BlueMuse.LSL
 {
     public class LSLBridgeChannelInfo
     {

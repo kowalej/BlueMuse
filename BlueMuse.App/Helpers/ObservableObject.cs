@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Windows.UI.Core;
+using Microsoft.UI.Dispatching;
 
 namespace BlueMuse.Helpers
 {
@@ -45,12 +45,11 @@ namespace BlueMuse.Helpers
         /// <param name="propertyName">Name of the property used to notify listeners.  This
         /// value is optional and can be provided automatically when invoked from compilers
         /// that support <see cref="CallerMemberNameAttribute"/>.</param>
-        protected async void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             try
             {
-                await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(CoreDispatcherPriority.High,
-                () =>
+                UIDispatcher.Queue?.TryEnqueue(DispatcherQueuePriority.High, () =>
                     {
                         try
                         {

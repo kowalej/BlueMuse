@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Storage.Streams;
+using System.Text;
 
 namespace BlueMuse.Helpers
 {
@@ -20,13 +21,13 @@ namespace BlueMuse.Helpers
             }
             string hexStr = BitConverter.ToString(vals);
             string[] hexSplit = hexStr.Split('-');
-            string bits = string.Empty;
+            var sb = new StringBuilder(hexSplit.Length * 8);
             foreach (var hex in hexSplit)
             {
                 ushort longValue = Convert.ToUInt16("0x" + hex, 16);
-                bits = bits + Convert.ToString(longValue, 2).PadLeft(8, '0');
+                sb.Append(Convert.ToString(longValue, 2).PadLeft(8, '0'));
             }
-            return bits;
+            return sb.ToString();
         }
 
         public static UInt16 ToUInt12(string binary, int offset = 0)

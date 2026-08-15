@@ -1,4 +1,10 @@
-﻿using Windows.UI.Xaml.Controls;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
+using System;
+using Windows.ApplicationModel.DataTransfer;
+using Windows.Storage;
+using Windows.System;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
@@ -17,14 +23,46 @@ namespace BlueMuse
             ViewModel = new ViewModels.MainPageVM();
         }
 
-        private void SettingsDone_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void SettingsDone_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
-            SettingsFlyout.Hide();
+            SettingsSplitView.IsPaneOpen = false;
         }
 
-        private void BlueMuseSettings_Click(object sender, Windows.UI.Xaml.RoutedEventArgs e)
+        private void BlueMuseSettings_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
         {
             CommandBar.IsOpen = false;
+            SettingsSplitView.IsPaneOpen = !SettingsSplitView.IsPaneOpen;
+        }
+
+        private async void OpenLogFolder_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            var folder = await StorageFolder.GetFolderFromPathAsync(ViewModel.BlueMuseLogFolder);
+            await Launcher.LaunchFolderAsync(folder);
+        }
+
+        // The streaming info text box's content updates continuously (live rate), which resets any
+        // in-progress text selection - making it hard to select/copy manually. Provide a one-click
+        // way to grab the current, complete text instead.
+        private void CopyStreamsInfo_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
+        {
+            if (sender is FrameworkElement element && element.DataContext is MuseManagement.Muse muse)
+            {
+                var package = new DataPackage();
+                package.SetText(muse.ActiveStreamsInfo ?? string.Empty);
+                Clipboard.SetContent(package);
+            }
+        }
+
+        // Allows collapsing the expanded Muse's stream/controls panel via Esc, without needing to
+        // click elsewhere or select another device.
+        private void Page_KeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (e.Key == VirtualKey.Escape)
+            {
+                ViewModel.ClearSelectedMuse();
+                MuseList.SelectedItem = null;
+                e.Handled = true;
+            }
         }
     }
 }
