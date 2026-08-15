@@ -106,51 +106,43 @@ Toggle "always pair":
 ***Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11. Built/targeted against the Windows 11 24H2 SDK (10.0.26100.0).***
 
 ### Sideload Install (Current Method)
-1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases)** and unzip it.
-2. Double-click the `.cer` certificate file included in the release and install it to the **Local Machine** ->
+Each [release](https://github.com/kowalej/BlueMuse/releases) contains **two separate architecture-specific
+artifacts** (x64 and x86) - download the one matching your machine (x64 for most modern PCs) and unzip it. The
+unzipped folder is a self-contained, Visual-Studio-generated sideload package (e.g. `BlueMuse.App_2.5.0.0_x64`)
+containing the `.msix`, the signing `.cer`, a `Dependencies` folder (with the required
+`Microsoft.WindowsAppRuntime.2.msix` per CPU architecture), and PowerShell installer scripts.
+
+#### Auto Install (Recommended)
+1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases)** matching your architecture and unzip it.
+2. Right-click `InstallBlueMuse.ps1` and choose **Run with PowerShell** (this removes any previously installed
+   BlueMuse package first, then runs `Install.ps1`). Alternatively, run `Install.ps1` or `Add-AppDevPackage.ps1`
+   directly if you don't need the old version removed automatically.
+3. Follow the prompts - the script installs the certificate (to **Local Machine** ->
+   **Trusted Root Certification Authorities**), the `Microsoft.WindowsAppRuntime.2` dependency package,
+   and the BlueMuse `.msix` itself.
+4. If PowerShell blocks the script from running, or Windows blocks the install because "Developer Mode"
+   or sideloading isn't enabled, see the [PowerShell Installation Guide](BlueMuse_Windows_PowerShell_Install.md)
+   for detailed steps (temporarily bypassing execution policy, unblocking the script, and enabling
+   Developer Mode via **Settings -> Update & Security -> For Developers**).
+
+#### Manual Install
+1. Double-click the `.cer` certificate file and install it to the **Local Machine** ->
    **Trusted Root Certification Authorities** store (you'll need administrator rights for this step).
-3. Double-click the `.msix` / `.msixbundle` package to install BlueMuse.
-4. If Windows blocks the install because "Developer Mode" or sideloading isn't enabled, turn on
-   **Settings -> Update & Security -> For Developers -> Developer Mode** (or **Sideload apps**) and retry.
+2. Open the `Dependencies\<arch>` folder and double-click `Microsoft.WindowsAppRuntime.2.msix` to install it.
+3. Double-click the `.msix` package in the folder root to install BlueMuse.
+
+*Note: releases prior to 2.5.0.0 (2.4.0.0 and earlier) shipped as a UWP app paired with a separate "LSL Bridge"
+Win32 process and .NET Native runtime dependencies (`.appxbundle` + `Microsoft.NET.Native.Framework`/`.Runtime`
+packages instead of `.msix` + `Microsoft.WindowsAppRuntime.2`), and required Windows 10 1703 or later. The same
+Auto/Manual install steps above apply structurally, just with those older package names - see the
+[releases page](https://github.com/kowalej/BlueMuse/releases) if you need to install one of those versions.*
+
+#### Troubleshooting
+If you run into issues with Developer Mode or PowerShell execution policy during installation, see the [PowerShell Installation Guide](./BlueMuse_Windows_PowerShell_Install.md) for detailed solutions.
 
 ### Microsoft Store (Possible In Future)
 A Microsoft Store listing is being evaluated for a future release, which would remove the need for manual
 certificate/sideload steps entirely. This section will be updated if a store link becomes available.
-
-<details>
-<summary><strong>Legacy Install Instructions (2.4.0.0 and earlier, UWP + separate LSL Bridge)</strong></summary>
-
-*The instructions below apply to older releases (2.4.0.0 and earlier), which shipped as a UWP app paired with
-a separate "LSL Bridge" Win32 process and .NET Native runtime dependencies. Kept here for reference in case
-you need to install an older version.*
-
-***Requires Windows 10 with Fall 2017 Creators Update - Version 10.0.15063 aka Windows 10 (1703).***
-
-#### First Step
-**Download [latest version](https://github.com/kowalej/BlueMuse/releases/download/v2.4.0.0/BlueMuse_2.4.0.0.zip) from the [releases page](https://github.com/kowalej/BlueMuse/releases)** and unzip, then follow one of the methods below.
-#### Auto Install (Recommended)
-1. Navigate to the unzipped app folder and run the `.\InstallBlueMuse.ps1` PowerShell command (right click and choose Run with PowerShell or execute from terminal directly): 
-
-2. Follow the prompts - the script should automatically install the security certificate, all dependencies, and the BlueMuse app.
-
-#### Manual Install
-1. Double click BlueMuse_xxx.cer then click "Install Certificate".
-2. Select current user or local machine depending on preference and click "Next".
-3. Select "Place all certificates in the following store".
-4. Press "Browse...".
-5. Select install for Local Machine.
-6. Select "Trusted Root Certification Authorities" and click "OK".
-7. Click "Next" and click "Finish" to install certificate.
-
-8. Open Dependencies folder and appropriate folder for your machine architecture.
-9. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
-
-10. Finally, double click and install BlueMuse_xxx.appxbundle.
-
-#### Troubleshooting
-If you run into issues with Developer Mode or PowerShell execution policy during installation, see the [PowerShell Installation Guide](BlueMuse_Windows_PowerShell_Install.md) for detailed solutions.
-</details>
-<br>
 
 # Versions
 ### Latest

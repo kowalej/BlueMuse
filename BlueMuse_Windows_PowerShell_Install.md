@@ -8,7 +8,7 @@ This file documents the common Windows issues encountered when installing BlueMu
 
 ## Background: Why Installation Fails on Windows
 
-BlueMuse is distributed as a locally installed AppX/MSIX package with PowerShell installer scripts (`Add-AppDevPackage.ps1` / `InstallBlueMuse.ps1`).
+BlueMuse is distributed as a locally installed MSIX package with PowerShell installer scripts (`InstallBlueMuse.ps1` / `Install.ps1` / `Add-AppDevPackage.ps1`). Each release provides two separate architecture-specific artifacts (x64 and x86) - download and unzip the one matching your machine before following the steps below.
 
 Windows enforces **two separate** security systems that often block installation:
 
@@ -120,9 +120,9 @@ Set-ExecutionPolicy Bypass -Scope Process
 
 2. **Open PowerShell as Administrator.**
 
-3. **Navigate to the BlueMuse directory.**
+3. **Navigate to the unzipped BlueMuse folder for your architecture.**
    ```powershell
-   cd "C:\Users\<username>\Downloads\BlueMuse_2.4.0.0"
+   cd "C:\Users\<username>\Downloads\BlueMuse.App_2.5.0.0_x64"
    ```
 
 4. **Temporarily bypass execution policy.**
@@ -132,12 +132,12 @@ Set-ExecutionPolicy Bypass -Scope Process
 
 5. **Unblock the installer script.**
    ```powershell
-   Unblock-File -Path ".\Add-AppDevPackage.ps1"
+   Unblock-File -Path ".\InstallBlueMuse.ps1"
    ```
 
 6. **Run the installer.**
    ```powershell
-   .\Add-AppDevPackage.ps1
+   .\InstallBlueMuse.ps1
    ```
 
 7. **When prompted:**
@@ -165,7 +165,7 @@ After successful installation:
 ### Launch
 
 ```
-BlueMuse.x86_64.exe
+BlueMuse.exe
 ```
 
 ### Expected Behavior
