@@ -12,8 +12,7 @@
 * Protocol control from Command Line / PowerShell.
 
 # Screenshots
-<img src="screenshot-main.PNG" width="400" />
-<img src="screenshot-streaming.PNG" width="400" />
+![Screenshots of BlueMuse Desktop App, Main Page and List Items](./screenshots.png "Screenshots")
 
 
 # Command Line Interface
