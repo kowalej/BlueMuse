@@ -8,9 +8,6 @@ Full version history for BlueMuse. See the [README](./README.md) for current fea
   see [Architecture](./README.md#architecture)).
 * UI refresh: settings moved to a slide-out side panel, improved main list layout, compact per-stream
   info display with latest sample values and a one-click copy button.
-* Single-instance app: the `bluemuse://` command line interface now redirects into the already-running
-  instance instead of launching a duplicate window, and `startall` correctly applies to Muses discovered
-  after the command is sent.
 * Added Esc key support to collapse/deselect the currently selected Muse in the list.
 * Fixed intermittent Bluetooth/GATT communication issues (JSON parsing errors, spurious device removal,
   and connection churn) via reentrancy guards and per-device GATT serialization.

@@ -146,6 +146,9 @@ you need to install an older version.*
 9. Double click and install Microsoft.NET.Native.Framework.1.7 and Microsoft.NET.Native.Runtime.1.7.
 
 10. Finally, double click and install BlueMuse_xxx.appxbundle.
+
+#### Troubleshooting
+If you run into issues with Developer Mode or PowerShell execution policy during installation, see the [PowerShell Installation Guide](BlueMuse_Windows_PowerShell_Install.md) for detailed solutions.
 </details>
 <br>
 
@@ -157,9 +160,6 @@ you need to install an older version.*
 	  see [Architecture](#architecture)).
 	* UI refresh: settings moved to a slide-out side panel, improved main list layout, compact per-stream
 	  info display with latest sample values and a one-click copy button.
-	* Single-instance app: the `bluemuse://` command line interface now redirects into the already-running
-	  instance instead of launching a duplicate window, and `startall` correctly applies to Muses discovered
-	  after the command is sent.
 	* Added Esc key support to collapse/deselect the currently selected Muse in the list.
 	* Fixed intermittent Bluetooth/GATT communication issues (JSON parsing errors, spurious device removal,
 	  and connection churn) via reentrancy guards and per-device GATT serialization.
