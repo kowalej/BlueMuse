@@ -8,6 +8,7 @@ using Microsoft.Windows.AppLifecycle;
 using Serilog;
 using Serilog.Exceptions;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -50,6 +51,8 @@ namespace BlueMuse
             Log.Error(e.Exception, "BlueMuse unhandled exception.");
         }
 
+        private const string SINGLE_INSTANCE_KEY = "BlueMuseSingleInstance";
+
         /// <summary>
         /// Invoked when the application is launched normally by the end user.  Other entry points
         /// will be used such as when the application is launched to open a specific file (e.g. protocol activation).
@@ -59,12 +62,54 @@ namespace BlueMuse
         {
             Log.Information("BlueMuse started.");
 
+            var activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
+
+            // Ensure only one instance of BlueMuse runs at a time. If another instance is already
+            // registered, redirect this activation (e.g. a "start bluemuse://..." command) to it
+            // and exit, instead of launching a brand new window/instance.
+            var mainInstance = AppInstance.FindOrRegisterForKey(SINGLE_INSTANCE_KEY);
+            if (!mainInstance.IsCurrent)
+            {
+                RedirectActivationTo(mainInstance, activatedEventArgs);
+                Application.Current.Exit();
+                return;
+            }
+
+            mainInstance.Activated += OnActivated;
+
             Launch();
 
-            var activatedEventArgs = AppInstance.GetCurrent().GetActivatedEventArgs();
             if (activatedEventArgs != null && activatedEventArgs.Kind == ExtendedActivationKind.Protocol)
             {
                 HandleProtocolActivation(activatedEventArgs);
+            }
+        }
+
+        private void OnActivated(object sender, Microsoft.Windows.AppLifecycle.AppActivationArguments activatedEventArgs)
+        {
+            // Called when a subsequent "start bluemuse://..." invocation is redirected to this,
+            // the already-running instance. Marshal back to the UI thread to process the command
+            // and bring the window to the foreground.
+            UIDispatcher.Queue.TryEnqueue(() =>
+            {
+                if (activatedEventArgs != null && activatedEventArgs.Kind == ExtendedActivationKind.Protocol)
+                {
+                    HandleProtocolActivation(activatedEventArgs);
+                }
+                window?.Activate();
+            });
+        }
+
+        private static void RedirectActivationTo(AppInstance instance, Microsoft.Windows.AppLifecycle.AppActivationArguments activatedEventArgs)
+        {
+            using (var redirectSemaphore = new System.Threading.Semaphore(0, 1))
+            {
+                System.Threading.Tasks.Task.Run(async () =>
+                {
+                    await instance.RedirectActivationToAsync(activatedEventArgs);
+                    redirectSemaphore.Release();
+                });
+                redirectSemaphore.WaitOne();
             }
         }
 
@@ -74,7 +119,10 @@ namespace BlueMuse
             // just ensure that the window is active.
             if (window == null)
             {
-                window = new Window();
+                window = new Window
+                {
+                    Title = "BlueMuse"
+                };
             }
 
             if (!(window.Content is Frame rootFrame))

@@ -7,6 +7,9 @@
 *.userosscache
 *.sln.docstates
 
+# Photoshop.
+*.psd
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 

@@ -19,18 +19,23 @@ namespace BlueMuse.LSL
             get
             {
                 return string.Format(
-                    "{0} ({1} ch) @ {2,3:0} Hz nominal / {3,6:0.00} Hz live" + Environment.NewLine + "  Channels: {4}" + Environment.NewLine + "  LSL Stream Name: {5}",
+                    "{0} ({1} ch) @ {2,3:0} Hz nominal / {3,6:0.00} Hz live" + Environment.NewLine + "  Channels: {4}" + Environment.NewLine + "  Latest Values: {5}" + Environment.NewLine + "  LSL Stream Name: {6}",
                     streamInfo.StreamType,
                     streamInfo.ChannelCount,
                     streamInfo.NominalSRate,
                     rate,
                     string.Join(", ", streamInfo.Channels.Select(x => x.Label).ToList()),
+                    latestValues ?? "n/a",
                     streamInfo.StreamName);
             }
         }
 
         private double latestTimestamp;
         public double LatestTimestamp { get { return latestTimestamp; } set { SetProperty(ref latestTimestamp, value); } }
+
+        // Most recent sample's per-channel values, formatted for display (e.g. "1.23, 4.56, 7.89").
+        private string latestValues;
+        public string LatestValues { get { return latestValues; } set { SetProperty(ref latestValues, value); OnPropertyChanged(nameof(StreamDisplayInfo)); } }
 
         // Live rate update.
         private double rate = 0;
@@ -130,6 +135,7 @@ namespace BlueMuse.LSL
         public void PushChunkLSL(float[,] data, double[] timestamps, double[] timestamps2 = null)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             if (timestamps2 != null) // Append timestamp data to final column.
             {
                 float[,] dataRevised = new float[data.GetLength(0), data.GetLength(1) + 2]; // Add extra 2 columns for timestamp.
@@ -154,6 +160,7 @@ namespace BlueMuse.LSL
         public void PushChunkLSL(double[,] data, double[] timestamps, double[] timestamps2 = null)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             if (timestamps2 != null) // Append timestamp data to final column.
             {
                 double[,] dataRevised = new double[data.GetLength(0), data.GetLength(1) + 1]; // Add extra column for timestamp.
@@ -174,13 +181,52 @@ namespace BlueMuse.LSL
         public void PushChunkLSL(int[,] data, double[] timestamps)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             lslStream.push_chunk(data, timestamps);
         }
-        
+
         public void PushChunkLSL(string[,] data, double[] timestamps)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
+            LatestValues = FormatLatestValues(data);
             lslStream.push_chunk(data, timestamps);
+        }
+
+        // Extracts and formats the last row (most recent sample) of a 2D chunk array for display purposes.
+        private static string FormatLatestValues(float[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col].ToString("0.00");
+            return string.Join(", ", values);
+        }
+
+        private static string FormatLatestValues(double[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col].ToString("0.00");
+            return string.Join(", ", values);
+        }
+
+        private static string FormatLatestValues(int[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col].ToString();
+            return string.Join(", ", values);
+        }
+
+        private static string FormatLatestValues(string[,] data)
+        {
+            int lastRow = data.GetLength(0) - 1;
+            if (lastRow < 0) return null;
+            var values = new string[data.GetLength(1)];
+            for (int col = 0; col < data.GetLength(1); col++) values[col] = data[lastRow, col];
+            return string.Join(", ", values);
         }
     }
 }

@@ -20,6 +20,12 @@ namespace BlueMuse.Bluetooth
         private DeviceWatcher museDeviceWatcher;
         public HashSet<string> MusesToAutoStream = new HashSet<string>();
         public bool StreamFirst = false;
+
+        // When set, every Muse that comes online (now or discovered later) should be auto-streamed.
+        // This is needed because "startall" can be sent before any devices have been discovered by
+        // the DeviceWatcher (e.g. at app launch), so we can't rely on only streaming what's already
+        // in the Muses collection at the moment the command is received.
+        public bool AutoStreamAll = false;
         private bool museDeviceWatcherReset = false;
         private static readonly object syncLock = new object();
         Timer pollMuseTimer;
@@ -223,11 +229,15 @@ namespace BlueMuse.Bluetooth
                     StreamFirst = false;
                     StartStreaming(muse.Id);
                 }
+                else if (AutoStreamAll)
+                {
+                    if (!muse.IsStreaming) StartStreaming(muse.Id);
+                }
                 else
                 {
                     string find = MusesToAutoStream.FirstOrDefault(x => x == muse.MacAddress || x == muse.Name);
                     if(!string.IsNullOrEmpty(find)) {
-                        MusesToAutoStream.Remove(muse.MacAddress);
+                        MusesToAutoStream.Remove(find);
                         StartStreaming(muse.Id);
                     }
                 }
@@ -320,6 +330,10 @@ namespace BlueMuse.Bluetooth
 
         public async Task StartStreamingAll()
         {
+            // Also flag so that any Muse discovered/connected after this point (e.g. because
+            // discovery hasn't found it yet when "startall" was sent) gets streamed automatically.
+            AutoStreamAll = true;
+
             Muse[] muses;
             lock (Muses)
             {
@@ -336,6 +350,8 @@ namespace BlueMuse.Bluetooth
 
         public async Task StopStreamingAll()
         {
+            AutoStreamAll = false;
+
             Muse[] muses;
             lock (Muses)
             {
