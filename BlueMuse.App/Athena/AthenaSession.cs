@@ -38,30 +38,33 @@ namespace BlueMuse.Athena
         }
 
         /// <summary>Device info, status, halt, select preset, status.</summary>
-        public async Task Initialize()
+        public async Task<bool> Initialize()
         {
             foreach (var command in new[] { "v6", "s", "h", preset, "s" })
             {
-                await Write(command);
+                if (!await Write(command)) return false;
                 await Task.Delay(Constants.MUSE_ATHENA_INIT_COMMAND_INTERVAL_MILLIS);
             }
+            return true;
         }
 
         /// <summary>
         /// Begin data, begin data (sent twice - the device ignores the first on a cold
         /// start), low latency mode, status.
+        /// Returns <see langword="false"/> if any command write fails.
         /// </summary>
-        public async Task Start()
+        public async Task<bool> Start()
         {
-            await Initialize();
-            await Write("dc001");
+            if (!await Initialize()) return false;
+            if (!await Write("dc001")) return false;
             await Task.Delay(Constants.MUSE_ATHENA_START_REPEAT_DELAY_MILLIS);
-            await Write("dc001");
+            if (!await Write("dc001")) return false;
             await Task.Delay(Constants.MUSE_ATHENA_START_LOW_LATENCY_DELAY_MILLIS);
-            await Write("L1");
+            if (!await Write("L1")) return false;
             await Task.Delay(Constants.MUSE_ATHENA_START_STATUS_DELAY_MILLIS);
-            await Write("s");
+            if (!await Write("s")) return false;
             await Task.Delay(Constants.MUSE_ATHENA_START_TRAILING_DELAY_MILLIS);
+            return true;
         }
 
         public Task<bool> Stop()

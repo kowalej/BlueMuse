@@ -500,9 +500,19 @@ namespace BlueMuse.MuseManagement
                 // Outlets must exist before the handshake: any notification can carry any
                 // mix of sensors, so there is no per-stream "first packet" to open on.
                 await LSLOpenAthenaStreams();
+                foreach (var stream in GetOwnLSLStreams())
+                {
+                    stream.PropertyChanged += LSLStream_PropertyChanged;
+                }
                 IsStreaming = true;
+                OnPropertyChanged(nameof(ActiveStreamsInfo));
 
-                await athenaSession.Start();
+                if (!await athenaSession.Start())
+                {
+                    Log.Error("Athena handshake failed; aborting stream.");
+                    await ToggleAthenaStream(false);
+                    return;
+                }
             }
             else
             {
