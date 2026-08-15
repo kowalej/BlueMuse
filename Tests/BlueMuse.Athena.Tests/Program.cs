@@ -22,11 +22,13 @@ namespace BlueMuse.Athena.Tests
             EegDecodesUnsigned14BitLsbFirstToMicrovolts();
             AccGyroSplitsSixChannelsAndNegatesGyroscope();
             OpticsDecodesUnsigned20BitLsbFirstRawCounts();
-            BatteryDecodesUint16LeOver256();
+            BatteryDecodesUint16LeOver512();
             ParserWalksPrimaryAndSubPackets();
             ParserWalksConcatenatedPackets();
             ParserStopsOnMalformedLength();
             ParserGivesVariableLengthTagsTheRemainder();
+            ParserDropsUnknownTags();
+            SensorConfigMatchesProtocolTable();
             CommandFramingMatchesProtocol();
             SessionEmitsInitThenStartSequence();
             TickClockMapsTicksToSecondsAndWraps();
@@ -67,12 +69,20 @@ namespace BlueMuse.Athena.Tests
             var decoded = AthenaDecoders.DecodeEEG(payload, channels, samples);
             for (int s = 0; s < samples; s++)
                 for (int c = 0; c < channels; c++)
-                    CheckClose(decoded[s, c], (s * 100 + c) * (1450d / 16383d), $"eeg[{s},{c}]");
+                    CheckClose(decoded[s, c], ((s * 100 + c) - 8192) * (1450d / 16383d), $"eeg[{s},{c}]");
 
-            // Full scale and zero, i.e. unsigned with no midpoint offset.
+            // Offset binary: the midpoint is zero, the ends are the signed extremes.
             var extremes = PackLsb(Enumerable.Repeat((14, 16383u), 16).ToList());
-            CheckClose(AthenaDecoders.DecodeEEG(extremes, channels, samples)[0, 0], 1450d, "eeg full scale");
-            CheckClose(AthenaDecoders.DecodeEEG(new byte[28], channels, samples)[0, 0], 0d, "eeg zero");
+            CheckClose(AthenaDecoders.DecodeEEG(extremes, channels, samples)[0, 0], (16383 - 8192) * (1450d / 16383d), "eeg full scale");
+            CheckClose(AthenaDecoders.DecodeEEG(new byte[28], channels, samples)[0, 0], -8192 * (1450d / 16383d), "eeg zero raw is negative full scale");
+            var midpoint = PackLsb(Enumerable.Repeat((14, 8192u), 16).ToList());
+            CheckClose(AthenaDecoders.DecodeEEG(midpoint, channels, samples)[0, 0], 0d, "eeg midpoint is zero");
+
+            // 0x12 packs eight channels of two samples into the same 28 bytes.
+            var eightChannel = PackLsb(Enumerable.Range(0, 16).Select(i => (14, (uint)i)).ToList());
+            Check(eightChannel.Length == 28, "0x12 payload is 28 bytes");
+            var wide = AthenaDecoders.DecodeEEG(eightChannel, 8, 2);
+            CheckClose(wide[1, 3], (11 - 8192) * (1450d / 16383d), "eeg 8 channel layout is sample-major");
         }
 
         private static void AccGyroSplitsSixChannelsAndNegatesGyroscope()
@@ -110,18 +120,32 @@ namespace BlueMuse.Athena.Tests
             var payload = PackLsb(fields);
             Check(payload.Length == 40, "0x36 payload is 40 bytes");
 
-            var decoded = AthenaDecoders.DecodeOptics(payload, 16, 1);
+            var decoded = AthenaDecoders.DecodeOptics(payload, 0x36, 16, 1);
             for (int c = 0; c < 16; c++) CheckClose(decoded[0, c], c * 1000, $"optics[{c}]");
 
             // 20 bits is unsigned - the top of the range must not come back negative.
             var max = PackLsb(Enumerable.Repeat((20, 0xFFFFFu), 16).ToList());
-            CheckClose(AthenaDecoders.DecodeOptics(max, 16, 1)[0, 0], 1048575d, "optics full scale");
+            CheckClose(AthenaDecoders.DecodeOptics(max, 0x36, 16, 1)[0, 0], 1048575d, "optics full scale");
+
+            // 0x35 carries the first eight canonical channels, 0x34 carries channels 4..7,
+            // and both widen to the same 16 channel grid with the rest left at zero.
+            var eight = PackLsb(Enumerable.Range(0, 16).Select(i => (20, (uint)(i + 1))).ToList());
+            var eightDecoded = AthenaDecoders.DecodeOptics(eight, 0x35, 8, 2);
+            CheckClose(eightDecoded[1, 0], 9d, "0x35 is sample-major");
+            CheckClose(eightDecoded[0, 8], 0d, "0x35 leaves channels 8..15 empty");
+
+            var four = PackLsb(Enumerable.Range(0, 12).Select(i => (20, (uint)(i + 1))).ToList());
+            Check(four.Length == 30, "0x34 payload is 30 bytes");
+            var fourDecoded = AthenaDecoders.DecodeOptics(four, 0x34, 4, 3);
+            CheckClose(fourDecoded[0, 4], 1d, "0x34 channel 0 maps to canonical 4");
+            CheckClose(fourDecoded[2, 7], 12d, "0x34 channel 3 maps to canonical 7");
+            CheckClose(fourDecoded[0, 0], 0d, "0x34 leaves channels 0..3 empty");
         }
 
-        private static void BatteryDecodesUint16LeOver256()
+        private static void BatteryDecodesUint16LeOver512()
         {
-            CheckClose(AthenaDecoders.DecodeBatteryPercent(new byte[] { 0x80, 0x31 }), 12672 / 256d, "battery 49.5%");
-            CheckClose(AthenaDecoders.DecodeBatteryPercent(new byte[] { 0x00, 0x64 }), 100d, "battery 100%");
+            CheckClose(AthenaDecoders.DecodeBatteryPercent(new byte[] { 0x00, 0x02 }), 1d, "battery 1% (512 counts)");
+            CheckClose(AthenaDecoders.DecodeBatteryPercent(new byte[] { 0x00, 0xC8 }), 100d, "battery 100% (51200 counts)");
             Throws(() => AthenaDecoders.DecodeBatteryPercent(new byte[1]), "short battery payload");
         }
 
@@ -172,10 +196,46 @@ namespace BlueMuse.Athena.Tests
         private static void ParserGivesVariableLengthTagsTheRemainder()
         {
             // 0x88 has no fixed size - it takes whatever is left in the packet.
-            var packet = Concat(PrimaryHeader(14 + 4, 1, 1, 0x88), new byte[] { 0x80, 0x31, 0x00, 0x00 });
+            var packet = Concat(PrimaryHeader(14 + 4, 1, 1, 0x88), new byte[] { 0x00, 0x63, 0x00, 0x00 });
             var packets = AthenaPacketParser.Parse(packet);
             Check(packets.Count == 1 && packets[0].Payload.Length == 4, "0x88 consumes the packet remainder");
             CheckClose(AthenaDecoders.DecodeBatteryPercent(packets[0].Payload), 49.5d, "battery via parser");
+        }
+
+        private static void ParserDropsUnknownTags()
+        {
+            // An unknown tag has no length, so nothing after it can be framed.
+            var unknownPrimary = Concat(PrimaryHeader(14 + 10, 1, 1, 0x77), Fill(10, 0));
+            Check(AthenaPacketParser.Parse(unknownPrimary).Count == 0, "unknown primary tag yields no packets");
+
+            var unknownSub = Concat(PrimaryHeader(14 + 28 + 5 + 10, 1, 1, 0x11), Fill(28, 0), SubHeader(0x77, 1), Fill(10, 0));
+            var packets = AthenaPacketParser.Parse(unknownSub);
+            Check(packets.Count == 1 && packets[0].Tag == 0x11, "unknown sub tag stops the sub packet walk");
+        }
+
+        private static void SensorConfigMatchesProtocolTable()
+        {
+            CheckConfig(0x11, AthenaSensorType.EEG, 4, 4, 28);
+            CheckConfig(0x12, AthenaSensorType.EEG, 8, 2, 28);
+            CheckConfig(0x34, AthenaSensorType.Optics, 4, 3, 30);
+            CheckConfig(0x35, AthenaSensorType.Optics, 8, 2, 40);
+            CheckConfig(0x36, AthenaSensorType.Optics, 16, 1, 40);
+            CheckConfig(0x47, AthenaSensorType.AccelerometerGyroscope, 6, 3, 36);
+            CheckConfig(0x53, AthenaSensorType.Unknown, 0, 0, 24);
+            CheckConfig(0x98, AthenaSensorType.Battery, 1, 1, 20);
+            Check(AthenaPacketParser.GetSensorConfig(0x88).VariableLength, "0x88 is variable length");
+            Check(AthenaPacketParser.GetSensorConfig(0x77) == null, "unrecognized tag has no config");
+        }
+
+        private static void CheckConfig(byte tag, AthenaSensorType type, int channels, int samples, int dataLength)
+        {
+            var config = AthenaPacketParser.GetSensorConfig(tag);
+            Check(config != null
+                && config.Type == type
+                && config.ChannelCount == channels
+                && config.SampleCount == samples
+                && config.DataLength == dataLength
+                && !config.VariableLength, $"sensor config for tag 0x{tag:X2}");
         }
 
         private static void CommandFramingMatchesProtocol()

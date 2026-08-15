@@ -480,14 +480,18 @@ namespace BlueMuse.MuseManagement
             }
         }
 
-        // Muse S Athena start/stop. All data arrives on DATA_1 regardless of which sensors
-        // are enabled, so there is a single subscription and a single handler which fans
-        // packets out by tag.
+        // Muse S Athena start/stop. Data arrives multiplexed on the Athena data
+        // characteristics (DATA_1 and, when the device exposes it, DATA_2), so both are
+        // subscribed to a single handler which fans packets out by tag.
         private async Task ToggleAthenaStream(bool start)
         {
-            if (!await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ATHENA_DATA1_UUID }, streamCharacteristics, start, AthenaData_ValueChanged))
+            var athenaDataUuids = new[] { Constants.MUSE_GATT_ATHENA_DATA1_UUID, Constants.MUSE_GATT_ATHENA_DATA2_UUID }
+                .Where(uuid => streamCharacteristics?.Any(x => x.Uuid == uuid) == true)
+                .ToArray();
+
+            if (athenaDataUuids.Length < 1 || !await ToggleCharacteristics(athenaDataUuids, streamCharacteristics, start, AthenaData_ValueChanged))
             {
-                Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle the Muse S Athena data characteristic.");
+                Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle the Muse S Athena data characteristics.");
                 if (start) return;
             }
 
@@ -1452,16 +1456,24 @@ namespace BlueMuse.MuseManagement
             {
                 foreach (var packet in AthenaPacketParser.Parse(args.CharacteristicValue.ToArray()))
                 {
-                    switch (packet.Tag)
+                    var config = AthenaPacketParser.GetSensorConfig(packet.Tag);
+                    if (config == null) continue;
+                    if (!config.VariableLength && packet.Payload.Length < config.DataLength) continue; // Truncated - can't be decoded.
+
+                    switch (config.Type)
                     {
-                        case AthenaPacketParser.TAG_EEG_4CH:
+                        // Tag 0x11 packs 4 channels, 0x12 packs 8 (the first 4 are the
+                        // headband electrodes, the rest aux). Both are decoded in full so
+                        // the bit offsets are right, then only the exposed channels are
+                        // pushed - same as muse-lsl.
+                        case AthenaSensorType.EEG:
                             if (!isEEGEnabled) break;
                             await LSLPushAthenaChunk(EEGStreamName,
-                                AthenaDecoders.DecodeEEG(packet.Payload, Constants.MUSE_ATHENA_EEG_CHANNEL_COUNT, Constants.MUSE_ATHENA_EEG_SAMPLE_COUNT),
-                                0, Constants.MUSE_ATHENA_EEG_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_EEG_SAMPLE_RATE);
+                                AthenaDecoders.DecodeEEG(packet.Payload, config.ChannelCount, config.SampleCount),
+                                0, eegChannelCount, packet.DeviceTick, config.SampleRate);
                             break;
 
-                        case AthenaPacketParser.TAG_ACC_GYRO:
+                        case AthenaSensorType.AccelerometerGyroscope:
                             // One packet, two streams: channels 0-2 are the accelerometer, 3-5 the gyroscope.
                             var imu = AthenaDecoders.DecodeAccelerometerGyroscope(packet.Payload);
                             if (isAccelerometerEnabled)
@@ -1476,15 +1488,18 @@ namespace BlueMuse.MuseManagement
                             }
                             break;
 
-                        case AthenaPacketParser.TAG_OPTICS_16CH:
+                        // Tags 0x34 / 0x35 / 0x36 carry 4, 8 or 16 of the same canonical
+                        // channels; the decoder widens them all to 16, leaving the
+                        // channels this tag doesn't carry at zero.
+                        case AthenaSensorType.Optics:
                             if (!isPPGEnabled) break;
                             await LSLPushAthenaChunk(PPGStreamName,
-                                AthenaDecoders.DecodeOptics(packet.Payload, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, Constants.MUSE_ATHENA_OPTICS_SAMPLE_COUNT),
-                                0, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_ATHENA_OPTICS_SAMPLE_RATE);
+                                AthenaDecoders.DecodeOptics(packet.Payload, packet.Tag, config.ChannelCount, config.SampleCount),
+                                0, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, packet.DeviceTick, config.SampleRate);
                             break;
 
-                        case AthenaPacketParser.TAG_BATTERY:
-                        case AthenaPacketParser.TAG_BATTERY_20:
+                        case AthenaSensorType.Battery:
+                            if (packet.Payload.Length < 2) break;
                             double batteryPercent = AthenaDecoders.DecodeBatteryPercent(packet.Payload);
                             BatteryLevel = (int)batteryPercent;
                             if (isTelemetryEnabled)
@@ -1496,9 +1511,8 @@ namespace BlueMuse.MuseManagement
                             }
                             break;
 
-                        // 0x12 (8 channel EEG), 0x34 / 0x35 (narrower optics layouts) and 0x53
-                        // are walked so framing stays in sync, but the default p1041 preset
-                        // does not emit them and their channel maps are undocumented.
+                        // 0x53 is walked so framing stays in sync, but its contents are
+                        // undocumented.
                         default:
                             break;
                     }

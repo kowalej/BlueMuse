@@ -23,12 +23,46 @@ namespace BlueMuse.Athena
         }
     }
 
+    /// <summary>Sensor family a packet tag belongs to.</summary>
+    public enum AthenaSensorType
+    {
+        EEG,
+        Optics,
+        AccelerometerGyroscope,
+        Battery,
+        Unknown
+    }
+
     /// <summary>
-    /// Walks a Muse S Athena DATA_1 notification into packets.
+    /// Shape of the payload carried by a packet tag. Mirrors the sensor config table
+    /// used by muse-lsl / BrainFlow so the same tags decode identically here.
+    /// </summary>
+    public class AthenaSensorConfig
+    {
+        public readonly AthenaSensorType Type;
+        public readonly int ChannelCount;
+        public readonly int SampleCount;
+        public readonly double SampleRate;
+        public readonly int DataLength;
+        public readonly bool VariableLength;
+
+        public AthenaSensorConfig(AthenaSensorType type, int channelCount, int sampleCount, double sampleRate, int dataLength, bool variableLength = false)
+        {
+            Type = type;
+            ChannelCount = channelCount;
+            SampleCount = sampleCount;
+            SampleRate = sampleRate;
+            DataLength = dataLength;
+            VariableLength = variableLength;
+        }
+    }
+
+    /// <summary>
+    /// Walks a Muse S Athena data notification into packets.
     ///
     /// Unlike the older headbands (one GATT characteristic per channel, one sample
-    /// block per notification), Athena multiplexes every sensor onto a single
-    /// characteristic. A notification holds one or more concatenated packets:
+    /// block per notification), Athena multiplexes every sensor onto its two data
+    /// characteristics. A notification holds one or more concatenated packets:
     ///
     ///   primary header (14 bytes): [0] total packet length, [1] packet index,
     ///                              [2..5] device tick (uint32 LE), [9] tag
@@ -55,22 +89,23 @@ namespace BlueMuse.Athena
         public const byte TAG_BATTERY_20 = 0x98; // 20 bytes.
 
         /// <summary>
-        /// Payload length for a tag, or -1 when the tag is variable length and
-        /// therefore consumes the remainder of its packet.
+        /// Payload shape for a tag, or <see langword="null"/> when the tag is not one
+        /// this protocol knows about.
         /// </summary>
-        public static int DataLengthForTag(byte tag)
+        public static AthenaSensorConfig GetSensorConfig(byte tag)
         {
             switch (tag)
             {
-                case TAG_EEG_4CH: return 28;
-                case TAG_EEG_8CH: return 28;
-                case TAG_OPTICS_4CH: return 30;
-                case TAG_OPTICS_8CH: return 40;
-                case TAG_OPTICS_16CH: return 40;
-                case TAG_ACC_GYRO: return 36;
-                case TAG_UNKNOWN: return 24;
-                case TAG_BATTERY_20: return 20;
-                default: return -1;
+                case TAG_EEG_4CH: return new AthenaSensorConfig(AthenaSensorType.EEG, 4, 4, Constants.MUSE_EEG_SAMPLE_RATE, 28);
+                case TAG_EEG_8CH: return new AthenaSensorConfig(AthenaSensorType.EEG, 8, 2, Constants.MUSE_EEG_SAMPLE_RATE, 28);
+                case TAG_OPTICS_4CH: return new AthenaSensorConfig(AthenaSensorType.Optics, 4, 3, Constants.MUSE_ATHENA_OPTICS_SAMPLE_RATE, 30);
+                case TAG_OPTICS_8CH: return new AthenaSensorConfig(AthenaSensorType.Optics, 8, 2, Constants.MUSE_ATHENA_OPTICS_SAMPLE_RATE, 40);
+                case TAG_OPTICS_16CH: return new AthenaSensorConfig(AthenaSensorType.Optics, 16, 1, Constants.MUSE_ATHENA_OPTICS_SAMPLE_RATE, 40);
+                case TAG_ACC_GYRO: return new AthenaSensorConfig(AthenaSensorType.AccelerometerGyroscope, 6, 3, Constants.MUSE_ACCELEROMETER_SAMPLE_RATE, 36);
+                case TAG_UNKNOWN: return new AthenaSensorConfig(AthenaSensorType.Unknown, 0, 0, 0d, 24);
+                case TAG_BATTERY: return new AthenaSensorConfig(AthenaSensorType.Battery, 1, 1, Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_RATE, 0, true);
+                case TAG_BATTERY_20: return new AthenaSensorConfig(AthenaSensorType.Battery, 1, 1, Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_RATE, 20);
+                default: return null;
             }
         }
 
@@ -96,12 +131,19 @@ namespace BlueMuse.Athena
                 int dataSize = packetLength - PRIMARY_HEADER_LENGTH;
                 int dataPos = 0;
 
-                int primaryLength = DataLengthForTag(primaryTag);
-                if (primaryLength < 0) primaryLength = dataSize;
-                if (primaryLength > dataSize) primaryLength = dataSize;
-
-                packets.Add(new AthenaPacket(primaryTag, packetIndex, deviceTick, Slice(notification, dataStart, primaryLength)));
-                dataPos += primaryLength;
+                var primaryConfig = GetSensorConfig(primaryTag);
+                if (primaryConfig != null)
+                {
+                    int primaryLength = primaryConfig.VariableLength ? dataSize : primaryConfig.DataLength;
+                    if (primaryLength > dataSize) primaryLength = dataSize;
+                    if (primaryLength > 0)
+                    {
+                        packets.Add(new AthenaPacket(primaryTag, packetIndex, deviceTick, Slice(notification, dataStart, primaryLength)));
+                        dataPos += primaryLength;
+                    }
+                    else dataPos = dataSize;
+                }
+                else dataPos = dataSize; // Unknown primary tag - the rest of the packet can't be framed.
 
                 while (dataSize - dataPos >= SUB_HEADER_LENGTH)
                 {
@@ -109,8 +151,10 @@ namespace BlueMuse.Athena
                     byte subIndex = notification[dataStart + dataPos + 1];
                     int remaining = dataSize - dataPos - SUB_HEADER_LENGTH;
 
-                    int subLength = DataLengthForTag(subTag);
-                    if (subLength < 0) subLength = remaining;
+                    var subConfig = GetSensorConfig(subTag);
+                    if (subConfig == null) break; // Unknown tag - no length, so framing is lost.
+
+                    int subLength = subConfig.VariableLength ? remaining : subConfig.DataLength;
                     if (subLength <= 0 || subLength > remaining) break;
 
                     packets.Add(new AthenaPacket(subTag, subIndex, deviceTick, Slice(notification, dataStart + dataPos + SUB_HEADER_LENGTH, subLength)));

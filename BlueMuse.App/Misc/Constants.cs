@@ -235,11 +235,15 @@ namespace BlueMuse
         // Free running device tick shipped in every packet header.
         public const double MUSE_ATHENA_TICK_RATE_HZ = 256000d;
 
-        // EEG: tag 0x11, 4 channels x 4 samples per packet, 14 bit unsigned over a
-        // 1450 uV full scale with no midpoint offset.
+        // EEG: tag 0x11, 4 channels x 4 samples per packet (tag 0x12 carries 8 channels
+        // x 2 samples, of which the first 4 are the headband electrodes), 14 bit
+        // unsigned over a 1450 uV full scale. Samples are centered on the midpoint,
+        // which is subtracted to get signed microvolts, as the legacy 12 bit samples
+        // subtract 2048.
         public const int MUSE_ATHENA_EEG_CHANNEL_COUNT = 4;
         public const int MUSE_ATHENA_EEG_SAMPLE_COUNT = 4;
         public const double MUSE_ATHENA_EEG_SCALE_FACTOR = 1450d / 16383d;
+        public const int MUSE_ATHENA_EEG_MIDPOINT = 1 << 13;
 
         // ACC + GYRO: tag 0x47, one packet carries both as 6 channels x 3 samples,
         // fanned out to the two existing LSL streams. Accelerometer scale matches the
@@ -248,8 +252,9 @@ namespace BlueMuse
         public const int MUSE_ATHENA_IMU_SAMPLE_COUNT = 3;
         public const double MUSE_ATHENA_GYROSCOPE_SCALE_FACTOR = -0.0074768d;
 
-        // Optics (fNIRS): tag 0x36, 16 channels x 1 sample of raw 20 bit counts.
-        // Published on the PPG stream, which is the closest existing equivalent.
+        // Optics (fNIRS): tags 0x34 / 0x35 / 0x36 carry 4, 8 or 16 of the same 16
+        // canonical channels as raw 20 bit counts. Published on the PPG stream, which
+        // is the closest existing equivalent.
         public const int MUSE_ATHENA_OPTICS_CHANNEL_COUNT = 16;
         public const int MUSE_ATHENA_OPTICS_SAMPLE_COUNT = 1;
         public const int MUSE_ATHENA_OPTICS_SAMPLE_RATE = 64; // 64 hz.
@@ -258,10 +263,12 @@ namespace BlueMuse
             Enumerable.Range(0, MUSE_ATHENA_OPTICS_CHANNEL_COUNT).Select(i => $"OPTICS{i}").ToArray();
 
         // Telemetry: tags 0x88 / 0x98 carry battery percent only, not the legacy
-        // four channel battery / fuel / voltage / temperature block.
+        // four channel battery / fuel / voltage / temperature block. The raw uint16 is
+        // in 1/512ths of a percent.
         public const int MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT = 1;
         public const int MUSE_ATHENA_TELEMETRY_SAMPLE_COUNT = 1;
         public const float MUSE_ATHENA_TELEMETRY_SAMPLE_RATE = 1.0f; // 1 hz.
+        public const double MUSE_ATHENA_BATTERY_SCALE_FACTOR = 1d / 512d;
         public const string MUSE_ATHENA_TELEMETRY_UNITS = "percent";
         public static readonly string[] MUSE_ATHENA_TELEMETRY_CHANNEL_LABELS = new string[MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT] {
             "Battery"

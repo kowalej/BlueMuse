@@ -177,13 +177,15 @@ The Muse S Athena uses a different protocol from every earlier headband, so it i
 
 Differences worth knowing if you are reading the data:
 
-* **One data characteristic, not one per channel.** Every sensor is multiplexed into tagged packets on `273e0013-...`, so a single Bluetooth notification can carry EEG, IMU, optics and battery at once. All enabled LSL outlets are therefore opened before streaming starts rather than on first packet.
-* **EEG** is 4 channels x 4 samples per packet (chunk size 4, not 12), 14-bit unsigned LSB-first, scaled over a 1450 uV full range with no midpoint offset.
+* **Multiplexed data characteristics, not one per channel.** Every sensor is multiplexed into tagged packets on `273e0013-...` and `273e0014-...` (both are subscribed, as in `muse-lsl` and BrainFlow), so a single Bluetooth notification can carry EEG, IMU, optics and battery at once. All enabled LSL outlets are therefore opened before streaming starts rather than on first packet.
+* **EEG** is 4 channels x 4 samples per packet (chunk size 4, not 12), 14-bit offset binary LSB-first, scaled over a 1450 uV full range after subtracting the 2^13 midpoint (the legacy 12-bit samples subtract 2048). The 8 channel packet layout is also decoded, with the four headband electrodes published.
 * **Accelerometer and gyroscope share one packet** (6 channels x 3 samples) and are split across the two existing LSL streams. The accelerometer scale matches the older headbands; **the gyroscope scale is negated** relative to them.
-* **Optics (fNIRS)** is published on the PPG stream as 16 channels of raw 20-bit detector counts, labelled `OPTICS0`..`OPTICS15`.
-* **Telemetry** is battery percent only - the older four channel battery / fuel / voltage / temperature block does not exist.
+* **Optics (fNIRS)** is published on the PPG stream as 16 channels of raw 20-bit detector counts, labelled `OPTICS0`..`OPTICS15`. The 4 and 8 channel packet layouts carry a subset of the same canonical channels, and the channels a packet does not carry are published as zero.
+* **Telemetry** is battery percent only - the older four channel battery / fuel / voltage / temperature block does not exist. The raw value is in 1/512ths of a percent.
 * **Timestamps** come from the 256 kHz device tick in each packet header, anchored to the selected timestamp format on the first packet and re-anchored if the device and host clocks drift more than half a second apart. Sample spacing therefore reflects the device rather than Bluetooth delivery jitter.
 * Starting a stream requires an ASCII command handshake (`v6`, `s`, `h`, `p1041`, `s`, then `dc001`, `dc001`, `L1`, `s`) with specific inter-command delays, rather than a single start command.
+
+Decoding matches [`muse-lsl`'s Athena support](https://github.com/alexandrebarachant/muse-lsl/pull/228), since BlueMuse is commonly used as the Windows backend for it.
 
 The protocol code in `BlueMuse.App/Athena` has no Windows dependencies and has a self-check that runs anywhere .NET 8 is available: `cd Tests/BlueMuse.Athena.Tests && dotnet run`.
 
