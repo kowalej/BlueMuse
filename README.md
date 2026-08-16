@@ -182,7 +182,7 @@ Differences worth knowing if you are reading the data:
 * **Accelerometer and gyroscope share one packet** (6 channels x 3 samples) and are split across the two existing LSL streams. The accelerometer scale matches the older headbands; **the gyroscope scale is negated** relative to them.
 * **Optics (fNIRS)** is published on the PPG stream as 16 channels of raw 20-bit detector counts, labelled `OPTICS0`..`OPTICS15`. The 4 and 8 channel packet layouts carry a subset of the same canonical channels, and the channels a packet does not carry are published as zero.
 * **Telemetry** is battery percent only - the older four channel battery / fuel / voltage / temperature block does not exist. The raw value is in 1/512ths of a percent.
-* **Timestamps** come from the 256 kHz device tick in each packet header, anchored to the selected timestamp format on the first packet and re-anchored if the device and host clocks drift more than half a second apart. Sample spacing therefore reflects the device rather than Bluetooth delivery jitter.
+* **Timestamps** come from the host arrival time of each notification, dejittered per stream by a recursive least squares fit of sample index against arrival time (as `muse-lsl` does) - the packet header carries a packet index but no device clock. Sample spacing therefore reflects the fitted sample rate rather than Bluetooth delivery jitter.
 * Starting a stream requires an ASCII command handshake (`v6`, `s`, `h`, `p1041`, `s`, then `dc001`, `dc001`, `L1`, `s`) with specific inter-command delays, rather than a single start command.
 
 Decoding matches [`muse-lsl`'s Athena support](https://github.com/alexandrebarachant/muse-lsl/pull/228), since BlueMuse is commonly used as the Windows backend for it.

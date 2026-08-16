@@ -5,22 +5,26 @@ namespace BlueMuse.Athena
 {
     /// <summary>
     /// A single primary or sub packet lifted out of a Muse S Athena notification.
-    /// Sub packets inherit the device tick of the primary packet they ride in.
+    /// Sub packets carry the packet index of the primary packet they ride in, plus
+    /// their own block index.
     /// </summary>
     public class AthenaPacket
     {
         public readonly byte Tag;
-        public readonly byte PacketIndex;
-        public readonly uint DeviceTick;
+        public readonly ushort PacketIndex;
+        public readonly byte BlockIndex;
         public readonly byte[] Payload;
 
-        public AthenaPacket(byte tag, byte packetIndex, uint deviceTick, byte[] payload)
+        public AthenaPacket(byte tag, ushort packetIndex, byte blockIndex, byte[] payload)
         {
             Tag = tag;
             PacketIndex = packetIndex;
-            DeviceTick = deviceTick;
+            BlockIndex = blockIndex;
             Payload = payload;
         }
+
+        /// <summary>Packet index and block index combined, as muse-lsl / BrainFlow number blocks.</summary>
+        public int PackageNumber { get { return (PacketIndex << 8) | BlockIndex; } }
     }
 
     /// <summary>Sensor family a packet tag belongs to.</summary>
@@ -64,11 +68,12 @@ namespace BlueMuse.Athena
     /// block per notification), Athena multiplexes every sensor onto its two data
     /// characteristics. A notification holds one or more concatenated packets:
     ///
-    ///   primary header (14 bytes): [0] total packet length, [1] packet index,
-    ///                              [2..5] device tick (uint32 LE), [9] tag
+    ///   primary header (14 bytes): [0] total packet length,
+    ///                              [1..2] packet index (uint16 LE),
+    ///                              [3..8] padding, [9] tag, [10] block index
     ///   primary payload:           length determined by the tag
     ///   then, while >= 5 bytes of the packet remain:
-    ///   sub header (5 bytes):      [0] tag, [1] sub index, [2..4] unused
+    ///   sub header (5 bytes):      [0] tag, [1] block index, [2..4] unused
     ///   sub payload:               length determined by the tag
     ///
     /// Byte [0] is authoritative for where the next packet starts.
@@ -123,9 +128,9 @@ namespace BlueMuse.Athena
                 // out rather than guess - the next notification re-syncs us.
                 if (packetLength < PRIMARY_HEADER_LENGTH || offset + packetLength > notification.Length) break;
 
-                byte packetIndex = notification[offset + 1];
-                uint deviceTick = ReadUInt32LE(notification, offset + 2);
+                ushort packetIndex = (ushort)(notification[offset + 1] | (notification[offset + 2] << 8));
                 byte primaryTag = notification[offset + 9];
+                byte primaryBlockIndex = notification[offset + 10];
 
                 int dataStart = offset + PRIMARY_HEADER_LENGTH;
                 int dataSize = packetLength - PRIMARY_HEADER_LENGTH;
@@ -138,7 +143,7 @@ namespace BlueMuse.Athena
                     if (primaryLength > dataSize) primaryLength = dataSize;
                     if (primaryLength > 0)
                     {
-                        packets.Add(new AthenaPacket(primaryTag, packetIndex, deviceTick, Slice(notification, dataStart, primaryLength)));
+                        packets.Add(new AthenaPacket(primaryTag, packetIndex, primaryBlockIndex, Slice(notification, dataStart, primaryLength)));
                         dataPos += primaryLength;
                     }
                     else dataPos = dataSize;
@@ -148,7 +153,7 @@ namespace BlueMuse.Athena
                 while (dataSize - dataPos >= SUB_HEADER_LENGTH)
                 {
                     byte subTag = notification[dataStart + dataPos];
-                    byte subIndex = notification[dataStart + dataPos + 1];
+                    byte subBlockIndex = notification[dataStart + dataPos + 1];
                     int remaining = dataSize - dataPos - SUB_HEADER_LENGTH;
 
                     var subConfig = GetSensorConfig(subTag);
@@ -157,7 +162,7 @@ namespace BlueMuse.Athena
                     int subLength = subConfig.VariableLength ? remaining : subConfig.DataLength;
                     if (subLength <= 0 || subLength > remaining) break;
 
-                    packets.Add(new AthenaPacket(subTag, subIndex, deviceTick, Slice(notification, dataStart + dataPos + SUB_HEADER_LENGTH, subLength)));
+                    packets.Add(new AthenaPacket(subTag, packetIndex, subBlockIndex, Slice(notification, dataStart + dataPos + SUB_HEADER_LENGTH, subLength)));
                     dataPos += SUB_HEADER_LENGTH + subLength;
                 }
 
@@ -165,11 +170,6 @@ namespace BlueMuse.Athena
             }
 
             return packets;
-        }
-
-        private static uint ReadUInt32LE(byte[] data, int offset)
-        {
-            return (uint)(data[offset] | (data[offset + 1] << 8) | (data[offset + 2] << 16) | (data[offset + 3] << 24));
         }
 
         private static byte[] Slice(byte[] data, int offset, int length)

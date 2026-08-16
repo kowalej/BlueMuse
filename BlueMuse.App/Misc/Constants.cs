@@ -232,9 +232,6 @@ namespace BlueMuse
         public const int MUSE_ATHENA_START_STATUS_DELAY_MILLIS = 300;
         public const int MUSE_ATHENA_START_TRAILING_DELAY_MILLIS = 200;
 
-        // Free running device tick shipped in every packet header.
-        public const double MUSE_ATHENA_TICK_RATE_HZ = 256000d;
-
         // EEG: tag 0x11, 4 channels x 4 samples per packet (tag 0x12 carries 8 channels
         // x 2 samples, of which the first 4 are the headband electrodes), 14 bit
         // unsigned over a 1450 uV full scale. Samples are centered on the midpoint,

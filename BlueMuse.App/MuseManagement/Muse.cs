@@ -59,11 +59,11 @@ namespace BlueMuse.MuseManagement
         private volatile string controlStatusBuffer = string.Empty;
         private DateTimeOffset auxLastSent;
 
-        // Muse S Athena only - command handshake driver and the device tick to host clock
-        // mapping (one per timestamp format, since each has its own time base).
+        // Muse S Athena only - command handshake driver and the per stream timestamp
+        // dejitterers (one set per timestamp format, since each has its own time base).
         private AthenaSession athenaSession;
-        private DeviceTickClock athenaClock;
-        private DeviceTickClock athenaClock2;
+        private Dictionary<string, AthenaTimestampCorrector> athenaTimestampCorrectors;
+        private Dictionary<string, AthenaTimestampCorrector> athenaTimestampCorrectors2;
 
         private volatile bool togglingStream = false;
         private volatile bool resetLocked = false;
@@ -497,8 +497,8 @@ namespace BlueMuse.MuseManagement
 
             if (start)
             {
-                athenaClock = new DeviceTickClock();
-                athenaClock2 = new DeviceTickClock();
+                athenaTimestampCorrectors = new Dictionary<string, AthenaTimestampCorrector>();
+                athenaTimestampCorrectors2 = new Dictionary<string, AthenaTimestampCorrector>();
                 athenaSession = new AthenaSession(command => WriteCommand(command, streamCharacteristics));
 
                 // Outlets must exist before the handshake: any notification can carry any
@@ -522,8 +522,8 @@ namespace BlueMuse.MuseManagement
             {
                 if (athenaSession != null) await athenaSession.Stop();
                 athenaSession = null;
-                athenaClock = null;
-                athenaClock2 = null;
+                athenaTimestampCorrectors = null;
+                athenaTimestampCorrectors2 = null;
                 FinishCloseOffStream();
                 deviceInfoTimer.Change(Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS, Constants.MUSE_DEVICE_INFO_CONTROL_REFRESH_MS); // "Resume" the timer.
             }
@@ -1391,15 +1391,17 @@ namespace BlueMuse.MuseManagement
         /// Pushes one decoded Muse S Athena packet. <paramref name="samples"/> is
         /// [sample, channel]; <paramref name="channelOffset"/> selects a window of it so
         /// the combined acc/gyro grid can feed two streams without being copied first.
+        /// Set <paramref name="dejitter"/> to false for streams that do not arrive at a
+        /// fixed rate - fitting a rate to those would misplace their samples.
         /// </summary>
-        private Task LSLPushAthenaChunk(string streamName, double[,] samples, int channelOffset, int channelCount, uint deviceTick, double sampleRate)
+        private Task LSLPushAthenaChunk(string streamName, double[,] samples, int channelOffset, int channelCount, double sampleRate, double hostTime, double hostTime2, bool dejitter = true)
         {
             int sampleCount = samples.GetLength(0);
 
-            var timestamps = AthenaTimestamps(athenaClock, timestampFormat, deviceTick, sampleCount, sampleRate);
+            var timestamps = AthenaTimestamps(dejitter ? athenaTimestampCorrectors : null, streamName, sampleCount, sampleRate, hostTime);
             var timestamps2 = timestampFormat.GetType() != timestampFormat2.GetType()
-                    ? AthenaTimestamps(athenaClock2, timestampFormat2, deviceTick, sampleCount, sampleRate)
-                    : AthenaTimestamps(athenaClock, timestampFormat, deviceTick, sampleCount, sampleRate);
+                    ? AthenaTimestamps(dejitter ? athenaTimestampCorrectors2 : null, streamName, sampleCount, sampleRate, hostTime2)
+                    : timestamps;
 
             // 2D array shape: [sampleIndex, channelIndex].
             if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
@@ -1434,18 +1436,32 @@ namespace BlueMuse.MuseManagement
         }
 
         /// <summary>
-        /// Unlike the legacy streams, which back-date samples from the arrival time,
-        /// Athena stamps every packet with a device tick. Sample spacing therefore comes
-        /// from the device rather than from Bluetooth delivery jitter.
+        /// Athena's packet header has no device clock, so timestamps come from the host
+        /// arrival time. Each stream keeps its own dejitterer, which spaces samples by
+        /// the fitted sample rate instead of by Bluetooth delivery jitter - the same
+        /// approach muse-lsl takes. Notifications can arrive on two characteristics at
+        /// once, hence the lock.
         /// </summary>
-        private double[] AthenaTimestamps(DeviceTickClock clock, ITimestampFormat format, uint deviceTick, int sampleCount, double sampleRate)
+        private double[] AthenaTimestamps(Dictionary<string, AthenaTimestampCorrector> correctors, string streamName, int sampleCount, double sampleRate, double hostTime)
         {
-            double packetTimestamp = clock.PacketTimestamp(deviceTick, format.GetNow());
-            double[] timestamps = new double[sampleCount];
-            for (int i = 0; i < sampleCount; i++)
+            if (correctors != null)
             {
-                timestamps[i] = packetTimestamp + (i / sampleRate);
+                lock (correctors)
+                {
+                    AthenaTimestampCorrector corrector;
+                    if (!correctors.TryGetValue(streamName, out corrector))
+                    {
+                        corrector = new AthenaTimestampCorrector(sampleRate, hostTime);
+                        correctors.Add(streamName, corrector);
+                    }
+                    return corrector.Timestamps(sampleCount, hostTime);
+                }
             }
+
+            // Not dejittered (or the stream was torn down mid-packet) - space the samples
+            // out from the arrival time.
+            double[] timestamps = new double[sampleCount];
+            for (int i = 0; i < sampleCount; i++) timestamps[i] = hostTime + (i / sampleRate);
             return timestamps;
         }
 
@@ -1454,6 +1470,11 @@ namespace BlueMuse.MuseManagement
             if (!isStreaming) return;
             try
             {
+                // Every block in this notification shares its arrival time; the
+                // dejitterers turn that into evenly spaced per-sample timestamps.
+                double hostTime = timestampFormat.GetNow();
+                double hostTime2 = timestampFormat.GetType() != timestampFormat2.GetType() ? timestampFormat2.GetNow() : hostTime;
+
                 foreach (var packet in AthenaPacketParser.Parse(args.CharacteristicValue.ToArray()))
                 {
                     var config = AthenaPacketParser.GetSensorConfig(packet.Tag);
@@ -1470,7 +1491,7 @@ namespace BlueMuse.MuseManagement
                             if (!isEEGEnabled) break;
                             await LSLPushAthenaChunk(EEGStreamName,
                                 AthenaDecoders.DecodeEEG(packet.Payload, config.ChannelCount, config.SampleCount),
-                                0, eegChannelCount, packet.DeviceTick, config.SampleRate);
+                                0, eegChannelCount, config.SampleRate, hostTime, hostTime2);
                             break;
 
                         case AthenaSensorType.AccelerometerGyroscope:
@@ -1479,12 +1500,12 @@ namespace BlueMuse.MuseManagement
                             if (isAccelerometerEnabled)
                             {
                                 await LSLPushAthenaChunk(AccelerometerStreamName, imu,
-                                    0, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_ACCELEROMETER_SAMPLE_RATE);
+                                    0, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT, Constants.MUSE_ACCELEROMETER_SAMPLE_RATE, hostTime, hostTime2);
                             }
                             if (isGyroscopeEnabled)
                             {
                                 await LSLPushAthenaChunk(GyroscopeStreamName, imu,
-                                    Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_GYROSCOPE_SAMPLE_RATE);
+                                    Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT, Constants.MUSE_GYROSCOPE_SAMPLE_RATE, hostTime, hostTime2);
                             }
                             break;
 
@@ -1495,9 +1516,11 @@ namespace BlueMuse.MuseManagement
                             if (!isPPGEnabled) break;
                             await LSLPushAthenaChunk(PPGStreamName,
                                 AthenaDecoders.DecodeOptics(packet.Payload, packet.Tag, config.ChannelCount, config.SampleCount),
-                                0, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, packet.DeviceTick, config.SampleRate);
+                                0, Constants.MUSE_ATHENA_OPTICS_CHANNEL_COUNT, config.SampleRate, hostTime, hostTime2);
                             break;
 
+                        // Battery arrives irregularly rather than at a fixed rate, so it
+                        // is stamped with its arrival time instead of being dejittered.
                         case AthenaSensorType.Battery:
                             if (packet.Payload.Length < 2) break;
                             double batteryPercent = AthenaDecoders.DecodeBatteryPercent(packet.Payload);
@@ -1507,7 +1530,7 @@ namespace BlueMuse.MuseManagement
                                 double[,] battery = new double[Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT];
                                 battery[0, 0] = batteryPercent;
                                 await LSLPushAthenaChunk(TelemetryStreamName, battery,
-                                    0, Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT, packet.DeviceTick, Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_RATE);
+                                    0, Constants.MUSE_ATHENA_TELEMETRY_CHANNEL_COUNT, Constants.MUSE_ATHENA_TELEMETRY_SAMPLE_RATE, hostTime, hostTime2, dejitter: false);
                             }
                             break;
 

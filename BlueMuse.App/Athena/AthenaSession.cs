@@ -79,54 +79,62 @@ namespace BlueMuse.Athena
     }
 
     /// <summary>
-    /// Turns Athena's free running 32-bit device tick into host timestamps.
+    /// Smooth, host anchored timestamps for one fixed rate Athena stream.
     ///
-    /// The first packet anchors the tick against the host clock and subsequent
-    /// packets are placed relative to that anchor, which keeps the spacing between
-    /// packets true to the device instead of to Bluetooth delivery jitter. The
-    /// device oscillator is not the host oscillator though, so the anchor is
-    /// re-taken whenever prediction and host clock disagree by more than
-    /// <see cref="ResyncThresholdSeconds"/> - without that the two drift apart over
-    /// a long session.
+    /// Athena's packet header carries a packet index but no device clock, so
+    /// timestamps come from the host arrival time - the same place the legacy
+    /// streams get theirs. Rather than back-date every packet from its own arrival
+    /// time (which stamps Bluetooth delivery jitter onto the samples), a recursive
+    /// least squares fit maps a monotonic sample index onto host time, tracking the
+    /// real sample rate as it drifts. This mirrors muse-lsl's RLSTimestampCorrector
+    /// and the dejittering the legacy muse-lsl EEG path uses.
+    ///
+    /// Athena multiplexes several streams at different rates onto one
+    /// characteristic, so each stream needs its own corrector.
     /// </summary>
-    public class DeviceTickClock
+    public class AthenaTimestampCorrector
     {
-        /// <summary>Tunable: how far prediction may drift from the host clock before re-anchoring.</summary>
-        public double ResyncThresholdSeconds = 0.5d;
+        private readonly double intercept; // Host time of sample index 0.
+        private double slope;              // Seconds per sample, refit on every packet.
+        private double p = 1e-4d;
+        private long sampleIndex;
 
-        private bool anchored;
-        private uint anchorTick;
-        private double anchorHost;
-
-        public void Anchor(uint deviceTick, double hostTime)
+        public AthenaTimestampCorrector(double sampleRate, double hostTime)
         {
-            anchorTick = deviceTick;
-            anchorHost = hostTime;
-            anchored = true;
+            if (sampleRate <= 0d) throw new ArgumentOutOfRangeException(nameof(sampleRate), "sampleRate must be > 0");
+            intercept = hostTime;
+            slope = 1d / sampleRate;
         }
 
         /// <summary>
-        /// Host time of the first sample in the packet carrying
-        /// <paramref name="deviceTick"/>. <paramref name="hostTime"/> is "now" in the
-        /// same format, used to anchor and to bound drift.
+        /// Consumes the next <paramref name="sampleCount"/> sample indices, refits
+        /// against the packet's host arrival time and returns their timestamps.
         /// </summary>
-        public double PacketTimestamp(uint deviceTick, double hostTime)
+        public double[] Timestamps(int sampleCount, double hostTime)
         {
-            if (!anchored)
-            {
-                Anchor(deviceTick, hostTime);
-                return hostTime;
-            }
+            if (sampleCount < 1) throw new ArgumentOutOfRangeException(nameof(sampleCount), "sampleCount must be >= 1");
 
-            uint elapsedTicks = unchecked(deviceTick - anchorTick); // Wraps modulo 2^32, as the device does.
-            double predicted = anchorHost + (elapsedTicks / Constants.MUSE_ATHENA_TICK_RATE_HZ);
+            var indices = new double[sampleCount];
+            for (int i = 0; i < sampleCount; i++) indices[i] = sampleIndex + i;
+            sampleIndex += sampleCount;
 
-            if (Math.Abs(hostTime - predicted) > ResyncThresholdSeconds)
-            {
-                Anchor(deviceTick, hostTime);
-                return hostTime;
-            }
-            return predicted;
+            Update(indices[sampleCount - 1], hostTime);
+
+            var timestamps = new double[sampleCount];
+            for (int i = 0; i < sampleCount; i++) timestamps[i] = (slope * indices[i]) + intercept;
+            return timestamps;
+        }
+
+        /// <summary>Recursive least squares step, as in muse-lsl's _update_timestamp_correction.</summary>
+        private void Update(double sourceIndex, double receiverTime)
+        {
+            receiverTime -= intercept;
+            double sourceSquared = sourceIndex * sourceIndex;
+            double denominator = 1d - (p * sourceSquared);
+            if (denominator == 0d) return; // Degenerate fit - keep the previous slope.
+
+            p = p - (((p * p) * sourceSquared) / denominator);
+            slope = slope + (p * sourceIndex * (receiverTime - (sourceIndex * slope)));
         }
     }
 }

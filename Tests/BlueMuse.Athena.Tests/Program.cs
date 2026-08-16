@@ -9,7 +9,7 @@ namespace BlueMuse.Athena.Tests
     /// <summary>
     /// Asserts the Muse S Athena wire format against the protocol reference: bit
     /// ordering, scale factors, gyroscope sign, packet framing, command framing and
-    /// device tick timestamps. These are the parts that fail silently on real
+    /// timestamp dejittering. These are the parts that fail silently on real
     /// hardware - a wrong bit order still produces plausible looking numbers.
     /// </summary>
     public static class Program
@@ -31,8 +31,8 @@ namespace BlueMuse.Athena.Tests
             SensorConfigMatchesProtocolTable();
             CommandFramingMatchesProtocol();
             SessionEmitsInitThenStartSequence();
-            TickClockMapsTicksToSecondsAndWraps();
-            TickClockReanchorsOnDrift();
+            TimestampCorrectorSpacesSamplesByRate();
+            TimestampCorrectorTracksTheRealSampleRate();
 
             Console.WriteLine(failures == 0 ? "PASS - all Athena protocol checks green." : $"FAIL - {failures} check(s) failed.");
             return failures == 0 ? 0 : 1;
@@ -154,40 +154,42 @@ namespace BlueMuse.Athena.Tests
             var eeg = Fill(28, 0x11);
             var imu = Fill(36, 0x47);
             var packet = Concat(
-                PrimaryHeader(14 + 28 + 5 + 36, packetIndex: 7, deviceTick: 123456, tag: 0x11),
+                PrimaryHeader(14 + 28 + 5 + 36, packetIndex: 700, blockIndex: 3, tag: 0x11),
                 eeg,
-                SubHeader(0x47, subIndex: 2),
+                SubHeader(0x47, blockIndex: 2),
                 imu);
 
             var packets = AthenaPacketParser.Parse(packet);
             Check(packets.Count == 2, "primary + one sub packet");
-            Check(packets[0].Tag == 0x11 && packets[0].PacketIndex == 7, "primary tag/index");
-            Check(packets[0].DeviceTick == 123456u, "device tick decoded LE");
+            Check(packets[0].Tag == 0x11, "primary tag");
+            // The packet index is a uint16 LE at bytes 1-2, so it must survive past 255.
+            Check(packets[0].PacketIndex == 700 && packets[0].BlockIndex == 3, "primary index/block");
+            Check(packets[0].PackageNumber == ((700 << 8) | 3), "primary package number");
             Check(packets[0].Payload.SequenceEqual(eeg), "primary payload");
-            Check(packets[1].Tag == 0x47 && packets[1].PacketIndex == 2, "sub tag/index");
-            Check(packets[1].DeviceTick == 123456u, "sub packet inherits primary tick");
+            Check(packets[1].Tag == 0x47 && packets[1].BlockIndex == 2, "sub tag/block");
+            Check(packets[1].PacketIndex == 700, "sub packet inherits the packet index");
             Check(packets[1].Payload.SequenceEqual(imu), "sub payload");
         }
 
         private static void ParserWalksConcatenatedPackets()
         {
-            var first = Concat(PrimaryHeader(14 + 36, 1, 1000, 0x47), Fill(36, 0xAA));
-            var second = Concat(PrimaryHeader(14 + 28, 2, 2000, 0x11), Fill(28, 0xBB));
+            var first = Concat(PrimaryHeader(14 + 36, 1, 0, 0x47), Fill(36, 0xAA));
+            var second = Concat(PrimaryHeader(14 + 28, 2, 0, 0x11), Fill(28, 0xBB));
 
             var packets = AthenaPacketParser.Parse(Concat(first, second));
             Check(packets.Count == 2, "two concatenated packets");
-            Check(packets[0].DeviceTick == 1000u && packets[1].DeviceTick == 2000u, "per-packet ticks");
+            Check(packets[0].PacketIndex == 1 && packets[1].PacketIndex == 2, "per-packet indices");
             Check(packets[1].Tag == 0x11, "second packet tag");
         }
 
         private static void ParserStopsOnMalformedLength()
         {
             // Length claims more bytes than the notification holds.
-            var truncated = Concat(PrimaryHeader(200, 1, 1, 0x11), Fill(20, 0));
+            var truncated = Concat(PrimaryHeader(200, 1, 0, 0x11), Fill(20, 0));
             Check(AthenaPacketParser.Parse(truncated).Count == 0, "over-long length bails out");
 
             // Length below the header size.
-            var runt = Concat(PrimaryHeader(3, 1, 1, 0x11), Fill(20, 0));
+            var runt = Concat(PrimaryHeader(3, 1, 0, 0x11), Fill(20, 0));
             Check(AthenaPacketParser.Parse(runt).Count == 0, "undersized length bails out");
 
             Check(AthenaPacketParser.Parse(new byte[5]).Count == 0, "notification shorter than a header");
@@ -196,7 +198,7 @@ namespace BlueMuse.Athena.Tests
         private static void ParserGivesVariableLengthTagsTheRemainder()
         {
             // 0x88 has no fixed size - it takes whatever is left in the packet.
-            var packet = Concat(PrimaryHeader(14 + 4, 1, 1, 0x88), new byte[] { 0x00, 0x63, 0x00, 0x00 });
+            var packet = Concat(PrimaryHeader(14 + 4, 1, 0, 0x88), new byte[] { 0x00, 0x63, 0x00, 0x00 });
             var packets = AthenaPacketParser.Parse(packet);
             Check(packets.Count == 1 && packets[0].Payload.Length == 4, "0x88 consumes the packet remainder");
             CheckClose(AthenaDecoders.DecodeBatteryPercent(packets[0].Payload), 49.5d, "battery via parser");
@@ -205,10 +207,10 @@ namespace BlueMuse.Athena.Tests
         private static void ParserDropsUnknownTags()
         {
             // An unknown tag has no length, so nothing after it can be framed.
-            var unknownPrimary = Concat(PrimaryHeader(14 + 10, 1, 1, 0x77), Fill(10, 0));
+            var unknownPrimary = Concat(PrimaryHeader(14 + 10, 1, 0, 0x77), Fill(10, 0));
             Check(AthenaPacketParser.Parse(unknownPrimary).Count == 0, "unknown primary tag yields no packets");
 
-            var unknownSub = Concat(PrimaryHeader(14 + 28 + 5 + 10, 1, 1, 0x11), Fill(28, 0), SubHeader(0x77, 1), Fill(10, 0));
+            var unknownSub = Concat(PrimaryHeader(14 + 28 + 5 + 10, 1, 0, 0x11), Fill(28, 0), SubHeader(0x77, 1), Fill(10, 0));
             var packets = AthenaPacketParser.Parse(unknownSub);
             Check(packets.Count == 1 && packets[0].Tag == 0x11, "unknown sub tag stops the sub packet walk");
         }
@@ -272,35 +274,56 @@ namespace BlueMuse.Athena.Tests
             Check(sent.Contains("p50") && !sent.Contains("p1041"), "explicit preset overrides the default");
         }
 
-        private static void TickClockMapsTicksToSecondsAndWraps()
+        private static void TimestampCorrectorSpacesSamplesByRate()
         {
-            var clock = new DeviceTickClock();
+            // First packet: sample 0 lands on the corrector's anchor, and samples are
+            // spaced by the nominal rate until the fit has something to learn from.
+            var corrector = new AthenaTimestampCorrector(256d, 1000d);
+            var first = corrector.Timestamps(4, 1000d);
+            Check(first.Length == 4, "one timestamp per sample");
+            CheckClose(first[0], 1000d, "first sample anchors to the first host time");
+            CheckNear(first[3] - first[0], 3d / 256d, 1e-4d, "samples spaced by the sample rate");
 
-            // First packet anchors: its timestamp is the host clock exactly.
-            CheckClose(clock.PacketTimestamp(1000, 500d), 500d, "first packet anchors to host");
+            // Indices keep advancing across packets, so packet two continues where
+            // packet one stopped rather than restarting at the arrival time.
+            var second = corrector.Timestamps(4, 1000.02d);
+            Check(second[0] > first[3], "sample indices advance across packets");
+            CheckNear(second[0] - first[3], second[1] - second[0], 1e-4d, "packet boundary keeps the sample spacing");
 
-            // One second of ticks later. Host clock agrees, so the tick prediction stands.
-            CheckClose(clock.PacketTimestamp(1000 + 256000, 501d), 501d, "256000 ticks == 1 second");
-
-            // A quarter second of ticks, with the host clock jittered inside the resync
-            // threshold - the device spacing wins over the jitter.
-            CheckClose(clock.PacketTimestamp(1000 + 320000, 501.3d), 501.25d, "device spacing beats host jitter");
-
-            // Tick counter wraps past 2^32 - the delta must stay small and positive.
-            var wrapping = new DeviceTickClock();
-            wrapping.PacketTimestamp(uint.MaxValue - 127999, 10d);
-            CheckClose(wrapping.PacketTimestamp(128000, 10.9d), 11d, "tick wraparound is modulo 2^32");
+            Throws(() => new AthenaTimestampCorrector(0d, 0d), "non-positive sample rate");
+            Throws(() => corrector.Timestamps(0, 1000d), "zero sample count");
         }
 
-        private static void TickClockReanchorsOnDrift()
+        private static void TimestampCorrectorTracksTheRealSampleRate()
         {
-            var clock = new DeviceTickClock { ResyncThresholdSeconds = 0.5d };
-            clock.PacketTimestamp(0, 100d);
+            // A device running 1% slow: arrivals are 4 samples apart at 253.44 Hz while
+            // the nominal rate says 256 Hz. The fit has to follow the arrivals, not the
+            // nominal rate, or the stream drifts away from the host clock for good.
+            const double nominalRate = 256d;
+            const double realRate = 256d / 1.01d;
+            var corrector = new AthenaTimestampCorrector(nominalRate, 0d);
 
-            // Device tick says +1s, host says +5s: past the threshold, so trust the host
-            // and re-anchor. Without this the two clocks drift apart over a long session.
-            CheckClose(clock.PacketTimestamp(256000, 105d), 105d, "drift beyond threshold re-anchors");
-            CheckClose(clock.PacketTimestamp(256000 + 256000, 106d), 106d, "prediction resumes from the new anchor");
+            double[] timestamps = null;
+            for (int packet = 0; packet < 2000; packet++)
+            {
+                // Arrival jitters +/- 5 ms around the true packet time.
+                double jitter = ((packet % 3) - 1) * 0.005d;
+                timestamps = corrector.Timestamps(4, ((packet + 1) * 4 / realRate) + jitter);
+            }
+
+            double spacing = timestamps[1] - timestamps[0];
+            Check(Math.Abs(spacing - (1d / realRate)) < Math.Abs((1d / nominalRate) - (1d / realRate)) / 10d,
+                $"fitted spacing converges on the real sample rate (got {spacing}, want {1d / realRate})");
+
+            // Jitter is smoothed out: samples stay evenly spaced regardless of arrival.
+            for (int i = 1; i < timestamps.Length; i++)
+            {
+                CheckClose(timestamps[i] - timestamps[i - 1], spacing, $"even spacing at sample {i}");
+            }
+
+            // And the dejittered timestamps stay pinned to the host clock rather than
+            // sliding away from it.
+            Check(Math.Abs(timestamps[timestamps.Length - 1] - (2000 * 4 / realRate)) < 0.05d, "output tracks host time");
         }
 
         // --- Helpers --------------------------------------------------------
@@ -315,6 +338,11 @@ namespace BlueMuse.Athena.Tests
         private static void CheckClose(double actual, double expected, string what)
         {
             Check(Math.Abs(actual - expected) < 1e-9, $"{what} (expected {expected}, got {actual})");
+        }
+
+        private static void CheckNear(double actual, double expected, double tolerance, string what)
+        {
+            Check(Math.Abs(actual - expected) < tolerance, $"{what} (expected {expected} +/- {tolerance}, got {actual})");
         }
 
         private static void Throws(Action action, string what)
@@ -360,22 +388,20 @@ namespace BlueMuse.Athena.Tests
             return bytes;
         }
 
-        private static byte[] PrimaryHeader(int packetLength, byte packetIndex, uint deviceTick, byte tag)
+        private static byte[] PrimaryHeader(int packetLength, ushort packetIndex, byte blockIndex, byte tag)
         {
             var header = new byte[14];
             header[0] = (byte)packetLength;
-            header[1] = packetIndex;
-            header[2] = (byte)(deviceTick & 0xFF);
-            header[3] = (byte)((deviceTick >> 8) & 0xFF);
-            header[4] = (byte)((deviceTick >> 16) & 0xFF);
-            header[5] = (byte)((deviceTick >> 24) & 0xFF);
+            header[1] = (byte)(packetIndex & 0xFF);
+            header[2] = (byte)((packetIndex >> 8) & 0xFF);
             header[9] = tag;
+            header[10] = blockIndex;
             return header;
         }
 
-        private static byte[] SubHeader(byte tag, byte subIndex)
+        private static byte[] SubHeader(byte tag, byte blockIndex)
         {
-            return new byte[5] { tag, subIndex, 0, 0, 0 };
+            return new byte[5] { tag, blockIndex, 0, 0, 0 };
         }
 
         private static byte[] Fill(int length, byte value)
