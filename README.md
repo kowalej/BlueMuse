@@ -1,6 +1,7 @@
 # BlueMuse
 * Windows app to stream data from Muse EEG headsets via LSL (Lab Streaming Layer).
 
+
 # Features
 * Auto detects Muse headsets and provides a visual interface to manage streams.
 * Supports Muse 2016, Muse 2, Muse S, Muse S Athena, and Smith Lowdown Focus glasses (device models are auto detected).
@@ -10,6 +11,7 @@
 * LSL streams in 64-bit or 32-bit.
 * Shows latest timestamp received and the current sample rate for each stream.
 * Protocol control from Command Line / PowerShell.
+
 
 # Screenshots
 ![Screenshots of BlueMuse Desktop App, Main Page and List Items](./screenshots.png "Screenshots")
@@ -96,6 +98,7 @@ Toggle "always pair":
  start bluemuse://setting?key=always_pair!value=<true|false>
 ```
 
+
 # Installation
 > **NOTE:** As of version 2.5.0.0 (the .NET 10 / WinUI 3 modernization), BlueMuse is now a single self-contained
 > MSIX-packaged application (the separate "LSL Bridge" Win32 process used in 2.4.0.0 and earlier has been merged
@@ -113,7 +116,7 @@ containing the `.msix`, the signing `.cer`, a `Dependencies` folder (with the re
 `Microsoft.WindowsAppRuntime.2.msix` per CPU architecture), and PowerShell installer scripts.
 
 #### Auto Install (Recommended)
-1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases)** matching your architecture and unzip it.
+1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases/tag/v2.5.0.0)** matching your architecture and unzip it.
 2. Right-click `InstallBlueMuse.ps1` and choose **Run with PowerShell** (this removes any previously installed
    BlueMuse package first, then runs `Install.ps1`). Alternatively, run `Install.ps1` or `Add-AppDevPackage.ps1`
    directly if you don't need the old version removed automatically.
@@ -143,6 +146,7 @@ If you run into issues with Developer Mode or PowerShell execution policy during
 ### Microsoft Store (Possible In Future)
 A Microsoft Store listing is being evaluated for a future release, which would remove the need for manual
 certificate/sideload steps entirely. This section will be updated if a store link becomes available.
+
 
 # Versions
 ### Latest
