@@ -2,7 +2,10 @@
 
 Full version history for BlueMuse. See the [README](./README.md) for current features, installation, and usage instructions.
 
-## 2.5.0.0 (stable)
+## 3.0.0.0
+* Muse S Athena support.
+
+## 2.5.0.0
 * Modernized to .NET 10 / WinUI 3, converted to SDK-style project.
 * Merged the separate "LSL Bridge" Win32 process directly into the main app (single-process architecture,
   see [Architecture](./README.md#architecture)).
@@ -13,13 +16,10 @@ Full version history for BlueMuse. See the [README](./README.md) for current fea
   and connection churn) via reentrancy guards and per-device GATT serialization.
 * Window size is now persisted between launches, and the window/taskbar title correctly shows "BlueMuse".
 
-## 2.4.0.0 (stable)
+## 2.4.0.0
 * Misc package updates.
 	* Support Windows 11.
 	* Last release built on UWP before the .NET 10 / WinUI 3 modernization (see 2.5.0.0 above).
-
-## Older
-*Note: version 2.0.0.0 and older are available in the [DistArchived folder](https://github.com/kowalej/BlueMuse/tree/master/DistArchived). Version 2.0.0.0 and above are published to the [releases page](https://github.com/kowalej/BlueMuse/releases).*
 
 ### 2.3.0.0
 * AUX supported on Muse 2.

@@ -146,6 +146,8 @@ certificate/sideload steps entirely. This section will be updated if a store lin
 
 # Versions
 ### Latest
+* 3.0.0.0 (beta)
+	* Muse S Athena support.
 * 2.5.0.0 (stable)
 	* Modernized to .NET 10 / WinUI 3, converted to SDK-style project.
 	* Merged the separate "LSL Bridge" Win32 process directly into the main app (single-process architecture,
