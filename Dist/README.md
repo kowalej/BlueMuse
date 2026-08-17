@@ -1,2 +1,0 @@
-- Please see the [Installation Guide](https://github.com/kowalej/BlueMuse?tab=readme-ov-file#installation)
-- Releases can be found at [https://github.com/kowalej/BlueMuse/releases](https://github.com/kowalej/BlueMuse/releases)
