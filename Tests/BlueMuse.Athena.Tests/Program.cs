@@ -1,0 +1,427 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using BlueMuse.Athena;
+
+namespace BlueMuse.Athena.Tests
+{
+    /// <summary>
+    /// Asserts the Muse S Athena wire format against the protocol reference: bit
+    /// ordering, scale factors, gyroscope sign, packet framing, command framing and
+    /// timestamp dejittering. These are the parts that fail silently on real
+    /// hardware - a wrong bit order still produces plausible looking numbers.
+    /// </summary>
+    public static class Program
+    {
+        private static int failures;
+
+        public static int Main()
+        {
+            ExtractLsbBitsReadsLeastSignificantBitFirst();
+            EegDecodesUnsigned14BitLsbFirstToMicrovolts();
+            AccGyroSplitsSixChannelsAndNegatesGyroscope();
+            OpticsDecodesUnsigned20BitLsbFirstRawCounts();
+            BatteryDecodesUint16LeOver512();
+            ParserWalksPrimaryAndSubPackets();
+            ParserWalksConcatenatedPackets();
+            ParserStopsOnMalformedLength();
+            ParserGivesVariableLengthTagsTheRemainder();
+            ParserDropsUnknownTags();
+            SensorConfigMatchesProtocolTable();
+            CommandFramingMatchesProtocol();
+            SessionEmitsInitThenStartSequence();
+            TimestampCorrectorSpacesSamplesByRate();
+            TimestampCorrectorTracksTheRealSampleRate();
+
+            Console.WriteLine(failures == 0 ? "PASS - all Athena protocol checks green." : $"FAIL - {failures} check(s) failed.");
+            return failures == 0 ? 0 : 1;
+        }
+
+        // --- Checks ---------------------------------------------------------
+
+        private static void ExtractLsbBitsReadsLeastSignificantBitFirst()
+        {
+            // 0b1010_0101 = 0xA5. Low nibble read first is 0x5, next nibble 0xA.
+            var data = new byte[] { 0xA5, 0x00 };
+            Check(AthenaDecoders.ExtractLsbBits(data, 0, 4) == 0x5u, "LSB nibble");
+            Check(AthenaDecoders.ExtractLsbBits(data, 4, 4) == 0xAu, "MSB nibble");
+
+            // A field straddling a byte boundary takes its low bits from the earlier byte.
+            var straddle = new byte[] { 0xFF, 0x01 };
+            Check(AthenaDecoders.ExtractLsbBits(straddle, 4, 8) == 0x1Fu, "cross-byte field");
+
+            Throws(() => AthenaDecoders.ExtractLsbBits(new byte[1], 0, 9), "read past end of buffer");
+        }
+
+        private static void EegDecodesUnsigned14BitLsbFirstToMicrovolts()
+        {
+            const int channels = 4, samples = 4;
+            // Distinct raw per (sample, channel) so a transposed layout can't pass.
+            var fields = new List<(int, uint)>();
+            for (int s = 0; s < samples; s++)
+                for (int c = 0; c < channels; c++)
+                    fields.Add((14, (uint)(s * 100 + c)));
+
+            var payload = PackLsb(fields);
+            Check(payload.Length == 28, "0x11 payload is 28 bytes");
+
+            var decoded = AthenaDecoders.DecodeEEG(payload, channels, samples);
+            for (int s = 0; s < samples; s++)
+                for (int c = 0; c < channels; c++)
+                    CheckClose(decoded[s, c], ((s * 100 + c) - 8192) * (1450d / 16383d), $"eeg[{s},{c}]");
+
+            // Offset binary: the midpoint is zero, the ends are the signed extremes.
+            var extremes = PackLsb(Enumerable.Repeat((14, 16383u), 16).ToList());
+            CheckClose(AthenaDecoders.DecodeEEG(extremes, channels, samples)[0, 0], (16383 - 8192) * (1450d / 16383d), "eeg full scale");
+            CheckClose(AthenaDecoders.DecodeEEG(new byte[28], channels, samples)[0, 0], -8192 * (1450d / 16383d), "eeg zero raw is negative full scale");
+            var midpoint = PackLsb(Enumerable.Repeat((14, 8192u), 16).ToList());
+            CheckClose(AthenaDecoders.DecodeEEG(midpoint, channels, samples)[0, 0], 0d, "eeg midpoint is zero");
+
+            // 0x12 packs eight channels of two samples into the same 28 bytes.
+            var eightChannel = PackLsb(Enumerable.Range(0, 16).Select(i => (14, (uint)i)).ToList());
+            Check(eightChannel.Length == 28, "0x12 payload is 28 bytes");
+            var wide = AthenaDecoders.DecodeEEG(eightChannel, 8, 2);
+            CheckClose(wide[1, 3], (11 - 8192) * (1450d / 16383d), "eeg 8 channel layout is sample-major");
+        }
+
+        private static void AccGyroSplitsSixChannelsAndNegatesGyroscope()
+        {
+            // Per sample: [ax, ay, az, gx, gy, gz], int16 LE.
+            var raws = new short[]
+            {
+                1, 2, 3, 1000, -1000, 4,
+                -1, -2, -3, 5, 6, 7,
+                100, 200, 300, 8, 9, 10,
+            };
+            var decoded = AthenaDecoders.DecodeAccelerometerGyroscope(Int16Le(raws));
+
+            for (int s = 0; s < 3; s++)
+            {
+                for (int c = 0; c < 6; c++)
+                {
+                    double scale = c < 3 ? 0.0000610352d : -0.0074768d;
+                    CheckClose(decoded[s, c], raws[s * 6 + c] * scale, $"imu[{s},{c}]");
+                }
+            }
+
+            // The gyroscope scale is negated relative to the legacy headbands - the one
+            // difference most likely to be missed, so pin the sign explicitly.
+            Check(decoded[0, 3] < 0, "positive gyro raw decodes negative");
+            Check(decoded[0, 4] > 0, "negative gyro raw decodes positive");
+            Check(decoded[0, 0] > 0, "positive accel raw stays positive");
+
+            Throws(() => AthenaDecoders.DecodeAccelerometerGyroscope(new byte[35]), "short IMU payload");
+        }
+
+        private static void OpticsDecodesUnsigned20BitLsbFirstRawCounts()
+        {
+            var fields = Enumerable.Range(0, 16).Select(i => (20, (uint)(i * 1000))).ToList();
+            var payload = PackLsb(fields);
+            Check(payload.Length == 40, "0x36 payload is 40 bytes");
+
+            var decoded = AthenaDecoders.DecodeOptics(payload, 0x36, 16, 1);
+            for (int c = 0; c < 16; c++) CheckClose(decoded[0, c], c * 1000, $"optics[{c}]");
+
+            // 20 bits is unsigned - the top of the range must not come back negative.
+            var max = PackLsb(Enumerable.Repeat((20, 0xFFFFFu), 16).ToList());
+            CheckClose(AthenaDecoders.DecodeOptics(max, 0x36, 16, 1)[0, 0], 1048575d, "optics full scale");
+
+            // 0x35 carries the first eight canonical channels, 0x34 carries channels 4..7,
+            // and both widen to the same 16 channel grid with the rest left at zero.
+            var eight = PackLsb(Enumerable.Range(0, 16).Select(i => (20, (uint)(i + 1))).ToList());
+            var eightDecoded = AthenaDecoders.DecodeOptics(eight, 0x35, 8, 2);
+            CheckClose(eightDecoded[1, 0], 9d, "0x35 is sample-major");
+            CheckClose(eightDecoded[0, 8], 0d, "0x35 leaves channels 8..15 empty");
+
+            var four = PackLsb(Enumerable.Range(0, 12).Select(i => (20, (uint)(i + 1))).ToList());
+            Check(four.Length == 30, "0x34 payload is 30 bytes");
+            var fourDecoded = AthenaDecoders.DecodeOptics(four, 0x34, 4, 3);
+            CheckClose(fourDecoded[0, 4], 1d, "0x34 channel 0 maps to canonical 4");
+            CheckClose(fourDecoded[2, 7], 12d, "0x34 channel 3 maps to canonical 7");
+            CheckClose(fourDecoded[0, 0], 0d, "0x34 leaves channels 0..3 empty");
+        }
+
+        private static void BatteryDecodesUint16LeOver512()
+        {
+            CheckClose(AthenaDecoders.DecodeBatteryPercent(new byte[] { 0x00, 0x02 }), 1d, "battery 1% (512 counts)");
+            CheckClose(AthenaDecoders.DecodeBatteryPercent(new byte[] { 0x00, 0xC8 }), 100d, "battery 100% (51200 counts)");
+            Throws(() => AthenaDecoders.DecodeBatteryPercent(new byte[1]), "short battery payload");
+        }
+
+        private static void ParserWalksPrimaryAndSubPackets()
+        {
+            var eeg = Fill(28, 0x11);
+            var imu = Fill(36, 0x47);
+            var packet = Concat(
+                PrimaryHeader(14 + 28 + 5 + 36, packetIndex: 700, blockIndex: 3, tag: 0x11),
+                eeg,
+                SubHeader(0x47, blockIndex: 2),
+                imu);
+
+            var packets = AthenaPacketParser.Parse(packet);
+            Check(packets.Count == 2, "primary + one sub packet");
+            Check(packets[0].Tag == 0x11, "primary tag");
+            // The packet index is a uint16 LE at bytes 1-2, so it must survive past 255.
+            Check(packets[0].PacketIndex == 700 && packets[0].BlockIndex == 3, "primary index/block");
+            Check(packets[0].PackageNumber == ((700 << 8) | 3), "primary package number");
+            Check(packets[0].Payload.SequenceEqual(eeg), "primary payload");
+            Check(packets[1].Tag == 0x47 && packets[1].BlockIndex == 2, "sub tag/block");
+            Check(packets[1].PacketIndex == 700, "sub packet inherits the packet index");
+            Check(packets[1].Payload.SequenceEqual(imu), "sub payload");
+        }
+
+        private static void ParserWalksConcatenatedPackets()
+        {
+            var first = Concat(PrimaryHeader(14 + 36, 1, 0, 0x47), Fill(36, 0xAA));
+            var second = Concat(PrimaryHeader(14 + 28, 2, 0, 0x11), Fill(28, 0xBB));
+
+            var packets = AthenaPacketParser.Parse(Concat(first, second));
+            Check(packets.Count == 2, "two concatenated packets");
+            Check(packets[0].PacketIndex == 1 && packets[1].PacketIndex == 2, "per-packet indices");
+            Check(packets[1].Tag == 0x11, "second packet tag");
+        }
+
+        private static void ParserStopsOnMalformedLength()
+        {
+            // Length claims more bytes than the notification holds.
+            var truncated = Concat(PrimaryHeader(200, 1, 0, 0x11), Fill(20, 0));
+            Check(AthenaPacketParser.Parse(truncated).Count == 0, "over-long length bails out");
+
+            // Length below the header size.
+            var runt = Concat(PrimaryHeader(3, 1, 0, 0x11), Fill(20, 0));
+            Check(AthenaPacketParser.Parse(runt).Count == 0, "undersized length bails out");
+
+            Check(AthenaPacketParser.Parse(new byte[5]).Count == 0, "notification shorter than a header");
+        }
+
+        private static void ParserGivesVariableLengthTagsTheRemainder()
+        {
+            // 0x88 has no fixed size - it takes whatever is left in the packet.
+            var packet = Concat(PrimaryHeader(14 + 4, 1, 0, 0x88), new byte[] { 0x00, 0x63, 0x00, 0x00 });
+            var packets = AthenaPacketParser.Parse(packet);
+            Check(packets.Count == 1 && packets[0].Payload.Length == 4, "0x88 consumes the packet remainder");
+            CheckClose(AthenaDecoders.DecodeBatteryPercent(packets[0].Payload), 49.5d, "battery via parser");
+        }
+
+        private static void ParserDropsUnknownTags()
+        {
+            // An unknown tag has no length, so nothing after it can be framed.
+            var unknownPrimary = Concat(PrimaryHeader(14 + 10, 1, 0, 0x77), Fill(10, 0));
+            Check(AthenaPacketParser.Parse(unknownPrimary).Count == 0, "unknown primary tag yields no packets");
+
+            var unknownSub = Concat(PrimaryHeader(14 + 28 + 5 + 10, 1, 0, 0x11), Fill(28, 0), SubHeader(0x77, 1), Fill(10, 0));
+            var packets = AthenaPacketParser.Parse(unknownSub);
+            Check(packets.Count == 1 && packets[0].Tag == 0x11, "unknown sub tag stops the sub packet walk");
+        }
+
+        private static void SensorConfigMatchesProtocolTable()
+        {
+            CheckConfig(0x11, AthenaSensorType.EEG, 4, 4, 28);
+            CheckConfig(0x12, AthenaSensorType.EEG, 8, 2, 28);
+            CheckConfig(0x34, AthenaSensorType.Optics, 4, 3, 30);
+            CheckConfig(0x35, AthenaSensorType.Optics, 8, 2, 40);
+            CheckConfig(0x36, AthenaSensorType.Optics, 16, 1, 40);
+            CheckConfig(0x47, AthenaSensorType.AccelerometerGyroscope, 6, 3, 36);
+            CheckConfig(0x53, AthenaSensorType.Unknown, 0, 0, 24);
+            CheckConfig(0x98, AthenaSensorType.Battery, 1, 1, 20);
+            Check(AthenaPacketParser.GetSensorConfig(0x88).VariableLength, "0x88 is variable length");
+            Check(AthenaPacketParser.GetSensorConfig(0x77) == null, "unrecognized tag has no config");
+        }
+
+        private static void CheckConfig(byte tag, AthenaSensorType type, int channels, int samples, int dataLength)
+        {
+            var config = AthenaPacketParser.GetSensorConfig(tag);
+            Check(config != null
+                && config.Type == type
+                && config.ChannelCount == channels
+                && config.SampleCount == samples
+                && config.DataLength == dataLength
+                && !config.VariableLength, $"sensor config for tag 0x{tag:X2}");
+        }
+
+        private static void CommandFramingMatchesProtocol()
+        {
+            Check(AthenaSession.FrameCommand("dc001").SequenceEqual(
+                new byte[] { 0x06, (byte)'d', (byte)'c', (byte)'0', (byte)'0', (byte)'1', 0x0A }), "frame dc001");
+            Check(AthenaSession.FrameCommand("h").SequenceEqual(new byte[] { 0x02, (byte)'h', 0x0A }), "frame h");
+
+            // Same framing the hardcoded legacy commands already use.
+            Check(AthenaSession.FrameCommand("s").SequenceEqual(BlueMuse.Constants.MUSE_CMD_ASK_CONTROL_STATUS), "matches legacy 's'");
+            Check(AthenaSession.FrameCommand("v6").SequenceEqual(BlueMuse.Constants.MUSE_CMD_ASK_DEVICE_INFO_ATHENA), "matches Athena 'v6'");
+        }
+
+        private static void SessionEmitsInitThenStartSequence()
+        {
+            var sent = new List<string>();
+            var session = new AthenaSession(command =>
+            {
+                sent.Add(Unframe(command));
+                return Task.FromResult(true);
+            });
+
+            session.Start().GetAwaiter().GetResult();
+            var expected = new[] { "v6", "s", "h", "p1041", "s", "dc001", "dc001", "L1", "s" };
+            Check(sent.SequenceEqual(expected), $"start sequence, got [{string.Join(",", sent)}]");
+
+            sent.Clear();
+            session.Stop().GetAwaiter().GetResult();
+            Check(sent.SequenceEqual(new[] { "h" }), "stop sends halt");
+
+            sent.Clear();
+            new AthenaSession(c => { sent.Add(Unframe(c)); return Task.FromResult(true); }, "p50")
+                .Initialize().GetAwaiter().GetResult();
+            Check(sent.Contains("p50") && !sent.Contains("p1041"), "explicit preset overrides the default");
+        }
+
+        private static void TimestampCorrectorSpacesSamplesByRate()
+        {
+            // First packet: sample 0 lands on the corrector's anchor, and samples are
+            // spaced by the nominal rate until the fit has something to learn from.
+            var corrector = new AthenaTimestampCorrector(256d, 1000d);
+            var first = corrector.Timestamps(4, 1000d);
+            Check(first.Length == 4, "one timestamp per sample");
+            CheckClose(first[0], 1000d, "first sample anchors to the first host time");
+            CheckNear(first[3] - first[0], 3d / 256d, 1e-4d, "samples spaced by the sample rate");
+
+            // Indices keep advancing across packets, so packet two continues where
+            // packet one stopped rather than restarting at the arrival time.
+            var second = corrector.Timestamps(4, 1000.02d);
+            Check(second[0] > first[3], "sample indices advance across packets");
+            CheckNear(second[0] - first[3], second[1] - second[0], 1e-4d, "packet boundary keeps the sample spacing");
+
+            Throws(() => new AthenaTimestampCorrector(0d, 0d), "non-positive sample rate");
+            Throws(() => corrector.Timestamps(0, 1000d), "zero sample count");
+        }
+
+        private static void TimestampCorrectorTracksTheRealSampleRate()
+        {
+            // A device running 1% slow: arrivals are 4 samples apart at 253.44 Hz while
+            // the nominal rate says 256 Hz. The fit has to follow the arrivals, not the
+            // nominal rate, or the stream drifts away from the host clock for good.
+            const double nominalRate = 256d;
+            const double realRate = 256d / 1.01d;
+            var corrector = new AthenaTimestampCorrector(nominalRate, 0d);
+
+            double[] timestamps = null;
+            for (int packet = 0; packet < 2000; packet++)
+            {
+                // Arrival jitters +/- 5 ms around the true packet time.
+                double jitter = ((packet % 3) - 1) * 0.005d;
+                timestamps = corrector.Timestamps(4, ((packet + 1) * 4 / realRate) + jitter);
+            }
+
+            double spacing = timestamps[1] - timestamps[0];
+            Check(Math.Abs(spacing - (1d / realRate)) < Math.Abs((1d / nominalRate) - (1d / realRate)) / 10d,
+                $"fitted spacing converges on the real sample rate (got {spacing}, want {1d / realRate})");
+
+            // Jitter is smoothed out: samples stay evenly spaced regardless of arrival.
+            for (int i = 1; i < timestamps.Length; i++)
+            {
+                CheckClose(timestamps[i] - timestamps[i - 1], spacing, $"even spacing at sample {i}");
+            }
+
+            // And the dejittered timestamps stay pinned to the host clock rather than
+            // sliding away from it.
+            Check(Math.Abs(timestamps[timestamps.Length - 1] - (2000 * 4 / realRate)) < 0.05d, "output tracks host time");
+        }
+
+        // --- Helpers --------------------------------------------------------
+
+        private static void Check(bool condition, string what)
+        {
+            if (condition) return;
+            failures++;
+            Console.WriteLine($"  FAILED: {what}");
+        }
+
+        private static void CheckClose(double actual, double expected, string what)
+        {
+            Check(Math.Abs(actual - expected) < 1e-9, $"{what} (expected {expected}, got {actual})");
+        }
+
+        private static void CheckNear(double actual, double expected, double tolerance, string what)
+        {
+            Check(Math.Abs(actual - expected) < tolerance, $"{what} (expected {expected} +/- {tolerance}, got {actual})");
+        }
+
+        private static void Throws(Action action, string what)
+        {
+            try
+            {
+                action();
+                failures++;
+                Console.WriteLine($"  FAILED: expected a throw for {what}");
+            }
+            catch (Exception) { }
+        }
+
+        /// <summary>Inverse of ExtractLsbBits, so expected raw values stay hand-checkable.</summary>
+        private static byte[] PackLsb(List<(int width, uint value)> fields)
+        {
+            int totalBits = fields.Sum(f => f.width);
+            var bytes = new byte[(totalBits + 7) / 8];
+            int bitPos = 0;
+            foreach (var (width, value) in fields)
+            {
+                for (int i = 0; i < width; i++)
+                {
+                    if (((value >> i) & 1u) != 0)
+                    {
+                        int absBit = bitPos + i;
+                        bytes[absBit >> 3] |= (byte)(1 << (absBit & 7));
+                    }
+                }
+                bitPos += width;
+            }
+            return bytes;
+        }
+
+        private static byte[] Int16Le(short[] values)
+        {
+            var bytes = new byte[values.Length * 2];
+            for (int i = 0; i < values.Length; i++)
+            {
+                bytes[i * 2] = (byte)(values[i] & 0xFF);
+                bytes[i * 2 + 1] = (byte)((values[i] >> 8) & 0xFF);
+            }
+            return bytes;
+        }
+
+        private static byte[] PrimaryHeader(int packetLength, ushort packetIndex, byte blockIndex, byte tag)
+        {
+            var header = new byte[14];
+            header[0] = (byte)packetLength;
+            header[1] = (byte)(packetIndex & 0xFF);
+            header[2] = (byte)((packetIndex >> 8) & 0xFF);
+            header[9] = tag;
+            header[10] = blockIndex;
+            return header;
+        }
+
+        private static byte[] SubHeader(byte tag, byte blockIndex)
+        {
+            return new byte[5] { tag, blockIndex, 0, 0, 0 };
+        }
+
+        private static byte[] Fill(int length, byte value)
+        {
+            var bytes = new byte[length];
+            for (int i = 0; i < length; i++) bytes[i] = value;
+            return bytes;
+        }
+
+        private static byte[] Concat(params byte[][] parts)
+        {
+            var result = new byte[parts.Sum(p => p.Length)];
+            int pos = 0;
+            foreach (var part in parts) { part.CopyTo(result, pos); pos += part.Length; }
+            return result;
+        }
+
+        private static string Unframe(byte[] framed)
+        {
+            return System.Text.Encoding.ASCII.GetString(framed, 1, framed.Length - 2);
+        }
+    }
+}

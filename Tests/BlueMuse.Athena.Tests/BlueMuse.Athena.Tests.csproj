@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Self-check for the Muse S Athena protocol code. Those files are plain C# with no
+    UWP dependencies, so they can be compiled and exercised without Windows or a
+    headband. Run it with `dotnet run` from this directory.
+
+    Deliberately kept out of BlueMuse.sln: the solution targets UWP / .NET Framework
+    and this is the only piece that builds anywhere else. No test framework either;
+    the asserts in Program.cs are the whole harness.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>BlueMuse.Athena.Tests</RootNamespace>
+    <AssemblyName>BlueMuse.Athena.Tests</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\BlueMuse.App\Misc\Constants.cs" />
+    <Compile Include="..\..\BlueMuse.App\Athena\AthenaDecoders.cs" />
+    <Compile Include="..\..\BlueMuse.App\Athena\AthenaPacketParser.cs" />
+    <Compile Include="..\..\BlueMuse.App\Athena\AthenaSession.cs" />
+  </ItemGroup>
+
+</Project>
