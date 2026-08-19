@@ -33,11 +33,10 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup Condition="'$(Platform)' == 'x86'">
-    <!-- Always use the release liblsl binary, even in Debug configuration. The "-debug" build of
-         liblsl depends on debug-only CRT/Intel runtime DLLs (MSVCP90D.dll, MSVCR90D.dll, libmmd.dll)
-         that aren't shipped with the app and typically aren't present on a dev/user machine unless
-         a matching debug toolset is installed, causing DllNotFoundException on liblsl load. The
-         release binary only depends on MSVCP90.dll/MSVCR90.dll, which are shipped in Binaries\. -->
+    <!-- liblsl (from the official sccn/liblsl release) depends on the VC++ 2015+ runtime
+         (VCRUNTIME140.dll/MSVCP140.dll), which is already provided by the VCLibs framework
+         package required by the Windows App SDK / WinUI 3 runtime this app depends on, so no
+         extra runtime DLLs need to be bundled here. -->
     <Content Include="Binaries\liblsl32.dll">
       <Link>liblsl32.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -46,16 +45,6 @@
   <ItemGroup Condition="'$(Platform)' == 'x64'">
     <Content Include="Binaries\liblsl64.dll">
       <Link>liblsl64.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Binaries\msvcp90.dll">
-      <Link>msvcp90.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Binaries\msvcr90.dll">
-      <Link>msvcr90.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

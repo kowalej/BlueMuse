@@ -174,9 +174,8 @@ See [CHANGELOG.md](./CHANGELOG.md) for the full version history.
 # Notes
 * **Requires Windows 10 version 1809 (10.0.17763.0) or later, or Windows 11. Built/targeted against the Windows 11 24H2 SDK (10.0.26100.0).**
 * **Streaming multiple Muses simultaneously -** maintaining consistent data rates for multiple devices may be difficult on some machines, depending on Bluetooth and compute hardware.
-* Uses both 32-bit and 64-bit LSL binaries (liblsl32.dll / liblsl64.dll), selected automatically at runtime based on process architecture. Acquired from: ftp://sccn.ucsd.edu/pub/software/LSL/SDK/liblsl-All-Languages-1.11.zip
-* liblsl32.dll and liblsl64.dll are dependent on MSVCP90.dll and MSVCR90.dll, both of which I included in the project since these may not be available in the System32 folder on your machine (they weren't on mine).
-* The full dependencies of liblsl32.dll are: KERNEL32.dll, WINMM.dll, MSVCP90.dll, WS2_32.dll, MSWSOCK.dll, and MSVCR90.dll. Generated with dumpbin utility.
+* Uses both 32-bit and 64-bit LSL binaries (liblsl32.dll / liblsl64.dll), selected automatically at runtime based on process architecture. Sourced from the official [`sccn/liblsl` v1.17.7 release](https://github.com/sccn/liblsl/releases/tag/v1.17.7) (`lsl.dll` from the `Win_i386`/`Win_amd64` release assets, renamed to `liblsl32.dll`/`liblsl64.dll` respectively). Older releases prior to this shipped a much older liblsl 1.11 build, which could be incompatible with modern LSL tooling (e.g. current `pylsl`/`muselsl`/LabRecorder builds) and resulted in outlets that resolved successfully but delivered no samples - see [#85](https://github.com/kowalej/BlueMuse/issues/85).
+* liblsl32.dll and liblsl64.dll depend on the VC++ 2015+ runtime (VCRUNTIME140.dll/MSVCP140.dll), which is already provided by the VCLibs framework package required by the Windows App SDK / WinUI 3 runtime this app depends on, so no extra runtime DLLs need to be bundled.
 
 ### Muse S Athena
 The Muse S Athena uses a different protocol from every earlier headband, so it is handled as its own model (`MuseSAthena`). Detection is automatic - it is the only Muse exposing GATT characteristic `273e0013-...`, which is probed before the name based Muse S check since Athena also advertises as `MuseS-****`.

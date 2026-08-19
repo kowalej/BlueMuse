@@ -4,6 +4,10 @@ Full version history for BlueMuse. See the [README](./README.md) for current fea
 
 ## 3.0.0.0
 * Muse S Athena support.
+* Upgraded bundled liblsl from the ~decade-old 1.11 build to the official 1.17.7 release, fixing LSL
+  outlets that would resolve successfully but deliver no samples to modern LSL consumers (pylsl,
+  muse-lsl, LabRecorder, etc.) - see [#85](https://github.com/kowalej/BlueMuse/issues/85). This also
+  removes the bundled MSVCP90.dll/MSVCR90.dll, which are no longer required.
 
 ## 2.5.0.0
 * Modernized to .NET 10 / WinUI 3, converted to SDK-style project.
