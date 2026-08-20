@@ -30,8 +30,8 @@ namespace BlueMuse.Bluetooth
         private static readonly object syncLock = new object();
         Timer pollMuseTimer;
 
-        public ObservableCollection<LSLStream> LSLStreams { get; } = new ObservableCollection<LSLStream>();
-        public LSLStreamManager LSLStreamManager { get; }
+        public ObservableCollection<BlueMuseLSLStream> LSLStreams { get; } = new ObservableCollection<BlueMuseLSLStream>();
+        public BlueMuseLSLStreamManager LSLStreamManager { get; }
         private int lslStreamCount;
         public int LSLStreamCount { get { return lslStreamCount; } private set { lslStreamCount = value; } }
 
@@ -54,7 +54,7 @@ namespace BlueMuse.Bluetooth
 
         private BluetoothManager() {
             Muses = new ObservableCollection<Muse>();
-            LSLStreamManager = new LSLStreamManager(LSLStreams, count => LSLStreamCount = count);
+            LSLStreamManager = new BlueMuseLSLStreamManager(LSLStreams, count => LSLStreamCount = count);
         }
 
         public async void Close()
@@ -97,6 +97,7 @@ namespace BlueMuse.Bluetooth
                         {
                             muse.Device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
                         }
+                        muse.Dispose();
                         Muses.Remove(muse);
                     }
                 }
@@ -200,6 +201,7 @@ namespace BlueMuse.Bluetooth
                     {
                         muse.Device.ConnectionStatusChanged -= Device_ConnectionStatusChanged;
                     }
+                    muse.Dispose();
                     Muses.Remove(muse);
                 }
             }

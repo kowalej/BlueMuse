@@ -22,6 +22,12 @@ namespace BlueMuse
         private Window window;
 
         /// <summary>
+        /// Allows the active Serilog minimum level to be changed at runtime (e.g. from a settings page)
+        /// without needing to recreate the logger.
+        /// </summary>
+        public static Serilog.Core.LoggingLevelSwitch LogLevelSwitch { get; private set; }
+
+        /// <summary>
         /// Initializes the singleton application object.
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
@@ -33,9 +39,14 @@ namespace BlueMuse
 
             var localFolder = Windows.Storage.ApplicationData.Current.LocalFolder.Path;
             var logPath = Path.Combine(localFolder, "Logs", "BlueMuse-Log-.log");
+            // Debug-level logging is verbose (e.g. per-chunk LSL push logs) and only useful while
+            // actively debugging - default to Information otherwise so normal/release runs don't
+            // pay the cost of writing/retaining that volume of log data.
+            LogLevelSwitch = new Serilog.Core.LoggingLevelSwitch(
+                Debugger.IsAttached ? Serilog.Events.LogEventLevel.Debug : Serilog.Events.LogEventLevel.Information);
             Log.Logger = new LoggerConfiguration()
                 .Enrich.WithExceptionDetails()
-                .MinimumLevel.Information()
+                .MinimumLevel.ControlledBy(LogLevelSwitch)
                 .WriteTo.File(
                     logPath,
                     rollingInterval: RollingInterval.Day,
@@ -141,7 +152,7 @@ namespace BlueMuse
                 rootFrame.Navigate(typeof(MainPage));
             }
 
-            RestoreWindowSize(window, 560, 720);
+            RestoreWindowSize(window, 800, 800);
             window.Closed += Window_Closed;
 
             window.Activate();

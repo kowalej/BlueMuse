@@ -64,7 +64,7 @@ namespace BlueMuse.Misc
             Key = Constants.TIMESTAMP_FORMAT_LSL_LOCAL_CLOCK_BLUEMUSE;
         }
         public sealed override double GetNow() {
-            return liblsl.local_clock();
+            return LSL.LSL.local_clock();
         }
     }
 
@@ -77,7 +77,7 @@ namespace BlueMuse.Misc
         }
         public sealed override double GetNow()
         {
-            return liblsl.local_clock(); // Now called directly in-process; no longer requires the LSLBridge workaround.
+            return LSL.LSL.local_clock(); // Now called directly in-process; no longer requires the LSL workaround.
         }
     }
 

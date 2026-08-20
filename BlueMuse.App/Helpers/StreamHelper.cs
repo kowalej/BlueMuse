@@ -5,12 +5,12 @@ namespace BlueMuse.Helpers
     public static class StreamHelper
     {
         // Get timestamps for a chunk using LSL local_clock.
-        public static double[] GenerateLSLNativeTimestamps(LSLBridgeStreamInfo streamInfo)
+        public static double[] GenerateLSLNativeTimestamps(BlueMuseLSLStreamInfo streamInfo)
         {
             int chunkSize = streamInfo.ChunkSize;
             double sampleTimeSeconds = 1.0d / streamInfo.NominalSRate;
             double[] timestamps = new double[chunkSize];
-            double baseSeconds = liblsl.local_clock(); // local_clock in seconds.
+            double baseSeconds = LSL.LSL.local_clock(); // local_clock in seconds.
 
             for (int i = 0; i < streamInfo.ChunkSize; i++)
             {

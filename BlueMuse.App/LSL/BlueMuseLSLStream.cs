@@ -1,5 +1,5 @@
-﻿using BlueMuse.LSL;
-using BlueMuse.Helpers;
+﻿using BlueMuse.Helpers;
+using Serilog;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -7,12 +7,12 @@ using System.Reflection;
 
 namespace BlueMuse.LSL
 {
-    public class LSLStream : ObservableObject, IDisposable
+    public class BlueMuseLSLStream : ObservableObject, IDisposable
     {
-        private liblsl.StreamOutlet lslStream;
+        private StreamOutlet lslStream;
 
-        private LSLBridgeStreamInfo streamInfo;
-        public LSLBridgeStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
+        private BlueMuseLSLStreamInfo streamInfo;
+        public BlueMuseLSLStreamInfo StreamInfo { get { return streamInfo; } private set { SetProperty(ref streamInfo, value); } }
 
         public string StreamDisplayInfo
         {
@@ -44,33 +44,33 @@ namespace BlueMuse.LSL
         private Stopwatch stopWatch;
         int sampleCountSec = 0;
 
-        public LSLStream(LSLBridgeStreamInfo streamInfo)
+        public BlueMuseLSLStream(BlueMuseLSLStreamInfo streamInfo)
         {
             StreamInfo = streamInfo;
-            liblsl.channel_format_t channelFormat;
+            channel_format_t channelFormat;
             
-            if (streamInfo.ChannelDataType == LSLBridgeDataType.FLOAT)
+            if (streamInfo.ChannelDataType == BlueMuseLSLDataType.FLOAT)
             {
-                channelFormat = liblsl.channel_format_t.cf_float32;
+                channelFormat = channel_format_t.cf_float32;
             }
-            else if (streamInfo.ChannelDataType == LSLBridgeDataType.DOUBLE)
+            else if (streamInfo.ChannelDataType == BlueMuseLSLDataType.DOUBLE)
             {
-                channelFormat = liblsl.channel_format_t.cf_double64;
+                channelFormat = channel_format_t.cf_double64;
             }
-            else if (streamInfo.ChannelDataType == LSLBridgeDataType.INT)
+            else if (streamInfo.ChannelDataType == BlueMuseLSLDataType.INT)
             {
-                channelFormat = liblsl.channel_format_t.cf_int32;
+                channelFormat = channel_format_t.cf_int32;
             }
-            else if (streamInfo.ChannelDataType == LSLBridgeDataType.STRING)
+            else if (streamInfo.ChannelDataType == BlueMuseLSLDataType.STRING)
             {
-                channelFormat = liblsl.channel_format_t.cf_string;
+                channelFormat = channel_format_t.cf_string;
             }
             else
             {
                 throw new InvalidOperationException("Unsupported channel data type.");
             }
 
-            var lslStreamInfo = new liblsl.StreamInfo(streamInfo.StreamName, streamInfo.StreamType, streamInfo.ChannelCount, streamInfo.NominalSRate, channelFormat, Assembly.GetExecutingAssembly().GetName().Name);
+            var lslStreamInfo = new StreamInfo(streamInfo.StreamName, streamInfo.StreamType, streamInfo.ChannelCount, streamInfo.NominalSRate, channelFormat, Assembly.GetExecutingAssembly().GetName().Name);
             lslStreamInfo.desc().append_child_value("manufacturer", streamInfo.DeviceManufacturer);
             lslStreamInfo.desc().append_child_value("device", streamInfo.DeviceName);
             lslStreamInfo.desc().append_child_value("type", streamInfo.StreamType);
@@ -84,7 +84,7 @@ namespace BlueMuse.LSL
             }
 
             OnPropertyChanged(nameof(StreamDisplayInfo));
-            lslStream = new liblsl.StreamOutlet(lslStreamInfo, streamInfo.ChunkSize, streamInfo.BufferLength);
+            lslStream = new StreamOutlet(lslStreamInfo, streamInfo.ChunkSize, streamInfo.BufferLength);
             stopWatch = new Stopwatch();
             stopWatch.Restart();
         }
@@ -151,9 +151,14 @@ namespace BlueMuse.LSL
                     dataRevised[rowIndex, lastColIndex - 1] = timestampBase;
                     dataRevised[rowIndex, lastColIndex] = remainder;
                 }
+                LogChunkSanityCheck("float+secondary", dataRevised, timestamps);
                 lslStream.push_chunk(dataRevised, timestamps);
             }
-            else lslStream.push_chunk(data, timestamps);
+            else
+            {
+                LogChunkSanityCheck("float", data, timestamps);
+                lslStream.push_chunk(data, timestamps);
+            }
         }
 
         // Only double[] and float[] chunks can support appending secondary timestamp.
@@ -173,15 +178,21 @@ namespace BlueMuse.LSL
                     }
                     dataRevised[rowIndex, lastColIndex] = timestamps2[rowIndex];
                 }
+                LogChunkSanityCheck("double+secondary", dataRevised, timestamps);
                 lslStream.push_chunk(dataRevised, timestamps);
             }
-            else lslStream.push_chunk(data, timestamps);
+            else
+            {
+                LogChunkSanityCheck("double", data, timestamps);
+                lslStream.push_chunk(data, timestamps);
+            }
         }
 
         public void PushChunkLSL(int[,] data, double[] timestamps)
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
             LatestValues = FormatLatestValues(data);
+            LogChunkSanityCheck("int", data, timestamps);
             lslStream.push_chunk(data, timestamps);
         }
 
@@ -189,7 +200,39 @@ namespace BlueMuse.LSL
         {
             LatestTimestamp = timestamps[timestamps.Length - 1];
             LatestValues = FormatLatestValues(data);
+            LogChunkSanityCheck("string", data, timestamps);
             lslStream.push_chunk(data, timestamps);
+        }
+
+        // Sanity-check logging: logs sample counts, first/last timestamp, a preview of the first row of data,
+        // and whether LSL currently has any consumers connected (a common reason data doesn't show up downstream
+        // even though push_chunk succeeds - no inlet/recorder is actually connected/pulling).
+        private void LogChunkSanityCheck<T>(string variant, T[,] data, double[] timestamps)
+        {
+            if (!Log.IsEnabled(Serilog.Events.LogEventLevel.Debug)) return;
+
+            int rowCount = data.GetLength(0);
+            int colCount = data.GetLength(1);
+            string firstRowPreview = null;
+            if (rowCount > 0)
+            {
+                var values = new string[colCount];
+                for (int col = 0; col < colCount; col++) values[col] = data[0, col]?.ToString() ?? "null";
+                firstRowPreview = string.Join(", ", values);
+            }
+
+            bool hasConsumers = lslStream.have_consumers();
+
+            Log.Debug("PushChunkLSL [{Variant}] Stream: '{StreamName}', Rows: {RowCount}, Cols: {ColCount}, FirstTimestamp: {FirstTs}, LastTimestamp: {LastTs}, FirstRow: [{FirstRow}], HasConsumers: {HasConsumers}",
+                variant, streamInfo?.StreamName, rowCount, colCount,
+                timestamps.Length > 0 ? timestamps[0] : (double?)null,
+                timestamps.Length > 0 ? timestamps[timestamps.Length - 1] : (double?)null,
+                firstRowPreview, hasConsumers);
+
+            if (!hasConsumers)
+            {
+                Log.Warning("PushChunkLSL [{Variant}] Stream: '{StreamName}' has NO consumers connected - data is being pushed but nothing is receiving it.", variant, streamInfo?.StreamName);
+            }
         }
 
         // Extracts and formats the last row (most recent sample) of a 2D chunk array for display purposes.

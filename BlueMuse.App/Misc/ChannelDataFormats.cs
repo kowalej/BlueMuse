@@ -7,7 +7,7 @@ namespace BlueMuse.Misc
     {
         public string Key { get; set; }
         public string DisplayName { get; set; }
-        public LSLBridgeDataType DataType { get; set; }
+        public BlueMuseLSLDataType DataType { get; set; }
     }
 
     public static class ChannelDataTypesContainer
@@ -17,13 +17,13 @@ namespace BlueMuse.Misc
             new ChannelDataType() {
                 Key = Constants.CHANNEL_DATA_TYPE_FLOAT,
                 DisplayName = "Single Precision (float32)",
-                DataType = LSLBridgeDataType.FLOAT
+                DataType = BlueMuseLSLDataType.FLOAT
             },
             new ChannelDataType()
             {
                 Key = Constants.CHANNEL_DATA_TYPE_DOUBLE,
                 DisplayName = "Double Precision (double64)",
-                DataType = LSLBridgeDataType.DOUBLE
+                DataType = BlueMuseLSLDataType.DOUBLE
             }
         };
     }

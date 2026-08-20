@@ -1,12 +1,10 @@
-﻿using BlueMuse.Bluetooth;
-using BlueMuse.Athena;
+﻿using BlueMuse.Athena;
+using BlueMuse.Bluetooth;
 using BlueMuse.Helpers;
 using BlueMuse.LSL;
 using BlueMuse.Misc;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
-using Serilog.Core;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -22,9 +20,11 @@ using Windows.Foundation;
 
 namespace BlueMuse.MuseManagement
 {
-    public class Muse : ObservableObject
+    public class Muse : ObservableObject, IDisposable
     {
         private static readonly object syncLock = new object();
+
+        private bool disposed;
 
         public BluetoothLEDevice Device;
 
@@ -40,6 +40,10 @@ namespace BlueMuse.MuseManagement
         // Settings for a stream - read from static variables and fixed at stream start.
         private ITimestampFormat timestampFormat = TimestampFormat;
         private ITimestampFormat timestampFormat2 = TimestampFormat2;
+        // Whether a secondary timestamp column should be computed/sent at all. When false, samples
+        // must not compute or push a Timestamps2 array - the LSL outlet isn't declared with the extra
+        // channel(s) for it, so sending one anyway would misalign every column after it.
+        private bool sendSecondaryTimestamp = TimestampFormat2.GetType() != typeof(DummyTimestampFormat);
         private ChannelDataType channelDataType = ChannelDataType;
         private bool isEEGEnabled = true;
         private bool isAccelerometerEnabled = true;
@@ -216,9 +220,9 @@ namespace BlueMuse.MuseManagement
         }
 
         Timer deviceInfoTimer;
-        private readonly LSLStreamManager lslStreamManager;
+        private readonly BlueMuseLSLStreamManager lslStreamManager;
 
-        public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status, LSLStreamManager lslStreamManager)
+        public Muse(BluetoothLEDevice device, string name, string id, MuseConnectionStatus status, BlueMuseLSLStreamManager lslStreamManager)
         {
             Device = device;
             Name = name;
@@ -336,6 +340,7 @@ namespace BlueMuse.MuseManagement
                     // Pull properties for stream from static global settings.
                     timestampFormat = TimestampFormat;
                     timestampFormat2 = TimestampFormat2;
+                    sendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat);
                     channelDataType = ChannelDataType;
                     isEEGEnabled = IsEEGEnabled;
                     isAccelerometerEnabled = IsAccelerometerEnabled;
@@ -559,6 +564,10 @@ namespace BlueMuse.MuseManagement
             // by a manual user-initiated refresh. If two invocations overlap, their GATT responses
             // both get appended into the same shared deviceInfoBuffer/controlStatusBuffer fields,
             // interleaving/corrupting the JSON from two independent request/response cycles.
+            // Also bail out entirely if this Muse has been disposed (e.g. device watcher removed it) -
+            // otherwise the timer keeps firing forever against a dead/disconnected device, causing
+            // endless COMException/ObjectDisposedException/GATT "Unreachable" errors.
+            if (disposed || Device == null) return;
             if (refreshingDeviceInfoAndControlStatus) return;
             refreshingDeviceInfoAndControlStatus = true;
 
@@ -643,7 +652,7 @@ namespace BlueMuse.MuseManagement
         /// </summary>
         public async Task WarmupConnectionAsync()
         {
-            if (Device == null || togglingStream) return;
+            if (disposed || Device == null || togglingStream) return;
             if (!await gattLock.WaitAsync(0)) return;
             try
             {
@@ -925,6 +934,20 @@ namespace BlueMuse.MuseManagement
         }
 
         // Handles LSL stream opening.
+        /// <summary>
+        /// Stops and releases resources owned by this Muse (timer, device event subscriptions).
+        /// Must be called whenever this Muse is removed from the tracked collection so that its
+        /// periodic refresh timer does not keep firing against a disconnected/dead device.
+        /// </summary>
+        public void Dispose()
+        {
+            if (disposed) return;
+            disposed = true;
+            deviceInfoTimer?.Change(Timeout.Infinite, Timeout.Infinite);
+            deviceInfoTimer?.Dispose();
+            deviceInfoTimer = null;
+        }
+
         private async void FinishOpenStream()
         {
             await LSLOpenStreams();
@@ -952,13 +975,13 @@ namespace BlueMuse.MuseManagement
 
         private void LSLStream_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(LSLStream.StreamDisplayInfo))
+            if (e.PropertyName == nameof(BlueMuseLSLStream.StreamDisplayInfo))
             {
                 OnPropertyChanged(nameof(ActiveStreamsInfo));
             }
         }
 
-        private IEnumerable<LSLStream> GetOwnLSLStreams()
+        private IEnumerable<BlueMuseLSLStream> GetOwnLSLStreams()
         {
             var streamNames = new[] { EEGStreamName, AccelerometerStreamName, GyroscopeStreamName, PPGStreamName, TelemetryStreamName };
             return BluetoothManager.Instance.LSLStreams.Where(x => streamNames.Contains(x.StreamInfo.StreamName));
@@ -990,10 +1013,10 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLOpenEEG()
         {
-            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            var channelsInfo = new List<BlueMuseLSLChannelInfo>();
             foreach (var c in eegChannelLabels)
             {
-                channelsInfo.Add(new LSLBridgeChannelInfo
+                channelsInfo.Add(new BlueMuseLSLChannelInfo
                 {
                     Label = c,
                     Type = Constants.EEG_STREAM_TYPE,
@@ -1001,7 +1024,7 @@ namespace BlueMuse.MuseManagement
                 });
             }
 
-            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            BlueMuseLSLStreamInfo streamInfo = new BlueMuseLSLStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
@@ -1012,7 +1035,7 @@ namespace BlueMuse.MuseManagement
                 DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_EEG_SAMPLE_RATE,
                 StreamType = Constants.EEG_STREAM_TYPE,
-                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
                 StreamName = EEGStreamName
             };
 
@@ -1022,10 +1045,10 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLOpenAccelerometer()
         {
-            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            var channelsInfo = new List<BlueMuseLSLChannelInfo>();
             foreach (var c in Constants.MUSE_ACCELEROMETER_CHANNEL_LABELS)
             {
-                channelsInfo.Add(new LSLBridgeChannelInfo
+                channelsInfo.Add(new BlueMuseLSLChannelInfo
                 {
                     Label = c,
                     Type = Constants.ACCELEROMETER_STREAM_TYPE,
@@ -1033,7 +1056,7 @@ namespace BlueMuse.MuseManagement
                 });
             }
 
-            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            BlueMuseLSLStreamInfo streamInfo = new BlueMuseLSLStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
@@ -1044,7 +1067,7 @@ namespace BlueMuse.MuseManagement
                 DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_ACCELEROMETER_SAMPLE_RATE,
                 StreamType = Constants.ACCELEROMETER_STREAM_TYPE,
-                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
                 StreamName = AccelerometerStreamName
             };
 
@@ -1054,10 +1077,10 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLOpenGyroscope()
         {
-            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            var channelsInfo = new List<BlueMuseLSLChannelInfo>();
             foreach (var c in Constants.MUSE_GYROSCOPE_CHANNEL_LABELS)
             {
-                channelsInfo.Add(new LSLBridgeChannelInfo
+                channelsInfo.Add(new BlueMuseLSLChannelInfo
                 {
                     Label = c,
                     Type = Constants.GYROSCOPE_STREAM_TYPE,
@@ -1065,7 +1088,7 @@ namespace BlueMuse.MuseManagement
                 });
             }
 
-            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            BlueMuseLSLStreamInfo streamInfo = new BlueMuseLSLStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
@@ -1076,7 +1099,7 @@ namespace BlueMuse.MuseManagement
                 DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_GYROSCOPE_SAMPLE_RATE,
                 StreamType = Constants.GYROSCOPE_STREAM_TYPE,
-                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
                 StreamName = GyroscopeStreamName
             };
 
@@ -1086,10 +1109,10 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLOpenPPG()
         {
-            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            var channelsInfo = new List<BlueMuseLSLChannelInfo>();
             foreach (var c in Constants.MUSE_PPG_CHANNEL_LABELS)
             {
-                channelsInfo.Add(new LSLBridgeChannelInfo
+                channelsInfo.Add(new BlueMuseLSLChannelInfo
                 {
                     Label = c,
                     Type = Constants.PPG_STREAM_TYPE,
@@ -1097,7 +1120,7 @@ namespace BlueMuse.MuseManagement
                 });
             }
 
-            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            BlueMuseLSLStreamInfo streamInfo = new BlueMuseLSLStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
@@ -1108,7 +1131,7 @@ namespace BlueMuse.MuseManagement
                 DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_PPG_SAMPLE_RATE,
                 StreamType = Constants.PPG_STREAM_TYPE,
-                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
                 StreamName = PPGStreamName
             };
 
@@ -1118,10 +1141,10 @@ namespace BlueMuse.MuseManagement
 
         private Task LSLOpenTelemetry()
         {
-            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            var channelsInfo = new List<BlueMuseLSLChannelInfo>();
             foreach (var c in Constants.MUSE_TELEMETRY_CHANNEL_LABELS)
             {
-                channelsInfo.Add(new LSLBridgeChannelInfo
+                channelsInfo.Add(new BlueMuseLSLChannelInfo
                 {
                     Label = c,
                     Type = Constants.TELEMETRY_STREAM_TYPE,
@@ -1129,7 +1152,7 @@ namespace BlueMuse.MuseManagement
                 });
             }
 
-            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            BlueMuseLSLStreamInfo streamInfo = new BlueMuseLSLStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
@@ -1140,7 +1163,7 @@ namespace BlueMuse.MuseManagement
                 DeviceName = lslDeviceInfoName,
                 NominalSRate = Constants.MUSE_TELEMETRY_SAMPLE_RATE,
                 StreamType = Constants.TELEMETRY_STREAM_TYPE,
-                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
                 StreamName = TelemetryStreamName
             };
 
@@ -1189,10 +1212,10 @@ namespace BlueMuse.MuseManagement
 
         private void LSLOpenAthenaStream(string streamName, string streamType, string units, string[] channelLabels, int channelCount, int chunkSize, double sampleRate)
         {
-            var channelsInfo = new List<LSLBridgeChannelInfo>();
+            var channelsInfo = new List<BlueMuseLSLChannelInfo>();
             foreach (var c in channelLabels)
             {
-                channelsInfo.Add(new LSLBridgeChannelInfo
+                channelsInfo.Add(new BlueMuseLSLChannelInfo
                 {
                     Label = c,
                     Type = streamType,
@@ -1200,7 +1223,7 @@ namespace BlueMuse.MuseManagement
                 });
             }
 
-            LSLBridgeStreamInfo streamInfo = new LSLBridgeStreamInfo()
+            BlueMuseLSLStreamInfo streamInfo = new BlueMuseLSLStreamInfo()
             {
                 BufferLength = Constants.MUSE_LSL_BUFFER_LENGTH,
                 Channels = channelsInfo,
@@ -1211,7 +1234,7 @@ namespace BlueMuse.MuseManagement
                 DeviceName = lslDeviceInfoName,
                 NominalSRate = sampleRate,
                 StreamType = streamType,
-                SendSecondaryTimestamp = timestampFormat2.GetType() != typeof(DummyTimestampFormat),
+                SendSecondaryTimestamp = sendSecondaryTimestamp,
                 StreamName = streamName
             };
 
@@ -1232,7 +1255,7 @@ namespace BlueMuse.MuseManagement
         private Task LSLPushEEGChunk(MuseEEGSamples sample)
         {
             // 2D array shape: [sampleIndex, channelIndex].
-            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            if (channelDataType.DataType == BlueMuseLSLDataType.DOUBLE)
             {
                 double[,] data = new double[Constants.MUSE_EEG_SAMPLE_COUNT, eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
@@ -1243,10 +1266,10 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = channelData[j];
                     }
                 }
-                lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            else if (channelDataType.DataType == BlueMuseLSLDataType.FLOAT)
             {
                 float[,] data = new float[Constants.MUSE_EEG_SAMPLE_COUNT, eegChannelCount];
                 for (int i = 0; i < eegChannelCount; i++)
@@ -1257,7 +1280,7 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = (float)channelData[j];
                     }
                 }
-                lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(EEGStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
             else throw new InvalidOperationException("Can't push LSL EEG chunk - unsupported stream data type. Must use float32 or double64.");
@@ -1268,7 +1291,7 @@ namespace BlueMuse.MuseManagement
         private Task LSLPushPPGChunk(MusePPGSamples sample)
         {
             // 2D array shape: [sampleIndex, channelIndex].
-            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            if (channelDataType.DataType == BlueMuseLSLDataType.DOUBLE)
             {
                 double[,] data = new double[Constants.MUSE_PPG_SAMPLE_COUNT, Constants.MUSE_PPG_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
@@ -1279,10 +1302,10 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = channelData[j];
                     }
                 }
-                lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            else if (channelDataType.DataType == BlueMuseLSLDataType.FLOAT)
             {
                 float[,] data = new float[Constants.MUSE_PPG_SAMPLE_COUNT, Constants.MUSE_PPG_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_PPG_CHANNEL_COUNT; i++)
@@ -1293,7 +1316,7 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = (float)channelData[j];
                     }
                 }
-                lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(PPGStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
             else throw new InvalidOperationException("Can't push LSL PPG chunk - unsupported stream data type. Must use float32 or double64.");
@@ -1304,12 +1327,12 @@ namespace BlueMuse.MuseManagement
         private Task LSLPushAccelerometerChunk(MuseAccelerometerSamples sample)
         {
             // XYZSamples is already shaped [sampleIndex, channelIndex].
-            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            if (channelDataType.DataType == BlueMuseLSLDataType.DOUBLE)
             {
-                lslStreamManager.SendChunk(AccelerometerStreamName, sample.XYZSamples, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(AccelerometerStreamName, sample.XYZSamples, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            else if (channelDataType.DataType == BlueMuseLSLDataType.FLOAT)
             {
                 float[,] data = new float[Constants.MUSE_ACCELEROMETER_SAMPLE_COUNT, Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_ACCELEROMETER_CHANNEL_COUNT; i++)
@@ -1319,7 +1342,7 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = (float)sample.XYZSamples[j, i];
                     }
                 }
-                lslStreamManager.SendChunk(AccelerometerStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(AccelerometerStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
             else throw new InvalidOperationException("Can't push LSL Accelerometer chunk - unsupported stream data type. Must use float32 or double64.");
@@ -1330,12 +1353,12 @@ namespace BlueMuse.MuseManagement
         private Task LSLPushGyroscopeChunk(MuseGyroscopeSamples sample)
         {
             // XYZSamples is already shaped [sampleIndex, channelIndex].
-            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            if (channelDataType.DataType == BlueMuseLSLDataType.DOUBLE)
             {
-                lslStreamManager.SendChunk(GyroscopeStreamName, sample.XYZSamples, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(GyroscopeStreamName, sample.XYZSamples, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            else if (channelDataType.DataType == BlueMuseLSLDataType.FLOAT)
             {
                 float[,] data = new float[Constants.MUSE_GYROSCOPE_SAMPLE_COUNT, Constants.MUSE_GYROSCOPE_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_GYROSCOPE_CHANNEL_COUNT; i++)
@@ -1345,7 +1368,7 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = (float)sample.XYZSamples[j, i];
                     }
                 }
-                lslStreamManager.SendChunk(GyroscopeStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(GyroscopeStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
             else throw new InvalidOperationException("Can't push LSL Accelerometer chunk - unsupported stream data type. Must use float32 or double64.");
@@ -1356,7 +1379,7 @@ namespace BlueMuse.MuseManagement
         private Task LSLPushTelemetryChunk(MuseTelemetrySamples sample)
         {
             // 2D array shape: [sampleIndex, channelIndex]. Telemetry samples are constant across the chunk per channel.
-            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            if (channelDataType.DataType == BlueMuseLSLDataType.DOUBLE)
             {
                 double[,] data = new double[Constants.MUSE_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
@@ -1366,10 +1389,10 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = sample.TelemetryData[i];
                     }
                 }
-                lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            else if (channelDataType.DataType == BlueMuseLSLDataType.FLOAT)
             {
                 float[,] data = new float[Constants.MUSE_TELEMETRY_SAMPLE_COUNT, Constants.MUSE_TELEMETRY_CHANNEL_COUNT];
                 for (int i = 0; i < Constants.MUSE_TELEMETRY_CHANNEL_COUNT; i++)
@@ -1379,7 +1402,7 @@ namespace BlueMuse.MuseManagement
                         data[j, i] = (float)sample.TelemetryData[i];
                     }
                 }
-                lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sample.Timestamps2);
+                lslStreamManager.SendChunk(TelemetryStreamName, data, sample.Timestamps, sendSecondaryTimestamp ? sample.Timestamps2 : null);
             }
 
             else throw new InvalidOperationException("Can't push LSL Telemetry chunk - unsupported stream data type. Must use float32 or double64.");
@@ -1399,12 +1422,12 @@ namespace BlueMuse.MuseManagement
             int sampleCount = samples.GetLength(0);
 
             var timestamps = AthenaTimestamps(dejitter ? athenaTimestampCorrectors : null, streamName, sampleCount, sampleRate, hostTime);
-            var timestamps2 = timestampFormat.GetType() != timestampFormat2.GetType()
+            var timestamps2 = sendSecondaryTimestamp
                     ? AthenaTimestamps(dejitter ? athenaTimestampCorrectors2 : null, streamName, sampleCount, sampleRate, hostTime2)
-                    : timestamps;
+                    : null;
 
             // 2D array shape: [sampleIndex, channelIndex].
-            if (channelDataType.DataType == LSLBridgeDataType.DOUBLE)
+            if (channelDataType.DataType == BlueMuseLSLDataType.DOUBLE)
             {
                 double[,] data = new double[sampleCount, channelCount];
                 for (int i = 0; i < channelCount; i++)
@@ -1417,7 +1440,7 @@ namespace BlueMuse.MuseManagement
                 lslStreamManager.SendChunk(streamName, data, timestamps, timestamps2);
             }
 
-            else if (channelDataType.DataType == LSLBridgeDataType.FLOAT)
+            else if (channelDataType.DataType == BlueMuseLSLDataType.FLOAT)
             {
                 float[,] data = new float[sampleCount, channelCount];
                 for (int i = 0; i < channelCount; i++)
@@ -1473,7 +1496,7 @@ namespace BlueMuse.MuseManagement
                 // Every block in this notification shares its arrival time; the
                 // dejitterers turn that into evenly spaced per-sample timestamps.
                 double hostTime = timestampFormat.GetNow();
-                double hostTime2 = timestampFormat.GetType() != timestampFormat2.GetType() ? timestampFormat2.GetNow() : hostTime;
+                double hostTime2 = sendSecondaryTimestamp ? timestampFormat2.GetNow() : hostTime;
 
                 foreach (var packet in AthenaPacketParser.Parse(args.CharacteristicValue.ToArray()))
                 {
@@ -1567,9 +1590,7 @@ namespace BlueMuse.MuseManagement
                             samples = new MuseEEGSamples();
                             eegSampleBuffer.Add(museTimestamp, samples);
                             samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                            samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
-                                  timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                                : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                            samples.BasetimeStamp2 = sendSecondaryTimestamp ? timestampFormat2.GetNow() : samples.BaseTimestamp;
                         }
                         else samples = eegSampleBuffer[museTimestamp];
 
@@ -1641,9 +1662,7 @@ namespace BlueMuse.MuseManagement
                             samples = new MusePPGSamples();
                             ppgSampleBuffer.Add(museTimestamp, samples);
                             samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                            samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
-                                  timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                                : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                            samples.BasetimeStamp2 = sendSecondaryTimestamp ? timestampFormat2.GetNow() : samples.BaseTimestamp;
                         }
                         else samples = ppgSampleBuffer[museTimestamp];
 
@@ -1675,9 +1694,7 @@ namespace BlueMuse.MuseManagement
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseAccelerometerSamples samples = new MuseAccelerometerSamples();
                     samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                    samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
-                            timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                        : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                    samples.BasetimeStamp2 = sendSecondaryTimestamp ? timestampFormat2.GetNow() : samples.BaseTimestamp;
 
                     samples.XYZSamples = MuseAccelerometerSamples.DecodeAccelerometerSamples(bits);
                     await LSLPushAccelerometerChunk(samples);
@@ -1699,9 +1716,7 @@ namespace BlueMuse.MuseManagement
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseGyroscopeSamples samples = new MuseGyroscopeSamples();
                     samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                    samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
-                            timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                        : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                    samples.BasetimeStamp2 = sendSecondaryTimestamp ? timestampFormat2.GetNow() : samples.BaseTimestamp;
 
                     samples.XYZSamples = MuseGyroscopeSamples.DecodeGyroscopeSamples(bits);
                     await LSLPushGyroscopeChunk(samples);
@@ -1723,9 +1738,7 @@ namespace BlueMuse.MuseManagement
                     ushort museTimestamp = PacketConversion.ToUInt16(bits, 0); // Zero bit offset, since first 16 bits represent Muse timestamp.
                     MuseTelemetrySamples samples = new MuseTelemetrySamples();
                     samples.BaseTimestamp = timestampFormat.GetNow(); // This is the real timestamp, not the Muse timestamp which we use to group channel data.
-                    samples.BasetimeStamp2 = timestampFormat.GetType() != timestampFormat2.GetType() ?
-                            timestampFormat2.GetNow() // This is the real timestamp (format 2), not the Muse timestamp which we use to group channel data.
-                        : samples.BasetimeStamp2 = samples.BaseTimestamp; // Ensures they are equal if using same timestamp format.
+                    samples.BasetimeStamp2 = sendSecondaryTimestamp ? timestampFormat2.GetNow() : samples.BaseTimestamp;
 
                     samples.TelemetryData = MuseTelemetrySamples.DecodeTelemetrySamples(bits);
 
