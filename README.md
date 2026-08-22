@@ -100,7 +100,7 @@ Toggle "always pair":
 
 
 # Installation
-> **NOTE:** As of version 2.5.0.0 (the .NET 10 / WinUI 3 modernization), BlueMuse is now a single self-contained
+> **NOTE:** As of version 3.1.0 (the .NET 10 / WinUI 3 modernization), BlueMuse is now a single self-contained
 > MSIX-packaged application (the separate "LSL Bridge" Win32 process used in 2.4.0.0 and earlier has been merged
 > directly into the main app - see the [Architecture](#architecture) note below). The distribution method
 > (Microsoft Store vs. sideload) is **still being finalized** - this section will be updated once that is
@@ -111,12 +111,12 @@ Toggle "always pair":
 ### Sideload Install (Current Method)
 Each [release](https://github.com/kowalej/BlueMuse/releases) contains **two separate architecture-specific
 artifacts** (x64 and x86) - download the one matching your machine (x64 for most modern PCs) and unzip it. The
-unzipped folder is a self-contained, Visual-Studio-generated sideload package (e.g. `BlueMuse.App_2.5.0.0_x64`)
+unzipped folder is a self-contained, Visual-Studio-generated sideload package (e.g. `BlueMuse.App_3.1.0.0_x64`)
 containing the `.msix`, the signing `.cer`, a `Dependencies` folder (with the required
 `Microsoft.WindowsAppRuntime.2.msix` per CPU architecture), and PowerShell installer scripts.
 
 #### Auto Install (Recommended)
-1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases/tag/v2.5.0.0)** matching your architecture and unzip it.
+1. **Download the [latest release](https://github.com/kowalej/BlueMuse/releases/tag/v3.1.0)** matching your architecture and unzip it.
 2. Right-click `InstallBlueMuse.ps1` and choose **Run with PowerShell** (this removes any previously installed
    BlueMuse package first, then runs `Install.ps1`). Alternatively, run `Install.ps1` or `Add-AppDevPackage.ps1`
    directly if you don't need the old version removed automatically.
@@ -134,7 +134,7 @@ containing the `.msix`, the signing `.cer`, a `Dependencies` folder (with the re
 2. Open the `Dependencies\<arch>` folder and double-click `Microsoft.WindowsAppRuntime.2.msix` to install it.
 3. Double-click the `.msix` package in the folder root to install BlueMuse.
 
-*Note: releases prior to 2.5.0.0 (2.4.0.0 and earlier) shipped as a UWP app paired with a separate "LSL Bridge"
+*Note: releases prior to 3.1.0 (2.4.0.0 and earlier) shipped as a UWP app paired with a separate "LSL Bridge"
 Win32 process and .NET Native runtime dependencies (`.appxbundle` + `Microsoft.NET.Native.Framework`/`.Runtime`
 packages instead of `.msix` + `Microsoft.WindowsAppRuntime.2`), and required Windows 10 1703 or later. The same
 Auto/Manual install steps above apply structurally, just with those older package names - see the
@@ -150,20 +150,16 @@ certificate/sideload steps entirely. This section will be updated if a store lin
 
 # Versions
 ### Latest
-* ~~3.0.0.0 (beta)~~ - Broken EEG & Telemetry streams.
-	* Muse S Athena support.
-* ~~2.5.0.0 (stable)~~ - Broken EEG & Telemetry streams.
+* 3.1.0 (stable) - Modernized & Athena Support
+	* Muse S Athena support (experimental, not verified).
 	* Modernized to .NET 10 / WinUI 3, converted to SDK-style project.
-	* Merged the separate "LSL Bridge" Win32 process directly into the main app (single-process architecture,
-	  see [Architecture](#architecture)).
-	* UI refresh: settings moved to a slide-out side panel, improved main list layout, compact per-stream
-	  info display with latest sample values and a one-click copy button.
-	* Added Muse S Athena support (see [Muse S Athena](#muse-s-athena)).
+	* Merged the separate "LSL Bridge" Win32 process directly into the main app (single-process architecture, see [Architecture](https://github.com/kowalej/BlueMuse#architecture)).
+	* UI refresh: settings moved to a slide-out side panel, improved main list layout, compact per-stream info display with latest sample values and a one-click copy button.
+	* Added Muse S Athena support (see [Muse S Athena](https://github.com/kowalej/BlueMuse#muse-s-athena)).
 	* Added Esc key support to collapse/deselect the currently selected Muse in the list.
-	* Fixed intermittent Bluetooth/GATT communication issues (JSON parsing errors, spurious device removal,
-	  and connection churn) via reentrancy guards and per-device GATT serialization.
+	* Fixed intermittent Bluetooth/GATT communication issues (JSON parsing errors, spurious device removal, and connection churn) via reentrancy guards and per-device GATT serialization.
 	* Window size is now persisted between launches, and the window/taskbar title correctly shows "BlueMuse".
-* 2.4.0.0 (stable)
+* 2.4.0.0 (stable) - Last classic LSLBridge version (UWP).
 	* Misc package updates.
 		* Support Windows 11.
 		* Last release built on UWP before the .NET 10 / WinUI 3 modernization (see 2.5.0.0 above).
@@ -183,15 +179,15 @@ The Muse S Athena uses a different protocol from every earlier headband, so it i
 
 Differences worth knowing if you are reading the data:
 
-* **Multiplexed data characteristics, not one per channel.** Every sensor is multiplexed into tagged packets on `273e0013-...` and `273e0014-...` (both are subscribed, as in `muse-lsl` and BrainFlow), so a single Bluetooth notification can carry EEG, IMU, optics and battery at once. All enabled LSL outlets are therefore opened before streaming starts rather than on first packet.
+* **Multiplexed data characteristics, not one per channel.** Every sensor is multiplexed into tagged packets on `273e0013-...` and `273e0014-...` (both are subscribed, as in `muselsl` and BrainFlow), so a single Bluetooth notification can carry EEG, IMU, optics and battery at once. All enabled LSL outlets are therefore opened before streaming starts rather than on first packet.
 * **EEG** is 4 channels x 4 samples per packet (chunk size 4, not 12), 14-bit offset binary LSB-first, scaled over a 1450 uV full range after subtracting the 2^13 midpoint (the legacy 12-bit samples subtract 2048). The 8 channel packet layout is also decoded, with the four headband electrodes published.
 * **Accelerometer and gyroscope share one packet** (6 channels x 3 samples) and are split across the two existing LSL streams. The accelerometer scale matches the older headbands; **the gyroscope scale is negated** relative to them.
 * **Optics (fNIRS)** is published on the PPG stream as 16 channels of raw 20-bit detector counts, labelled `OPTICS0`..`OPTICS15`. The 4 and 8 channel packet layouts carry a subset of the same canonical channels, and the channels a packet does not carry are published as zero.
 * **Telemetry** is battery percent only - the older four channel battery / fuel / voltage / temperature block does not exist. The raw value is in 1/512ths of a percent.
-* **Timestamps** come from the host arrival time of each notification, dejittered per stream by a recursive least squares fit of sample index against arrival time (as `muse-lsl` does) - the packet header carries a packet index but no device clock. Sample spacing therefore reflects the fitted sample rate rather than Bluetooth delivery jitter.
+* **Timestamps** come from the host arrival time of each notification, dejittered per stream by a recursive least squares fit of sample index against arrival time (as `muselsl` does) - the packet header carries a packet index but no device clock. Sample spacing therefore reflects the fitted sample rate rather than Bluetooth delivery jitter.
 * Starting a stream requires an ASCII command handshake (`v6`, `s`, `h`, `p1041`, `s`, then `dc001`, `dc001`, `L1`, `s`) with specific inter-command delays, rather than a single start command.
 
-Decoding matches [`muse-lsl`'s Athena support](https://github.com/alexandrebarachant/muse-lsl/pull/228), since BlueMuse is commonly used as the Windows backend for it.
+Decoding matches [`muselsl`'s Athena support](https://github.com/alexandrebarachant/muse-lsl/pull/228), since BlueMuse is commonly used as the Windows backend for it.
 
 The protocol code in `BlueMuse.App/Athena` has no Windows dependencies and has a self-check that runs anywhere .NET 8 is available: `cd Tests/BlueMuse.Athena.Tests && dotnet run`.
 
