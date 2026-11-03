@@ -490,14 +490,19 @@ namespace BlueMuse.MuseManagement
         // subscribed to a single handler which fans packets out by tag.
         private async Task ToggleAthenaStream(bool start)
         {
-            var athenaDataUuids = new[] { Constants.MUSE_GATT_ATHENA_DATA1_UUID, Constants.MUSE_GATT_ATHENA_DATA2_UUID }
-                .Where(uuid => streamCharacteristics?.Any(x => x.Uuid == uuid) == true)
-                .ToArray();
-
-            if (athenaDataUuids.Length < 1 || !await ToggleCharacteristics(athenaDataUuids, streamCharacteristics, start, AthenaData_ValueChanged))
+            // DATA1 is required. DATA2 is optional: some devices/firmware expose it without
+            // supporting notifications (ATT error 0xFD / 253), so a failure there is non-fatal.
+            bool hasData1 = streamCharacteristics?.Any(x => x.Uuid == Constants.MUSE_GATT_ATHENA_DATA1_UUID) == true;
+            if (!hasData1 || !await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ATHENA_DATA1_UUID }, streamCharacteristics, start, AthenaData_ValueChanged))
             {
                 Log.Error($"Cannot complete toggle stream (start={start}) due to failure to toggle the Muse S Athena data characteristics.");
                 if (start) return;
+            }
+
+            if (streamCharacteristics?.Any(x => x.Uuid == Constants.MUSE_GATT_ATHENA_DATA2_UUID) == true
+                && !await ToggleCharacteristics(new[] { Constants.MUSE_GATT_ATHENA_DATA2_UUID }, streamCharacteristics, start, AthenaData_ValueChanged))
+            {
+                Log.Warning($"Could not toggle optional Muse S Athena DATA_2 characteristic (start={start}); continuing with DATA_1 only.");
             }
 
             if (start)
@@ -916,7 +921,12 @@ namespace BlueMuse.MuseManagement
                 if (start)
                 {
                     characteristic.ValueChanged += eventHandler;
-                    notifyToggle = GattClientCharacteristicConfigurationDescriptorValue.Notify;
+                    // Some characteristics only support Indicate; writing Notify to them fails with ATT error 0xFD (253).
+                    var props = characteristic.CharacteristicProperties;
+                    notifyToggle = !props.HasFlag(GattCharacteristicProperties.Notify) && props.HasFlag(GattCharacteristicProperties.Indicate)
+                        ? GattClientCharacteristicConfigurationDescriptorValue.Indicate
+                        : GattClientCharacteristicConfigurationDescriptorValue.Notify;
+                    Log.Information($"Subscribing to GATT characteristic (UUID={c}) using {notifyToggle}. Properties: {props}.");
                 }
                 else
                 {
